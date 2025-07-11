@@ -353,6 +353,17 @@
       opacity: 1;
     }
 
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toggle-label {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
     .switch {
       position: relative;
       display: inline-block;
@@ -398,25 +409,9 @@
       transform: translateX(26px);
     }
 
-    .sortable-ghost {
-      opacity: 0.5;
-      background: var(--light-gray);
-    }
-
-    .draggable-item {
-      cursor: move;
-    }
-
-    .drag-handle {
-      cursor: move;
-      margin-left: 10px;
-      color: var(--text);
-      opacity: 0.5;
-      transition: var(--transition);
-    }
-
-    .drag-handle:hover {
-      opacity: 1;
+    .hidden-badge {
+      background-color: rgba(220, 53, 69, 0.1);
+      color: var(--danger);
     }
 
     @media (max-width: 768px) {
@@ -467,6 +462,7 @@
                 <th>اسم القسم</th>
                 <th>الأيقونة</th>
                 <th>عدد الأصناف</th>
+                <th>الحالة</th>
                 <th>الإجراءات</th>
               </tr>
             </thead>
@@ -556,6 +552,16 @@
             <label for="categoryIcon" class="form-label">أيقونة القسم (من Font Awesome)</label>
             <input type="text" class="form-control" id="categoryIcon" placeholder="مثال: fa-utensils">
           </div>
+          <div class="form-group">
+            <label class="form-label">الحالة</label>
+            <div class="toggle-container">
+              <label class="switch">
+                <input type="checkbox" id="categoryStatus" checked>
+                <span class="slider"></span>
+              </label>
+              <span id="categoryStatusText" class="toggle-label">مفعل</span>
+            </div>
+          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -611,12 +617,12 @@
           </div>
           <div class="form-group">
             <label class="form-label">الحالة</label>
-            <div>
+            <div class="toggle-container">
               <label class="switch">
                 <input type="checkbox" id="itemStatus" checked>
                 <span class="slider"></span>
               </label>
-              <span id="itemStatusText">مفعل</span>
+              <span id="itemStatusText" class="toggle-label">مفعل</span>
             </div>
           </div>
         </form>
@@ -628,7 +634,6 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
   <script>
     // Firebase configuration
     const firebaseConfig = {
@@ -664,6 +669,8 @@
     const mealTypeInput = document.getElementById('mealType');
     const categoryNameInput = document.getElementById('categoryName');
     const categoryIconInput = document.getElementById('categoryIcon');
+    const categoryStatusInput = document.getElementById('categoryStatus');
+    const categoryStatusText = document.getElementById('categoryStatusText');
     const saveCategoryBtn = document.getElementById('saveCategoryBtn');
     const cancelCategoryBtn = document.getElementById('cancelCategoryBtn');
     
@@ -712,6 +719,7 @@
       
       // أحداث إدارة الأقسام
       addCategoryBtn.addEventListener('click', openCategoryModal);
+      categoryStatusInput.addEventListener('change', updateCategoryStatusText);
       saveCategoryBtn.addEventListener('click', saveCategory);
       cancelCategoryBtn.addEventListener('click', closeCategoryModal);
       document.querySelector('#categoryModal .close').addEventListener('click', closeCategoryModal);
@@ -745,13 +753,11 @@
       
       if (!menuData) return;
       
-      // حساب عدد الأقسام لكل نوع وجبة
-      const categoryCounts = {};
-      
       Object.keys(menuData).forEach(mealType => {
         const sections = menuData[mealType] || [];
         sections.forEach((section, sectionIndex) => {
           const itemCount = section.items ? section.items.length : 0;
+          const isHidden = section.hidden === true;
           
           const tr = document.createElement('tr');
           tr.dataset.mealType = mealType;
@@ -761,6 +767,11 @@
             <td>${section.section}</td>
             <td><i class="fas ${section.icon || 'fa-utensils'}"></i> ${section.icon || ''}</td>
             <td>${itemCount}</td>
+            <td>
+              <span class="badge ${isHidden ? 'hidden-badge' : 'badge-success'}">
+                ${isHidden ? 'مخفي' : 'مفعل'}
+              </span>
+            </td>
             <td>
               <button class="btn btn-warning btn-sm edit-category" data-meal-type="${mealType}" data-section-index="${sectionIndex}">
                 <i class="fas fa-edit"></i> تعديل
@@ -799,6 +810,8 @@
           if (!section.items) return;
           
           section.items.forEach((item, itemIndex) => {
+            const isHidden = item.hidden === true || section.hidden === true;
+            
             const tr = document.createElement('tr');
             tr.dataset.mealType = mealType;
             tr.dataset.sectionIndex = sectionIndex;
@@ -810,7 +823,9 @@
               <td>${section.section}</td>
               <td>${item.prix} درهم</td>
               <td>
-                <span class="badge badge-success">مفعل</span>
+                <span class="badge ${isHidden ? 'hidden-badge' : 'badge-success'}">
+                  ${isHidden ? 'مخفي' : 'مفعل'}
+                </span>
               </td>
               <td>
                 <button class="btn btn-warning btn-sm edit-item" data-meal-type="${mealType}" data-section-index="${sectionIndex}" data-item-index="${itemIndex}">
@@ -898,6 +913,8 @@
       currentCategoryPath = null;
       categoryModalTitle.textContent = 'إضافة قسم جديد';
       categoryForm.reset();
+      categoryStatusInput.checked = true;
+      updateCategoryStatusText();
       categoryModal.classList.add('active');
     }
 
@@ -912,6 +929,8 @@
       mealTypeInput.value = mealType;
       categoryNameInput.value = section.section;
       categoryIconInput.value = section.icon || '';
+      categoryStatusInput.checked = !section.hidden;
+      updateCategoryStatusText();
       categoryModal.classList.add('active');
     }
 
@@ -920,6 +939,7 @@
       const mealType = mealTypeInput.value;
       const name = categoryNameInput.value.trim();
       const icon = categoryIconInput.value.trim();
+      const hidden = !categoryStatusInput.checked;
       
       if (!mealType) {
         showAlert('الرجاء اختيار نوع الوجبة', 'danger');
@@ -934,6 +954,7 @@
       const sectionData = {
         section: name,
         icon: icon || 'fa-utensils',
+        hidden: hidden,
         items: isEditing ? menuData[mealType][currentCategoryPath.sectionIndex].items : []
       };
       
@@ -995,7 +1016,7 @@
       itemModalTitle.textContent = 'إضافة صنف جديد';
       itemForm.reset();
       itemStatusInput.checked = true;
-      itemStatusText.textContent = 'مفعل';
+      updateItemStatusText();
       itemModal.classList.add('active');
     }
 
@@ -1014,6 +1035,8 @@
       itemPriceInput.value = item.prix;
       itemDescriptionInput.value = item.description || '';
       itemIconInput.value = item.icon || '';
+      itemStatusInput.checked = !item.hidden;
+      updateItemStatusText();
       itemModal.classList.add('active');
     }
 
@@ -1025,7 +1048,7 @@
       const price = parseFloat(itemPriceInput.value);
       const description = itemDescriptionInput.value.trim();
       const icon = itemIconInput.value.trim();
-      const active = itemStatusInput.checked;
+      const hidden = !itemStatusInput.checked;
       
       if (!mealType) {
         showAlert('الرجاء اختيار نوع الوجبة', 'danger');
@@ -1064,7 +1087,7 @@
         prix: price,
         description: description || '',
         icon: icon || 'fa-circle',
-        active: active !== false
+        hidden: hidden
       };
       
       if (isEditing) {
@@ -1140,9 +1163,16 @@
       tabs[0].click();
     }
 
+    // تحديث نص حالة القسم
+    function updateCategoryStatusText() {
+      categoryStatusText.textContent = categoryStatusInput.checked ? 'مفعل' : 'مخفي';
+      categoryStatusText.style.color = categoryStatusInput.checked ? 'var(--success)' : 'var(--danger)';
+    }
+
     // تحديث نص حالة الصنف
     function updateItemStatusText() {
-      itemStatusText.textContent = itemStatusInput.checked ? 'مفعل' : 'غير مفعل';
+      itemStatusText.textContent = itemStatusInput.checked ? 'مفعل' : 'مخفي';
+      itemStatusText.style.color = itemStatusInput.checked ? 'var(--success)' : 'var(--danger)';
     }
 
     // عرض رسالة تنبيه
