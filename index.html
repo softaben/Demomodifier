@@ -1,20 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة تحكم دار حسنا | مطعم مغربي</title>
-  <!-- خطوط Google -->
+  <title>إدارة القائمة - دار حسنا</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <!-- أيقونات Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
   <style>
     :root {
       --primary: #E94560;
@@ -31,6 +24,9 @@
       --transition: all 0.3s ease;
       --radius: 12px;
       --radius-sm: 8px;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
     }
 
     * {
@@ -44,441 +40,160 @@
       background-color: var(--light);
       color: var(--text);
       line-height: 1.6;
+      padding: 20px;
     }
 
     .container {
-      width: 100%;
-      max-width: 100%;
-      padding: 0 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
     }
 
-    /* الهيدر */
-    .admin-header {
-      background: linear-gradient(135deg, var(--dark), var(--secondary));
-      color: var(--white);
-      padding: 1rem 0;
-      box-shadow: var(--shadow);
-      position: fixed;
-      width: 100%;
-      top: 0;
-      z-index: 100;
-    }
-
-    .admin-header .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--gray);
     }
 
     .logo {
-      font-size: 1.5rem;
+      font-size: 2.2rem;
       font-weight: 700;
-      position: relative;
-      display: inline-block;
-    }
-
-    .logo::after {
-      content: "";
-      position: absolute;
-      bottom: -5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 40px;
-      height: 2px;
-      background: var(--gold);
-    }
-
-    .admin-nav {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .admin-nav a {
-      color: var(--white);
-      text-decoration: none;
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius-sm);
-      transition: var(--transition);
-    }
-
-    .admin-nav a:hover, .admin-nav a.active {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .logout-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .logout-btn:hover {
-      background: var(--primary-light);
-    }
-
-    /* المحتوى الرئيسي */
-    .admin-main {
-      margin-top: 70px;
-      padding: 2rem 0;
-    }
-
-    .admin-title {
-      font-size: 1.8rem;
       color: var(--dark);
-      margin-bottom: 1.5rem;
-      position: relative;
-      padding-bottom: 0.8rem;
+      margin-bottom: 10px;
     }
 
-    .admin-title::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 80px;
-      height: 3px;
-      background: linear-gradient(to right, var(--primary), var(--gold));
-    }
-
-    /* كروت الإحصائيات */
-    .stats-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .stat-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-    }
-
-    .stat-card.orders .stat-icon {
-      background: rgba(233, 69, 96, 0.1);
+    .subtitle {
+      font-size: 1.1rem;
       color: var(--primary);
     }
 
-    .stat-card.revenue .stat-icon {
-      background: rgba(15, 52, 96, 0.1);
-      color: var(--secondary);
-    }
-
-    .stat-card.pending .stat-icon {
-      background: rgba(255, 211, 45, 0.1);
-      color: var(--gold);
-    }
-
-    .stat-card.customers .stat-icon {
-      background: rgba(22, 33, 62, 0.1);
-      color: var(--dark);
-    }
-
-    .stat-info h3 {
-      font-size: 1.2rem;
-      color: var(--dark);
-      margin-bottom: 0.3rem;
-    }
-
-    .stat-info p {
-      font-size: 1.8rem;
-      font-weight: 700;
-      font-family: 'Tajawal', sans-serif;
-    }
-
-    /* الرسوم البيانية */
-    .charts-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .chart-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-    }
-
-    .chart-title {
-      font-size: 1.2rem;
-      color: var(--dark);
-      margin-bottom: 1rem;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 300px;
-      width: 100%;
-    }
-
-    /* جدول الطلبات */
-    .orders-table-container {
-      background: var(--white);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      margin-bottom: 2rem;
-    }
-
-    .table-actions {
+    .tabs {
       display: flex;
-      justify-content: space-between;
-      padding: 1rem;
-      background: var(--gray);
-    }
-
-    .print-btn {
-      background: var(--secondary);
-      color: var(--white);
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .print-btn:hover {
-      background: var(--dark);
-    }
-
-    .orders-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .orders-table th, .orders-table td {
-      padding: 1rem;
-      text-align: right;
-    }
-
-    .orders-table th {
-      background: var(--dark);
-      color: var(--white);
-      font-weight: 500;
-    }
-
-    .orders-table tr:nth-child(even) {
-      background: var(--gray);
-    }
-
-    .orders-table tr:hover {
-      background: var(--light-gray);
-    }
-
-    .order-status {
-      display: inline-block;
-      padding: 0.3rem 0.8rem;
-      border-radius: 50px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    .status-pending {
-      background: #FFF3CD;
-      color: #856404;
-    }
-
-    .status-preparing {
-      background: #CCE5FF;
-      color: #004085;
-    }
-
-    .status-ready {
-      background: #D4EDDA;
-      color: #155724;
-    }
-
-    .status-completed {
-      background: #D1ECF1;
-      color: #0C5460;
-    }
-
-    .action-btn {
-      padding: 0.3rem 0.6rem;
-      border-radius: var(--radius-sm);
-      border: none;
-      cursor: pointer;
-      transition: var(--transition);
-      margin-left: 0.3rem;
-    }
-
-    .action-btn.edit {
-      background: var(--gold);
-      color: var(--dark);
-    }
-
-    .action-btn.complete {
-      background: var(--secondary);
-      color: var(--white);
-    }
-
-    .action-btn.delete {
-      background: var(--primary);
-      color: var(--white);
-    }
-
-    /* قسم إدارة القائمة */
-    .menu-management {
-      margin-top: 2rem;
-    }
-
-    .menu-tabs {
-      display: flex;
+      margin-bottom: 20px;
       border-bottom: 1px solid var(--gray);
-      margin-bottom: 1.5rem;
     }
 
-    .menu-tab {
-      padding: 0.8rem 1.5rem;
+    .tab {
+      padding: 10px 20px;
       cursor: pointer;
-      border-bottom: 3px solid transparent;
       transition: var(--transition);
+      border-bottom: 3px solid transparent;
     }
 
-    .menu-tab.active {
-      border-bottom-color: var(--primary);
+    .tab.active {
       color: var(--primary);
+      border-bottom-color: var(--primary);
       font-weight: 500;
     }
 
-    .menu-items {
+    .tab:hover:not(.active) {
+      background-color: var(--light-gray);
+    }
+
+    .tab-content {
       display: none;
     }
 
-    .menu-items.active {
+    .tab-content.active {
       display: block;
     }
 
-    .menu-item-card {
+    .card {
       background: var(--white);
       border-radius: var(--radius);
-      padding: 1rem;
-      margin-bottom: 1rem;
       box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: var(--dark);
+      color: var(--white);
+      padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .item-info h4 {
-      font-size: 1.1rem;
-      color: var(--dark);
-      margin-bottom: 0.3rem;
+    .card-header h3 {
+      font-size: 1.2rem;
     }
 
-    .item-info p {
-      font-size: 0.9rem;
-      color: var(--text);
-      opacity: 0.8;
+    .card-body {
+      padding: 20px;
     }
 
-    .item-price {
-      font-weight: 700;
-      color: var(--primary);
-      margin-left: 1rem;
-      font-family: 'Tajawal', sans-serif;
-    }
-
-    .item-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    /* نموذج إضافة/تعديل عنصر */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      z-index: 200;
-      display: flex;
-      justify-content: center;
+    .btn {
+      display: inline-flex;
       align-items: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: var(--transition);
-    }
-
-    .modal.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .modal-content {
-      background: var(--white);
-      border-radius: var(--radius);
-      width: 90%;
-      max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-      transform: translateY(20px);
-      transition: var(--transition);
-    }
-
-    .modal.active .modal-content {
-      transform: translateY(0);
-    }
-
-    .modal-header {
-      padding: 1rem;
-      border-bottom: 1px solid var(--gray);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .modal-header h3 {
-      color: var(--dark);
-    }
-
-    .close-modal {
-      background: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
       border: none;
-      font-size: 1.5rem;
       cursor: pointer;
+      transition: var(--transition);
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 500;
     }
 
-    .modal-body {
-      padding: 1rem;
+    .btn i {
+      margin-left: 8px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-light);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: var(--white);
+    }
+
+    .btn-success:hover {
+      opacity: 0.9;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: var(--dark);
+    }
+
+    .btn-warning:hover {
+      opacity: 0.9;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: var(--white);
+    }
+
+    .btn-danger:hover {
+      opacity: 0.9;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.85rem;
     }
 
     .form-group {
-      margin-bottom: 1rem;
+      margin-bottom: 15px;
     }
 
-    .form-group label {
+    .form-label {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 5px;
       font-weight: 500;
     }
 
     .form-control {
       width: 100%;
-      padding: 0.8rem;
+      padding: 10px;
       border: 1px solid var(--gray);
       border-radius: var(--radius-sm);
       font-family: 'Tajawal', sans-serif;
@@ -491,565 +206,429 @@
       box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
     }
 
-    .submit-btn {
-      background: linear-gradient(to right, var(--primary), var(--dark));
-      color: var(--white);
-      border: none;
-      padding: 1rem;
+    .table {
       width: 100%;
-      border-radius: var(--radius-sm);
-      font-weight: 600;
-      margin-top: 1rem;
-      cursor: pointer;
-      transition: var(--transition);
+      border-collapse: collapse;
+      margin-bottom: 20px;
     }
 
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .add-item-btn {
-      background: var(--primary);
-      color: var(--white);
-      border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: var(--radius-sm);
-      font-weight: 500;
-      margin-bottom: 1.5rem;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .add-item-btn:hover {
-      background: var(--primary-light);
-    }
-
-    /* قسم إدارة الأقسام */
-    .section-management {
-      margin-top: 2rem;
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-    }
-
-    .sections-list {
-      margin-top: 1rem;
-    }
-
-    .section-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
+    .table th, .table td {
+      padding: 12px 15px;
+      text-align: right;
       border-bottom: 1px solid var(--gray);
     }
 
-    .section-item:last-child {
-      border-bottom: none;
-    }
-
-    .section-name {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .section-name i {
-      color: var(--primary);
-    }
-
-    /* صفحة تسجيل الدخول */
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--dark), var(--secondary));
-    }
-
-    .login-box {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 2rem;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: var(--shadow);
-    }
-
-    .login-title {
-      text-align: center;
-      margin-bottom: 1.5rem;
+    .table th {
+      background-color: var(--light-gray);
+      font-weight: 600;
       color: var(--dark);
     }
 
-    .login-logo {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      text-align: center;
+    .table tr:hover {
+      background-color: var(--light-gray);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .badge-success {
+      background-color: rgba(40, 167, 69, 0.1);
+      color: var(--success);
+    }
+
+    .badge-warning {
+      background-color: rgba(255, 193, 7, 0.1);
+      color: var(--warning);
+    }
+
+    .badge-danger {
+      background-color: rgba(220, 53, 69, 0.1);
+      color: var(--danger);
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .alert i {
+      margin-left: 10px;
+      font-size: 1.2rem;
+    }
+
+    .alert-success {
+      background-color: rgba(40, 167, 69, 0.1);
+      color: var(--success);
+      border-left: 4px solid var(--success);
+    }
+
+    .alert-danger {
+      background-color: rgba(220, 53, 69, 0.1);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+
+    .modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: var(--white);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      transform: translateY(20px);
+      transition: var(--transition);
+    }
+
+    .modal.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-footer {
+      padding: 15px 20px;
+      border-top: 1px solid var(--gray);
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text);
+      opacity: 0.7;
+      transition: var(--transition);
+    }
+
+    .close:hover {
+      opacity: 1;
+    }
+
+    .switch {
       position: relative;
       display: inline-block;
-      width: 100%;
+      width: 50px;
+      height: 24px;
     }
 
-    .login-logo::after {
-      content: "";
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
       position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 60px;
-      height: 3px;
-      background: var(--gold);
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: var(--transition);
+      border-radius: 34px;
     }
 
-    .login-error {
-      color: var(--primary);
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-      display: none;
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: var(--transition);
+      border-radius: 50%;
     }
 
-    /* طباعة */
-    @media print {
-      body * {
-        visibility: hidden;
-      }
-      .print-section, .print-section * {
-        visibility: visible;
-      }
-      .print-section {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-      }
-      .no-print {
-        display: none;
-      }
-      .orders-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      .orders-table th, .orders-table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-      }
-      .orders-table th {
-        background-color: #f2f2f2;
-      }
+    input:checked + .slider {
+      background-color: var(--success);
     }
 
-    /* تأثيرات الحركة */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    input:checked + .slider:before {
+      transform: translateX(26px);
     }
 
-    .stat-card {
-      animation: fadeIn 0.3s ease forwards;
+    .sortable-ghost {
+      opacity: 0.5;
+      background: var(--light-gray);
     }
 
-    .stat-card:nth-child(1) { animation-delay: 0.1s; }
-    .stat-card:nth-child(2) { animation-delay: 0.2s; }
-    .stat-card:nth-child(3) { animation-delay: 0.3s; }
-    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    .draggable-item {
+      cursor: move;
+    }
 
-    /* تأثيرات للشاشات الكبيرة */
-    @media (min-width: 768px) {
+    .drag-handle {
+      cursor: move;
+      margin-left: 10px;
+      color: var(--text);
+      opacity: 0.5;
+      transition: var(--transition);
+    }
+
+    .drag-handle:hover {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
       .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 2rem;
+        padding: 0 10px;
+      }
+      
+      .table th, .table td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+      }
+      
+      .btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
       }
     }
   </style>
 </head>
 <body>
-  <!-- صفحة تسجيل الدخول -->
-  <div id="loginPage" class="login-container">
-    <div class="login-box">
-      <div class="login-logo">دار حسنا</div>
-      <h2 class="login-title">تسجيل دخول الإدارة</h2>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="loginEmail">البريد الإلكتروني</label>
-          <input type="email" id="loginEmail" class="form-control" required>
+  <div class="container">
+    <div class="header">
+      <h1 class="logo">دار حسنا</h1>
+      <p class="subtitle">نظام إدارة القائمة</p>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="categories">أقسام القائمة</div>
+      <div class="tab" data-tab="items">أصناف القائمة</div>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <!-- قسم إدارة الأقسام -->
+    <div class="tab-content active" id="categories">
+      <div class="card">
+        <div class="card-header">
+          <h3>أقسام القائمة</h3>
+          <button class="btn btn-primary" id="addCategoryBtn">
+            <i class="fas fa-plus"></i> إضافة قسم
+          </button>
         </div>
-        <div class="form-group">
-          <label for="loginPassword">كلمة المرور</label>
-          <input type="password" id="loginPassword" class="form-control" required>
+        <div class="card-body">
+          <table class="table" id="categoriesTable">
+            <thead>
+              <tr>
+                <th>نوع الوجبة</th>
+                <th>اسم القسم</th>
+                <th>الأيقونة</th>
+                <th>عدد الأصناف</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="categoriesList">
+              <!-- سيتم تعبئتها ديناميكياً -->
+            </tbody>
+          </table>
         </div>
-        <div id="loginError" class="login-error">البريد الإلكتروني أو كلمة المرور غير صحيحة</div>
-        <button type="submit" class="submit-btn">تسجيل الدخول</button>
-      </form>
+      </div>
+    </div>
+
+    <!-- قسم إدارة الأصناف -->
+    <div class="tab-content" id="items">
+      <div class="card">
+        <div class="card-header">
+          <h3>أصناف القائمة</h3>
+          <button class="btn btn-primary" id="addItemBtn">
+            <i class="fas fa-plus"></i> إضافة صنف
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="filterMealType" class="form-label">تصفية حسب نوع الوجبة:</label>
+            <select class="form-control" id="filterMealType">
+              <option value="">جميع الأنواع</option>
+              <option value="breakfast">فطور</option>
+              <option value="lunch">غداء</option>
+              <option value="dinner">عشاء</option>
+              <option value="desserts">حلويات</option>
+              <option value="drinks">مشروبات</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filterCategory" class="form-label">تصفية حسب القسم:</label>
+            <select class="form-control" id="filterCategory">
+              <option value="">جميع الأقسام</option>
+              <!-- سيتم تعبئتها ديناميكياً -->
+            </select>
+          </div>
+          <table class="table" id="itemsTable">
+            <thead>
+              <tr>
+                <th>الصورة</th>
+                <th>اسم الصنف</th>
+                <th>نوع الوجبة</th>
+                <th>القسم</th>
+                <th>السعر</th>
+                <th>الحالة</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="itemsList">
+              <!-- سيتم تعبئتها ديناميكياً -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- لوحة التحكم -->
-  <div id="dashboardPage" style="display: none;">
-    <!-- الهيدر -->
-    <header class="admin-header">
-      <div class="container">
-        <div class="logo">دار حسنا</div>
-        <nav class="admin-nav">
-          <a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</a>
-          <a href="#" data-section="orders"><i class="fas fa-clipboard-list"></i> الطلبات</a>
-          <a href="#" data-section="menu"><i class="fas fa-utensils"></i> إدارة القائمة</a>
-          <a href="#" data-section="sections"><i class="fas fa-layer-group"></i> إدارة الأقسام</a>
-          <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
-        </nav>
+  <!-- مودال إضافة/تعديل قسم -->
+  <div class="modal" id="categoryModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="categoryModalTitle">إضافة قسم جديد</h3>
+        <button class="close">&times;</button>
       </div>
-    </header>
-
-    <!-- المحتوى الرئيسي -->
-    <main class="admin-main">
-      <div class="container">
-        <!-- قسم لوحة التحكم -->
-        <section id="dashboardSection">
-          <h1 class="admin-title"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
-          
-          <div class="stats-cards">
-            <div class="stat-card orders">
-              <div class="stat-icon">
-                <i class="fas fa-clipboard-list"></i>
-              </div>
-              <div class="stat-info">
-                <h3>الطلبات اليوم</h3>
-                <p id="todayOrders">0</p>
-              </div>
-            </div>
-            
-            <div class="stat-card revenue">
-              <div class="stat-icon">
-                <i class="fas fa-money-bill-wave"></i>
-              </div>
-              <div class="stat-info">
-                <h3>إجمالي الإيرادات</h3>
-                <p id="totalRevenue">0 درهم</p>
-              </div>
-            </div>
-            
-            <div class="stat-card pending">
-              <div class="stat-icon">
-                <i class="fas fa-clock"></i>
-              </div>
-              <div class="stat-info">
-                <h3>طلبات قيد الانتظار</h3>
-                <p id="pendingOrders">0</p>
-              </div>
-            </div>
-            
-            <div class="stat-card customers">
-              <div class="stat-icon">
-                <i class="fas fa-users"></i>
-              </div>
-              <div class="stat-info">
-                <h3>العملاء اليوم</h3>
-                <p id="todayCustomers">0</p>
-              </div>
-            </div>
+      <div class="modal-body">
+        <form id="categoryForm">
+          <input type="hidden" id="categoryId">
+          <div class="form-group">
+            <label for="mealType" class="form-label">نوع الوجبة</label>
+            <select class="form-control" id="mealType" required>
+              <option value="">اختر نوع الوجبة</option>
+              <option value="breakfast">فطور</option>
+              <option value="lunch">غداء</option>
+              <option value="dinner">عشاء</option>
+              <option value="desserts">حلويات</option>
+              <option value="drinks">مشروبات</option>
+            </select>
           </div>
-          
-          <div class="charts-container">
-            <div class="chart-card">
-              <h3 class="chart-title">الطلبات خلال الأسبوع</h3>
-              <div class="chart-container">
-                <canvas id="ordersChart"></canvas>
-              </div>
-            </div>
-            
-            <div class="chart-card">
-              <h3 class="chart-title">الإيرادات خلال الشهر</h3>
-              <div class="chart-container">
-                <canvas id="revenueChart"></canvas>
-              </div>
-            </div>
+          <div class="form-group">
+            <label for="categoryName" class="form-label">اسم القسم</label>
+            <input type="text" class="form-control" id="categoryName" required>
           </div>
-          
-          <h2 class="admin-title">أحدث الطلبات</h2>
-          <div class="orders-table-container">
-            <div class="table-actions no-print">
-              <button class="print-btn" id="printRecentBtn">
-                <i class="fas fa-print"></i> طباعة السجل
-              </button>
-            </div>
-            <div class="table-responsive">
-              <table class="orders-table">
-                <thead>
-                  <tr>
-                    <th>رقم الطلب</th>
-                    <th>رقم الطاولة</th>
-                    <th>التاريخ</th>
-                    <th>المجموع</th>
-                    <th>الحالة</th>
-                    <th class="no-print">إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody id="recentOrders">
-                  <!-- سيتم تعبئة الطلبات ديناميكياً هنا -->
-                </tbody>
-              </table>
-            </div>
+          <div class="form-group">
+            <label for="categoryIcon" class="form-label">أيقونة القسم (من Font Awesome)</label>
+            <input type="text" class="form-control" id="categoryIcon" placeholder="مثال: fa-utensils">
           </div>
-        </section>
-        
-        <!-- قسم الطلبات -->
-        <section id="ordersSection" style="display: none;">
-          <h1 class="admin-title"><i class="fas fa-clipboard-list"></i> إدارة الطلبات</h1>
-          
-          <div class="orders-table-container">
-            <div class="table-actions no-print">
-              <div class="filters">
-                <select id="statusFilter" class="form-control" style="width: 200px; display: inline-block;">
-                  <option value="all">جميع الحالات</option>
-                  <option value="pending">قيد الانتظار</option>
-                  <option value="preparing">قيد التحضير</option>
-                  <option value="ready">جاهز للتقديم</option>
-                  <option value="completed">مكتمل</option>
-                </select>
-                <input type="date" id="dateFilter" class="form-control" style="width: 200px; display: inline-block; margin-right: 1rem;">
-              </div>
-              <button class="print-btn" id="printAllBtn">
-                <i class="fas fa-print"></i> طباعة السجل
-              </button>
-            </div>
-            <div class="table-responsive">
-              <table class="orders-table">
-                <thead>
-                  <tr>
-                    <th>رقم الطلب</th>
-                    <th>رقم الطاولة</th>
-                    <th>التاريخ</th>
-                    <th>المجموع</th>
-                    <th>الحالة</th>
-                    <th class="no-print">إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody id="allOrders">
-                  <!-- سيتم تعبئة الطلبات ديناميكياً هنا -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-        
-        <!-- قسم إدارة القائمة -->
-        <section id="menuSection" style="display: none;">
-          <h1 class="admin-title"><i class="fas fa-utensils"></i> إدارة القائمة</h1>
-          
-          <div class="menu-tabs">
-            <div class="menu-tab active" data-tab="breakfast">الفطور</div>
-            <div class="menu-tab" data-tab="lunch">الغداء</div>
-            <div class="menu-tab" data-tab="dinner">العشاء</div>
-            <div class="menu-tab" data-tab="desserts">الحلويات</div>
-            <div class="menu-tab" data-tab="drinks">المشروبات</div>
-          </div>
-          
-          <button class="add-item-btn" id="addItemBtn">
-            <i class="fas fa-plus"></i> إضافة صنف جديد
-          </button>
-          
-          <div id="breakfastItems" class="menu-items active">
-            <!-- سيتم تعبئة أصناف الفطور هنا -->
-          </div>
-          
-          <div id="lunchItems" class="menu-items">
-            <!-- سيتم تعبئة أصناف الغداء هنا -->
-          </div>
-          
-          <div id="dinnerItems" class="menu-items">
-            <!-- سيتم تعبئة أصناف العشاء هنا -->
-          </div>
-          
-          <div id="dessertsItems" class="menu-items">
-            <!-- سيتم تعبئة أصناف الحلويات هنا -->
-          </div>
-          
-          <div id="drinksItems" class="menu-items">
-            <!-- سيتم تعبئة أصناف المشروبات هنا -->
-          </div>
-        </section>
-        
-        <!-- قسم إدارة الأقسام -->
-        <section id="sectionsSection" style="display: none;">
-          <h1 class="admin-title"><i class="fas fa-layer-group"></i> إدارة الأقسام</h1>
-          
-          <div class="section-management">
-            <button class="add-item-btn" id="addSectionBtn">
-              <i class="fas fa-plus"></i> إضافة قسم جديد
-            </button>
-            
-            <div class="sections-list" id="sectionsList">
-              <!-- سيتم تعبئة الأقسام هنا -->
-            </div>
-          </div>
-        </section>
+        </form>
       </div>
-    </main>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="saveCategoryBtn">حفظ</button>
+        <button class="btn btn-danger" id="cancelCategoryBtn">إلغاء</button>
+      </div>
+    </div>
   </div>
 
-  <!-- نموذج إضافة/تعديل عنصر -->
+  <!-- مودال إضافة/تعديل صنف -->
   <div class="modal" id="itemModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="modalTitle">إضافة صنف جديد</h3>
-        <button class="close-modal" id="closeModal">&times;</button>
+        <h3 class="modal-title" id="itemModalTitle">إضافة صنف جديد</h3>
+        <button class="close">&times;</button>
       </div>
       <div class="modal-body">
         <form id="itemForm">
           <input type="hidden" id="itemId">
-          <input type="hidden" id="itemCategory">
-          <input type="hidden" id="itemSectionIndex">
-          
           <div class="form-group">
-            <label for="itemName">اسم الصنف</label>
-            <input type="text" id="itemName" class="form-control" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="itemPrice">السعر (درهم)</label>
-            <input type="number" id="itemPrice" class="form-control" min="0" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="itemDescription">الوصف (اختياري)</label>
-            <textarea id="itemDescription" class="form-control" rows="3"></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label for="itemIcon">أيقونة الصنف (اختياري)</label>
-            <select id="itemIcon" class="form-control">
-              <option value="fa-utensils">شوكة وسكين</option>
-              <option value="fa-bread-slice">خبز</option>
-              <option value="fa-mug-hot">كوب ساخن</option>
-              <option value="fa-glass-water">كوب ماء</option>
-              <option value="fa-drumstick-bite">دجاج</option>
-              <option value="fa-fish">سمك</option>
-              <option value="fa-leaf">خضار</option>
-              <option value="fa-ice-cream">آيس كريم</option>
-              <option value="fa-cookie">كعكة</option>
-              <option value="fa-coffee">قهوة</option>
+            <label for="itemMealType" class="form-label">نوع الوجبة</label>
+            <select class="form-control" id="itemMealType" required>
+              <option value="">اختر نوع الوجبة</option>
+              <option value="breakfast">فطور</option>
+              <option value="lunch">غداء</option>
+              <option value="dinner">عشاء</option>
+              <option value="desserts">حلويات</option>
+              <option value="drinks">مشروبات</option>
             </select>
           </div>
-          
-          <button type="submit" class="submit-btn" id="saveItemBtn">حفظ الصنف</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- نموذج إضافة/تعديل قسم -->
-  <div class="modal" id="sectionModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="sectionModalTitle">إضافة قسم جديد</h3>
-        <button class="close-modal" id="closeSectionModal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="sectionForm">
-          <input type="hidden" id="sectionId">
-          <input type="hidden" id="sectionCategory">
-          
           <div class="form-group">
-            <label for="sectionName">اسم القسم</label>
-            <input type="text" id="sectionName" class="form-control" required>
+            <label for="itemName" class="form-label">اسم الصنف</label>
+            <input type="text" class="form-control" id="itemName" required>
           </div>
-          
           <div class="form-group">
-            <label for="sectionIcon">أيقونة القسم</label>
-            <select id="sectionIcon" class="form-control">
-              <option value="fa-utensils">شوكة وسكين</option>
-              <option value="fa-bread-slice">خبز</option>
-              <option value="fa-mug-hot">كوب ساخن</option>
-              <option value="fa-glass-water">كوب ماء</option>
-              <option value="fa-drumstick-bite">دجاج</option>
-              <option value="fa-fish">سمك</option>
-              <option value="fa-leaf">خضار</option>
-              <option value="fa-ice-cream">آيس كريم</option>
-              <option value="fa-cookie">كعكة</option>
-              <option value="fa-coffee">قهوة</option>
+            <label for="itemCategory" class="form-label">القسم</label>
+            <select class="form-control" id="itemCategory" required>
+              <option value="">اختر القسم</option>
+              <!-- سيتم تعبئتها ديناميكياً -->
             </select>
           </div>
-          
-          <button type="submit" class="submit-btn" id="saveSectionBtn">حفظ القسم</button>
+          <div class="form-group">
+            <label for="itemPrice" class="form-label">السعر (درهم)</label>
+            <input type="number" class="form-control" id="itemPrice" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="itemDescription" class="form-label">الوصف</label>
+            <textarea class="form-control" id="itemDescription" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="itemIcon" class="form-label">أيقونة الصنف (من Font Awesome)</label>
+            <input type="text" class="form-control" id="itemIcon" placeholder="مثال: fa-hamburger">
+          </div>
+          <div class="form-group">
+            <label class="form-label">الحالة</label>
+            <div>
+              <label class="switch">
+                <input type="checkbox" id="itemStatus" checked>
+                <span class="slider"></span>
+              </label>
+              <span id="itemStatusText">مفعل</span>
+            </div>
+          </div>
         </form>
       </div>
-    </div>
-  </div>
-
-  <!-- نموذج تفاصيل الطلب -->
-  <div class="modal" id="orderModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="orderModalTitle">تفاصيل الطلب #<span id="orderNumber"></span></h3>
-        <button class="close-modal" id="closeOrderModal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="order-info">
-          <p><strong>رقم الطاولة:</strong> <span id="orderTable"></span></p>
-          <p><strong>تاريخ الطلب:</strong> <span id="orderDate"></span></p>
-          <p><strong>الحالة:</strong> <span id="orderStatus"></span></p>
-          <p><strong>ملاحظات:</strong> <span id="orderNotes"></span></p>
-        </div>
-        
-        <h4 style="margin: 1.5rem 0 1rem;">الأصناف المطلوبة:</h4>
-        <div id="orderItemsList">
-          <!-- سيتم تعبئة أصناف الطلب هنا -->
-        </div>
-        
-        <div class="order-total" style="margin-top: 1.5rem;">
-          <strong>المجموع:</strong> <span id="orderTotal"></span> درهم
-        </div>
-        
-        <div class="form-group" style="margin-top: 1.5rem;">
-          <label for="updateStatus">تحديث حالة الطلب</label>
-          <select id="updateStatus" class="form-control">
-            <option value="pending">قيد الانتظار</option>
-            <option value="preparing">قيد التحضير</option>
-            <option value="ready">جاهز للتقديم</option>
-            <option value="completed">مكتمل</option>
-          </select>
-        </div>
-        
-        <button type="button" class="submit-btn" id="updateStatusBtn" style="margin-top: 1rem;">
-          تحديث الحالة
-        </button>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="saveItemBtn">حفظ</button>
+        <button class="btn btn-danger" id="cancelItemBtn">إلغاء</button>
       </div>
     </div>
   </div>
 
-  <!-- قسم الطباعة -->
-  <div id="printArea" style="display: none;">
-    <div class="print-section">
-      <h2 style="text-align: center; margin-bottom: 1rem;">سجل الطلبات - مطعم دار حسنا</h2>
-      <p style="text-align: center; margin-bottom: 1.5rem;" id="printDate"></p>
-      <table class="orders-table" id="printTable">
-        <thead>
-          <tr>
-            <th>رقم الطلب</th>
-            <th>رقم الطاولة</th>
-            <th>التاريخ</th>
-            <th>المجموع</th>
-            <th>الحالة</th>
-          </tr>
-        </thead>
-        <tbody id="printOrders">
-          <!-- سيتم تعبئة الطلبات للطباعة هنا -->
-        </tbody>
-      </table>
-      <div style="margin-top: 1.5rem; text-align: left;">
-        <p><strong>عدد الطلبات:</strong> <span id="printCount">0</span></p>
-        <p><strong>الإجمالي:</strong> <span id="printTotal">0</span> درهم</p>
-      </div>
-    </div>
-  </div>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
   <script>
     // Firebase configuration
     const firebaseConfig = {
@@ -1066,984 +645,536 @@
     // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    const auth = firebase.auth();
 
-    // متغيرات التطبيق
-    let currentUser = null;
-    let currentOrder = null;
-    let currentEditingItem = null;
-    let currentEditingSection = null;
-    let ordersChart = null;
-    let revenueChart = null;
+    // مراجع Firebase
+    const menuRef = database.ref('menu');
 
     // عناصر DOM
-    const loginPage = document.getElementById('loginPage');
-    const dashboardPage = document.getElementById('dashboardPage');
-    const loginForm = document.getElementById('loginForm');
-    const loginError = document.getElementById('loginError');
-    const logoutBtn = document.getElementById('logoutBtn');
-    
-    // أقسام لوحة التحكم
-    const dashboardSection = document.getElementById('dashboardSection');
-    const ordersSection = document.getElementById('ordersSection');
-    const menuSection = document.getElementById('menuSection');
-    const sectionsSection = document.getElementById('sectionsSection');
-    
-    // عناصر لوحة التحكم
-    const todayOrders = document.getElementById('todayOrders');
-    const totalRevenue = document.getElementById('totalRevenue');
-    const pendingOrders = document.getElementById('pendingOrders');
-    const todayCustomers = document.getElementById('todayCustomers');
-    const recentOrders = document.getElementById('recentOrders');
-    const allOrders = document.getElementById('allOrders');
-    
-    // عناصر إدارة القائمة
-    const menuTabs = document.querySelectorAll('.menu-tab');
-    const menuItemsContainers = document.querySelectorAll('.menu-items');
-    const addItemBtn = document.getElementById('addItemBtn');
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const alertContainer = document.getElementById('alertContainer');
     
     // عناصر إدارة الأقسام
-    const sectionsList = document.getElementById('sectionsList');
-    const addSectionBtn = document.getElementById('addSectionBtn');
+    const categoriesList = document.getElementById('categoriesList');
+    const addCategoryBtn = document.getElementById('addCategoryBtn');
+    const categoryModal = document.getElementById('categoryModal');
+    const categoryModalTitle = document.getElementById('categoryModalTitle');
+    const categoryForm = document.getElementById('categoryForm');
+    const categoryIdInput = document.getElementById('categoryId');
+    const mealTypeInput = document.getElementById('mealType');
+    const categoryNameInput = document.getElementById('categoryName');
+    const categoryIconInput = document.getElementById('categoryIcon');
+    const saveCategoryBtn = document.getElementById('saveCategoryBtn');
+    const cancelCategoryBtn = document.getElementById('cancelCategoryBtn');
     
-    // النماذج
+    // عناصر إدارة الأصناف
+    const itemsList = document.getElementById('itemsList');
+    const filterMealTypeSelect = document.getElementById('filterMealType');
+    const filterCategorySelect = document.getElementById('filterCategory');
+    const addItemBtn = document.getElementById('addItemBtn');
     const itemModal = document.getElementById('itemModal');
+    const itemModalTitle = document.getElementById('itemModalTitle');
     const itemForm = document.getElementById('itemForm');
-    const modalTitle = document.getElementById('modalTitle');
+    const itemIdInput = document.getElementById('itemId');
+    const itemMealTypeSelect = document.getElementById('itemMealType');
+    const itemNameInput = document.getElementById('itemName');
+    const itemCategorySelect = document.getElementById('itemCategory');
+    const itemPriceInput = document.getElementById('itemPrice');
+    const itemDescriptionInput = document.getElementById('itemDescription');
+    const itemIconInput = document.getElementById('itemIcon');
+    const itemStatusInput = document.getElementById('itemStatus');
+    const itemStatusText = document.getElementById('itemStatusText');
     const saveItemBtn = document.getElementById('saveItemBtn');
+    const cancelItemBtn = document.getElementById('cancelItemBtn');
     
-    const sectionModal = document.getElementById('sectionModal');
-    const sectionForm = document.getElementById('sectionForm');
-    const sectionModalTitle = document.getElementById('sectionModalTitle');
-    const saveSectionBtn = document.getElementById('saveSectionBtn');
-    
-    const orderModalEl = document.getElementById('orderModal');
-    const updateStatusBtn = document.getElementById('updateStatusBtn');
-    
-    // عناصر الطباعة
-    const printRecentBtn = document.getElementById('printRecentBtn');
-    const printAllBtn = document.getElementById('printAllBtn');
-    const printArea = document.getElementById('printArea');
-    
-    // الفلاتر
-    const statusFilter = document.getElementById('statusFilter');
-    const dateFilter = document.getElementById('dateFilter');
+    // متغيرات التطبيق
+    let menuData = {};
+    let isEditing = false;
+    let currentCategoryPath = null;
+    let currentItemPath = null;
 
-    // دالة تسجيل الدخول
-    function login(email, password) {
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          currentUser = userCredential.user;
-          loginPage.style.display = 'none';
-          dashboardPage.style.display = 'block';
-          loadDashboard();
-        })
-        .catch((error) => {
-          console.error('Login error:', error);
-          loginError.style.display = 'block';
-        });
+    // تهيئة التطبيق
+    function init() {
+      setupEventListeners();
+      loadMenuData();
+      setupTabs();
     }
 
-    // دالة تسجيل الخروج
-    function logout() {
-      auth.signOut().then(() => {
-        currentUser = null;
-        dashboardPage.style.display = 'none';
-        loginPage.style.display = 'flex';
-        loginForm.reset();
-        loginError.style.display = 'none';
+    // إعداد مستمعي الأحداث
+    function setupEventListeners() {
+      // أحداث التبويبات
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabId = tab.dataset.tab;
+          switchTab(tabId);
+        });
+      });
+      
+      // أحداث إدارة الأقسام
+      addCategoryBtn.addEventListener('click', openCategoryModal);
+      saveCategoryBtn.addEventListener('click', saveCategory);
+      cancelCategoryBtn.addEventListener('click', closeCategoryModal);
+      document.querySelector('#categoryModal .close').addEventListener('click', closeCategoryModal);
+      
+      // أحداث إدارة الأصناف
+      addItemBtn.addEventListener('click', openItemModal);
+      filterMealTypeSelect.addEventListener('change', filterItems);
+      filterCategorySelect.addEventListener('change', filterItems);
+      itemStatusInput.addEventListener('change', updateItemStatusText);
+      saveItemBtn.addEventListener('click', saveItem);
+      cancelItemBtn.addEventListener('click', closeItemModal);
+      document.querySelector('#itemModal .close').addEventListener('click', closeItemModal);
+      
+      // تحديث قائمة الأقسام عند تغيير نوع الوجبة
+      itemMealTypeSelect.addEventListener('change', updateCategoryDropdown);
+    }
+
+    // تحميل بيانات القائمة من Firebase
+    function loadMenuData() {
+      menuRef.on('value', (snapshot) => {
+        menuData = snapshot.val() || {};
+        renderCategories();
+        renderItems();
+        updateCategoryFilters();
       });
     }
 
-    // دالة تحميل لوحة التحكم
-    function loadDashboard() {
-      // تحميل الإحصائيات
-      loadStatistics();
+    // عرض الأقسام في الجدول
+    function renderCategories() {
+      categoriesList.innerHTML = '';
       
-      // تحميل الرسوم البيانية
-      loadCharts();
+      if (!menuData) return;
       
-      // تحميل أحدث الطلبات
-      loadRecentOrders();
+      // حساب عدد الأقسام لكل نوع وجبة
+      const categoryCounts = {};
       
-      // تحميل جميع الطلبات
-      loadAllOrders();
-      
-      // تحميل القائمة
-      loadMenuItems();
-      
-      // تحميل الأقسام
-      loadSections();
-    }
-
-    // دالة تحميل الإحصائيات
-    function loadStatistics() {
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
-      
-      database.ref('orders').once('value')
-        .then((snapshot) => {
-          const orders = snapshot.val() || {};
-          let todayCount = 0;
-          let total = 0;
-          let pendingCount = 0;
-          const customers = new Set();
+      Object.keys(menuData).forEach(mealType => {
+        const sections = menuData[mealType] || [];
+        sections.forEach((section, sectionIndex) => {
+          const itemCount = section.items ? section.items.length : 0;
           
-          Object.values(orders).forEach(order => {
-            const orderDate = new Date(order.timestamp).toISOString().split('T')[0];
-            
-            if (orderDate === todayStr) {
-              todayCount++;
-              if (order.customerId) {
-                customers.add(order.customerId);
-              }
-            }
-            
-            if (order.status === 'pending') {
-              pendingCount++;
-            }
-            
-            total += order.total || 0;
+          const tr = document.createElement('tr');
+          tr.dataset.mealType = mealType;
+          tr.dataset.sectionIndex = sectionIndex;
+          tr.innerHTML = `
+            <td>${getMealTypeName(mealType)}</td>
+            <td>${section.section}</td>
+            <td><i class="fas ${section.icon || 'fa-utensils'}"></i> ${section.icon || ''}</td>
+            <td>${itemCount}</td>
+            <td>
+              <button class="btn btn-warning btn-sm edit-category" data-meal-type="${mealType}" data-section-index="${sectionIndex}">
+                <i class="fas fa-edit"></i> تعديل
+              </button>
+              <button class="btn btn-danger btn-sm delete-category" data-meal-type="${mealType}" data-section-index="${sectionIndex}">
+                <i class="fas fa-trash"></i> حذف
+              </button>
+            </td>
+          `;
+          categoriesList.appendChild(tr);
+          
+          // إضافة أحداث النقر للأزرار
+          tr.querySelector('.edit-category').addEventListener('click', (e) => {
+            e.stopPropagation();
+            editCategory(mealType, sectionIndex);
           });
           
-          todayOrders.textContent = todayCount.toLocaleString('fr-FR');
-          totalRevenue.textContent = total.toLocaleString('fr-FR') + ' درهم';
-          pendingOrders.textContent = pendingCount.toLocaleString('fr-FR');
-          todayCustomers.textContent = customers.size.toLocaleString('fr-FR');
-        });
-    }
-
-    // دالة تحميل الرسوم البيانية
-    function loadCharts() {
-      // تحميل بيانات الطلبات للأسبوع
-      const weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-      const today = new Date();
-      const weekDates = [];
-      const weekLabels = [];
-      
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(today.getDate() - i);
-        weekDates.push(date.toISOString().split('T')[0]);
-        weekLabels.push(weekDays[date.getDay()]);
-      }
-      
-      database.ref('orders').once('value')
-        .then((snapshot) => {
-          const orders = snapshot.val() || {};
-          const weekData = [0, 0, 0, 0, 0, 0, 0];
-          const monthData = Array(30).fill(0);
-          
-          Object.values(orders).forEach(order => {
-            const orderDate = new Date(order.timestamp);
-            const dateStr = orderDate.toISOString().split('T')[0];
-            const dayDiff = Math.floor((today - orderDate) / (1000 * 60 * 60 * 24));
-            
-            // بيانات الأسبوع
-            const weekIndex = weekDates.indexOf(dateStr);
-            if (weekIndex !== -1) {
-              weekData[weekIndex]++;
-            }
-            
-            // بيانات الشهر
-            if (dayDiff < 30) {
-              monthData[29 - dayDiff] += order.total || 0;
-            }
-          });
-          
-          // رسم مخطط الطلبات الأسبوعي
-          const ordersCtx = document.getElementById('ordersChart').getContext('2d');
-          if (ordersChart) {
-            ordersChart.destroy();
-          }
-          
-          ordersChart = new Chart(ordersCtx, {
-            type: 'bar',
-            data: {
-              labels: weekLabels,
-              datasets: [{
-                label: 'عدد الطلبات',
-                data: weekData,
-                backgroundColor: 'rgba(233, 69, 96, 0.7)',
-                borderColor: 'rgba(233, 69, 96, 1)',
-                borderWidth: 1
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: function(value) {
-                      return value.toLocaleString('fr-FR');
-                    }
-                  }
-                }
-              },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      return context.parsed.y.toLocaleString('fr-FR');
-                    }
-                  }
-                }
-              }
-            }
-          });
-          
-          // رسم مخطط الإيرادات الشهري
-          const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-          if (revenueChart) {
-            revenueChart.destroy();
-          }
-          
-          const monthLabels = Array.from({length: 30}, (_, i) => (29 - i) + ' يوم');
-          
-          revenueChart = new Chart(revenueCtx, {
-            type: 'line',
-            data: {
-              labels: monthLabels,
-              datasets: [{
-                label: 'الإيرادات (درهم)',
-                data: monthData,
-                backgroundColor: 'rgba(15, 52, 96, 0.2)',
-                borderColor: 'rgba(15, 52, 96, 1)',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: function(value) {
-                      return value.toLocaleString('fr-FR');
-                    }
-                  }
-                }
-              },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      return context.parsed.y.toLocaleString('fr-FR') + ' درهم';
-                    }
-                  }
-                }
-              }
-            }
+          tr.querySelector('.delete-category').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteCategory(mealType, sectionIndex);
           });
         });
+      });
     }
 
-    // دالة تحميل أحدث الطلبات
-    function loadRecentOrders() {
-      database.ref('orders').orderByChild('timestamp').limitToLast(5).once('value')
-        .then((snapshot) => {
-          const orders = snapshot.val() || {};
-          recentOrders.innerHTML = '';
-          
-          Object.entries(orders).reverse().forEach(([key, order]) => {
-            addOrderToTable(recentOrders, key, order);
-          });
-        });
-    }
-
-    // دالة تحميل جميع الطلبات مع الفلترة
-    function loadAllOrders() {
-      const status = statusFilter.value;
-      const date = dateFilter.value;
+    // عرض الأصناف في الجدول
+    function renderItems() {
+      itemsList.innerHTML = '';
       
-      database.ref('orders').orderByChild('timestamp').once('value')
-        .then((snapshot) => {
-          const orders = snapshot.val() || {};
-          allOrders.innerHTML = '';
-          let count = 0;
-          
-          Object.entries(orders).reverse().forEach(([key, order]) => {
-            const orderDate = new Date(order.timestamp).toISOString().split('T')[0];
-            
-            // تطبيق الفلتر
-            if ((status === 'all' || order.status === status) && 
-                (!date || orderDate === date)) {
-              addOrderToTable(allOrders, key, order);
-              count++;
-            }
-          });
-          
-          if (count === 0) {
-            allOrders.innerHTML = `
-              <tr>
-                <td colspan="6" style="text-align: center; padding: 2rem;">لا توجد طلبات متطابقة مع معايير البحث</td>
-              </tr>
-            `;
-          }
-        });
-    }
-
-    // دالة إضافة طلب إلى الجدول
-    function addOrderToTable(table, key, order) {
-      const row = document.createElement('tr');
-      const date = new Date(order.timestamp);
-      const dateStr = date.toLocaleString('ar-EG');
+      if (!menuData) return;
       
-      let statusClass = '';
-      let statusText = '';
-      
-      switch(order.status) {
-        case 'pending':
-          statusClass = 'status-pending';
-          statusText = 'قيد الانتظار';
-          break;
-        case 'preparing':
-          statusClass = 'status-preparing';
-          statusText = 'قيد التحضير';
-          break;
-        case 'ready':
-          statusClass = 'status-ready';
-          statusText = 'جاهز للتقديم';
-          break;
-        case 'completed':
-          statusClass = 'status-completed';
-          statusText = 'مكتمل';
-          break;
-      }
-      
-      row.innerHTML = `
-        <td>${key.substring(0, 6)}</td>
-        <td>${order.table}</td>
-        <td>${dateStr}</td>
-        <td>${order.total.toLocaleString('fr-FR')} درهم</td>
-        <td><span class="order-status ${statusClass}">${statusText}</span></td>
-        <td class="no-print">
-          <button class="action-btn edit" data-id="${key}"><i class="fas fa-eye"></i></button>
-          <button class="action-btn complete" data-id="${key}"><i class="fas fa-check"></i></button>
-          <button class="action-btn delete" data-id="${key}"><i class="fas fa-trash"></i></button>
-        </td>
-      `;
-      
-      table.appendChild(row);
-    }
-
-    // دالة تحميل أصناف القائمة
-    function loadMenuItems() {
-      database.ref('menu').once('value')
-        .then((snapshot) => {
-          const menu = snapshot.val() || {};
-          
-          // تعبئة كل قسم من أقسام القائمة
-          Object.entries(menu).forEach(([category, sections]) => {
-            const container = document.getElementById(`${category}Items`);
-            container.innerHTML = '';
-            
-            if (sections && sections.length > 0) {
-              sections.forEach((section, sectionIndex) => {
-                const sectionDiv = document.createElement('div');
-                sectionDiv.className = 'menu-section';
-                sectionDiv.innerHTML = `
-                  <h3 style="margin: 1.5rem 0 1rem; color: var(--dark);">
-                    <i class="fas ${section.icon || 'fa-utensils'}"></i> ${section.section}
-                  </h3>
-                  <div id="${category}Section${sectionIndex}"></div>
-                `;
-                
-                container.appendChild(sectionDiv);
-                
-                const itemsContainer = document.getElementById(`${category}Section${sectionIndex}`);
-                
-                if (section.items && section.items.length > 0) {
-                  section.items.forEach((item, itemIndex) => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'menu-item-card';
-                    itemDiv.innerHTML = `
-                      <div class="item-info">
-                        <h4><i class="fas ${item.icon || 'fa-circle'}"></i> ${item.plat}</h4>
-                        ${item.description ? `<p>${item.description}</p>` : ''}
-                      </div>
-                      <div class="item-price">${item.prix.toLocaleString('fr-FR')} درهم</div>
-                      <div class="item-actions">
-                        <button class="action-btn edit" data-category="${category}" data-section="${sectionIndex}" data-item="${itemIndex}">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete" data-category="${category}" data-section="${sectionIndex}" data-item="${itemIndex}">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    `;
-                    
-                    itemsContainer.appendChild(itemDiv);
-                  });
-                } else {
-                  itemsContainer.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: var(--text); opacity: 0.6;">
-                      <i class="fas fa-info-circle" style="font-size: 1.5rem; margin-bottom: 1rem;"></i>
-                      <p>لا توجد أصناف في هذا القسم</p>
-                    </div>
-                  `;
-                }
-              });
-            } else {
-              container.innerHTML = `
-                <div style="text-align: center; padding: 2rem; color: var(--text); opacity: 0.6;">
-                  <i class="fas fa-info-circle" style="font-size: 1.5rem; margin-bottom: 1rem;"></i>
-                  <p>لا توجد أقسام في هذه الفئة</p>
-                </div>
-              `;
-            }
-          });
-        });
-    }
-
-    // دالة تحميل الأقسام
-    function loadSections() {
-      database.ref('menu').once('value')
-        .then((snapshot) => {
-          const menu = snapshot.val() || {};
-          sectionsList.innerHTML = '';
-          
-          Object.entries(menu).forEach(([category, sections]) => {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'category-section';
-            categoryDiv.innerHTML = `
-              <h3 style="margin: 1rem 0; color: var(--dark); text-transform: capitalize;">${category}</h3>
-              <div id="sections-${category}"></div>
-            `;
-            
-            sectionsList.appendChild(categoryDiv);
-            
-            const sectionsContainer = document.getElementById(`sections-${category}`);
-            
-            if (sections && sections.length > 0) {
-              sections.forEach((section, sectionIndex) => {
-                const sectionDiv = document.createElement('div');
-                sectionDiv.className = 'section-item';
-                sectionDiv.innerHTML = `
-                  <div class="section-name">
-                    <i class="fas ${section.icon || 'fa-utensils'}"></i>
-                    <span>${section.section}</span>
-                  </div>
-                  <div class="item-actions">
-                    <button class="action-btn edit" data-category="${category}" data-section="${sectionIndex}">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-btn delete" data-category="${category}" data-section="${sectionIndex}">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                `;
-                
-                sectionsContainer.appendChild(sectionDiv);
-              });
-            }
-            
-            // إضافة زر إضافة قسم جديد لكل فئة
-            const addSectionDiv = document.createElement('div');
-            addSectionDiv.className = 'section-item';
-            addSectionDiv.innerHTML = `
-              <div></div>
-              <div class="item-actions">
-                <button class="action-btn edit" data-category="${category}" data-section="new">
-                  <i class="fas fa-plus"></i> إضافة قسم
-                </button>
-              </div>
-            `;
-            
-            sectionsContainer.appendChild(addSectionDiv);
-          });
-        });
-    }
-
-    // دالة فتح نموذج إضافة/تعديل صنف
-    function openItemModal(category, sectionIndex, itemIndex) {
-      if (category && sectionIndex !== undefined && itemIndex !== undefined) {
-        // وضع التعديل
-        modalTitle.textContent = 'تعديل الصنف';
-        currentEditingItem = { category, sectionIndex, itemIndex };
+      Object.keys(menuData).forEach(mealType => {
+        const sections = menuData[mealType] || [];
         
-        // جلب بيانات الصنف الحالي
-        database.ref(`menu/${category}/${sectionIndex}/items/${itemIndex}`).once('value')
-          .then((snapshot) => {
-            const item = snapshot.val();
+        sections.forEach((section, sectionIndex) => {
+          if (!section.items) return;
+          
+          section.items.forEach((item, itemIndex) => {
+            const tr = document.createElement('tr');
+            tr.dataset.mealType = mealType;
+            tr.dataset.sectionIndex = sectionIndex;
+            tr.dataset.itemIndex = itemIndex;
+            tr.innerHTML = `
+              <td><i class="fas ${item.icon || 'fa-circle'}"></i></td>
+              <td>${item.plat}</td>
+              <td>${getMealTypeName(mealType)}</td>
+              <td>${section.section}</td>
+              <td>${item.prix} درهم</td>
+              <td>
+                <span class="badge badge-success">مفعل</span>
+              </td>
+              <td>
+                <button class="btn btn-warning btn-sm edit-item" data-meal-type="${mealType}" data-section-index="${sectionIndex}" data-item-index="${itemIndex}">
+                  <i class="fas fa-edit"></i> تعديل
+                </button>
+                <button class="btn btn-danger btn-sm delete-item" data-meal-type="${mealType}" data-section-index="${sectionIndex}" data-item-index="${itemIndex}">
+                  <i class="fas fa-trash"></i> حذف
+                </button>
+              </td>
+            `;
+            itemsList.appendChild(tr);
             
-            document.getElementById('itemId').value = `${category}-${sectionIndex}-${itemIndex}`;
-            document.getElementById('itemCategory').value = category;
-            document.getElementById('itemSectionIndex').value = sectionIndex;
-            document.getElementById('itemName').value = item.plat;
-            document.getElementById('itemPrice').value = item.prix;
-            document.getElementById('itemDescription').value = item.description || '';
-            document.getElementById('itemIcon').value = item.icon || 'fa-utensils';
+            // إضافة أحداث النقر للأزرار
+            tr.querySelector('.edit-item').addEventListener('click', (e) => {
+              e.stopPropagation();
+              editItem(mealType, sectionIndex, itemIndex);
+            });
+            
+            tr.querySelector('.delete-item').addEventListener('click', (e) => {
+              e.stopPropagation();
+              deleteItem(mealType, sectionIndex, itemIndex);
+            });
           });
-      } else {
-        // وضع الإضافة
-        modalTitle.textContent = 'إضافة صنف جديد';
-        currentEditingItem = null;
-        itemForm.reset();
-        const category = document.querySelector('.menu-tab.active').dataset.tab;
-        document.getElementById('itemCategory').value = category;
+        });
+      });
+    }
+
+    // تصفية الأصناف حسب نوع الوجبة والقسم
+    function filterItems() {
+      const mealType = filterMealTypeSelect.value;
+      const category = filterCategorySelect.value;
+      
+      document.querySelectorAll('#itemsList tr').forEach(row => {
+        const rowMealType = row.dataset.mealType;
+        const rowSectionIndex = row.dataset.sectionIndex;
+        const section = menuData[rowMealType] ? menuData[rowMealType][rowSectionIndex] : null;
+        const rowCategory = section ? section.section : '';
+        
+        const mealTypeMatch = !mealType || rowMealType === mealType;
+        const categoryMatch = !category || rowCategory === category;
+        
+        row.style.display = mealTypeMatch && categoryMatch ? '' : 'none';
+      });
+    }
+
+    // تحديث قوائم التصفية بالأقسام
+    function updateCategoryFilters() {
+      filterCategorySelect.innerHTML = '<option value="">جميع الأقسام</option>';
+      itemCategorySelect.innerHTML = '<option value="">اختر القسم</option>';
+      
+      if (!menuData) return;
+      
+      Object.keys(menuData).forEach(mealType => {
+        const sections = menuData[mealType] || [];
+        
+        sections.forEach(section => {
+          const option = document.createElement('option');
+          option.value = section.section;
+          option.textContent = section.section;
+          option.dataset.mealType = mealType;
+          
+          filterCategorySelect.appendChild(option.cloneNode(true));
+        });
+      });
+    }
+
+    // تحديث قائمة الأقسام في مودال الصنف حسب نوع الوجبة المحدد
+    function updateCategoryDropdown() {
+      const mealType = itemMealTypeSelect.value;
+      itemCategorySelect.innerHTML = '<option value="">اختر القسم</option>';
+      
+      if (!mealType || !menuData[mealType]) return;
+      
+      menuData[mealType].forEach(section => {
+        const option = document.createElement('option');
+        option.value = section.section;
+        option.textContent = section.section;
+        itemCategorySelect.appendChild(option);
+      });
+    }
+
+    // فتح مودال إضافة قسم
+    function openCategoryModal() {
+      isEditing = false;
+      currentCategoryPath = null;
+      categoryModalTitle.textContent = 'إضافة قسم جديد';
+      categoryForm.reset();
+      categoryModal.classList.add('active');
+    }
+
+    // فتح مودال تعديل قسم
+    function editCategory(mealType, sectionIndex) {
+      const section = menuData[mealType][sectionIndex];
+      if (!section) return;
+      
+      isEditing = true;
+      currentCategoryPath = { mealType, sectionIndex };
+      categoryModalTitle.textContent = 'تعديل القسم';
+      mealTypeInput.value = mealType;
+      categoryNameInput.value = section.section;
+      categoryIconInput.value = section.icon || '';
+      categoryModal.classList.add('active');
+    }
+
+    // حفظ القسم
+    function saveCategory() {
+      const mealType = mealTypeInput.value;
+      const name = categoryNameInput.value.trim();
+      const icon = categoryIconInput.value.trim();
+      
+      if (!mealType) {
+        showAlert('الرجاء اختيار نوع الوجبة', 'danger');
+        return;
       }
       
+      if (!name) {
+        showAlert('الرجاء إدخال اسم القسم', 'danger');
+        return;
+      }
+      
+      const sectionData = {
+        section: name,
+        icon: icon || 'fa-utensils',
+        items: isEditing ? menuData[mealType][currentCategoryPath.sectionIndex].items : []
+      };
+      
+      if (isEditing) {
+        // تحديث القسم الموجود
+        menuData[mealType][currentCategoryPath.sectionIndex] = sectionData;
+      } else {
+        // إضافة قسم جديد
+        if (!menuData[mealType]) {
+          menuData[mealType] = [];
+        }
+        menuData[mealType].push(sectionData);
+      }
+      
+      // حفظ التغييرات في Firebase
+      menuRef.set(menuData)
+        .then(() => {
+          showAlert(isEditing ? 'تم تحديث القسم بنجاح' : 'تم إضافة القسم بنجاح', 'success');
+          closeCategoryModal();
+        })
+        .catch(error => {
+          showAlert('حدث خطأ أثناء حفظ القسم: ' + error.message, 'danger');
+        });
+    }
+
+    // حذف قسم
+    function deleteCategory(mealType, sectionIndex) {
+      if (!confirm('هل أنت متأكد من حذف هذا القسم؟ سيتم حذف جميع الأصناف المرتبطة به.')) {
+        return;
+      }
+      
+      // حذف القسم من البيانات المحلية
+      menuData[mealType].splice(sectionIndex, 1);
+      
+      // إذا لم يعد هناك أقسام لهذا النوع، نزيل النوع كاملًا
+      if (menuData[mealType].length === 0) {
+        delete menuData[mealType];
+      }
+      
+      // حفظ التغييرات في Firebase
+      menuRef.set(menuData)
+        .then(() => {
+          showAlert('تم حذف القسم بنجاح', 'success');
+        })
+        .catch(error => {
+          showAlert('حدث خطأ أثناء حذف القسم: ' + error.message, 'danger');
+        });
+    }
+
+    // إغلاق مودال القسم
+    function closeCategoryModal() {
+      categoryModal.classList.remove('active');
+    }
+
+    // فتح مودال إضافة صنف
+    function openItemModal() {
+      isEditing = false;
+      currentItemPath = null;
+      itemModalTitle.textContent = 'إضافة صنف جديد';
+      itemForm.reset();
+      itemStatusInput.checked = true;
+      itemStatusText.textContent = 'مفعل';
       itemModal.classList.add('active');
     }
 
-    // دالة فتح نموذج إضافة/تعديل قسم
-    function openSectionModal(category, sectionIndex) {
-      if (category && sectionIndex !== undefined && sectionIndex !== 'new') {
-        // وضع التعديل
-        sectionModalTitle.textContent = 'تعديل القسم';
-        currentEditingSection = { category, sectionIndex };
-        
-        // جلب بيانات القسم الحالي
-        database.ref(`menu/${category}/${sectionIndex}`).once('value')
-          .then((snapshot) => {
-            const section = snapshot.val();
-            
-            document.getElementById('sectionId').value = `${category}-${sectionIndex}`;
-            document.getElementById('sectionCategory').value = category;
-            document.getElementById('sectionName').value = section.section;
-            document.getElementById('sectionIcon').value = section.icon || 'fa-utensils';
-          });
-      } else {
-        // وضع الإضافة
-        sectionModalTitle.textContent = 'إضافة قسم جديد';
-        currentEditingSection = null;
-        sectionForm.reset();
-        const category = category || document.querySelector('.menu-tab.active').dataset.tab;
-        document.getElementById('sectionCategory').value = category;
-      }
+    // فتح مودال تعديل صنف
+    function editItem(mealType, sectionIndex, itemIndex) {
+      const item = menuData[mealType][sectionIndex].items[itemIndex];
+      if (!item) return;
       
-      sectionModal.classList.add('active');
+      isEditing = true;
+      currentItemPath = { mealType, sectionIndex, itemIndex };
+      itemModalTitle.textContent = 'تعديل الصنف';
+      itemMealTypeSelect.value = mealType;
+      updateCategoryDropdown();
+      itemNameInput.value = item.plat;
+      itemCategorySelect.value = menuData[mealType][sectionIndex].section;
+      itemPriceInput.value = item.prix;
+      itemDescriptionInput.value = item.description || '';
+      itemIconInput.value = item.icon || '';
+      itemModal.classList.add('active');
     }
 
-    // دالة حفظ الصنف
-    function saveMenuItem() {
-      const category = document.getElementById('itemCategory').value;
-      const sectionIndex = document.getElementById('itemSectionIndex').value;
-      const name = document.getElementById('itemName').value;
-      const price = parseFloat(document.getElementById('itemPrice').value);
-      const description = document.getElementById('itemDescription').value;
-      const icon = document.getElementById('itemIcon').value;
+    // حفظ الصنف
+    function saveItem() {
+      const mealType = itemMealTypeSelect.value;
+      const categoryName = itemCategorySelect.value;
+      const name = itemNameInput.value.trim();
+      const price = parseFloat(itemPriceInput.value);
+      const description = itemDescriptionInput.value.trim();
+      const icon = itemIconInput.value.trim();
+      const active = itemStatusInput.checked;
+      
+      if (!mealType) {
+        showAlert('الرجاء اختيار نوع الوجبة', 'danger');
+        return;
+      }
+      
+      if (!categoryName) {
+        showAlert('الرجاء اختيار القسم', 'danger');
+        return;
+      }
+      
+      if (!name) {
+        showAlert('الرجاء إدخال اسم الصنف', 'danger');
+        return;
+      }
+      
+      if (isNaN(price)) {
+        showAlert('الرجاء إدخال سعر صحيح', 'danger');
+        return;
+      }
+      
+      // البحث عن القسم المحدد
+      let sectionIndex = -1;
+      if (menuData[mealType]) {
+        sectionIndex = menuData[mealType].findIndex(s => s.section === categoryName);
+      }
+      
+      // إذا لم يتم العثور على القسم
+      if (sectionIndex === -1) {
+        showAlert('القسم المحدد غير موجود', 'danger');
+        return;
+      }
       
       const itemData = {
         plat: name,
         prix: price,
-        description: description,
-        icon: icon
+        description: description || '',
+        icon: icon || 'fa-circle',
+        active: active !== false
       };
       
-      if (currentEditingItem) {
-        // تحديث الصنف الحالي
-        const { category, sectionIndex, itemIndex } = currentEditingItem;
-        
-        database.ref(`menu/${category}/${sectionIndex}/items/${itemIndex}`).update(itemData)
-          .then(() => {
-            itemModal.classList.remove('active');
-            loadMenuItems();
-          });
+      if (isEditing) {
+        // تحديث الصنف الموجود
+        menuData[mealType][sectionIndex].items[currentItemPath.itemIndex] = itemData;
       } else {
         // إضافة صنف جديد
-        const category = document.getElementById('itemCategory').value;
-        const sectionIndex = document.getElementById('itemSectionIndex').value || 0;
-        
-        database.ref(`menu/${category}/${sectionIndex}/items`).push(itemData)
-          .then(() => {
-            itemModal.classList.remove('active');
-            loadMenuItems();
-          });
+        if (!menuData[mealType][sectionIndex].items) {
+          menuData[mealType][sectionIndex].items = [];
+        }
+        menuData[mealType][sectionIndex].items.push(itemData);
       }
-    }
-
-    // دالة حفظ القسم
-    function saveMenuSection() {
-      const category = document.getElementById('sectionCategory').value;
-      const name = document.getElementById('sectionName').value;
-      const icon = document.getElementById('sectionIcon').value;
       
-      const sectionData = {
-        section: name,
-        icon: icon,
-        items: []
-      };
-      
-      if (currentEditingSection) {
-        // تحديث القسم الحالي
-        const { category, sectionIndex } = currentEditingSection;
-        
-        database.ref(`menu/${category}/${sectionIndex}`).update(sectionData)
-          .then(() => {
-            sectionModal.classList.remove('active');
-            loadMenuItems();
-            loadSections();
-          });
-      } else {
-        // إضافة قسم جديد
-        const category = document.getElementById('sectionCategory').value;
-        
-        database.ref(`menu/${category}`).once('value')
-          .then((snapshot) => {
-            const sections = snapshot.val() || [];
-            sections.push(sectionData);
-            
-            database.ref(`menu/${category}`).set(sections)
-              .then(() => {
-                sectionModal.classList.remove('active');
-                loadMenuItems();
-                loadSections();
-              });
-          });
-      }
-    }
-
-    // دالة حذف الصنف
-    function deleteMenuItem(category, sectionIndex, itemIndex) {
-      if (confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
-        database.ref(`menu/${category}/${sectionIndex}/items/${itemIndex}`).remove()
-          .then(() => {
-            loadMenuItems();
-          });
-      }
-    }
-
-    // دالة حذف القسم
-    function deleteMenuSection(category, sectionIndex) {
-      if (confirm('هل أنت متأكد من حذف هذا القسم؟ سيتم حذف جميع الأصناف الموجودة فيه.')) {
-        database.ref(`menu/${category}/${sectionIndex}`).remove()
-          .then(() => {
-            loadMenuItems();
-            loadSections();
-          });
-      }
-    }
-
-    // دالة فتح تفاصيل الطلب
-    function openOrderDetails(orderId) {
-      database.ref(`orders/${orderId}`).once('value')
-        .then((snapshot) => {
-          const order = snapshot.val();
-          currentOrder = { id: orderId, ...order };
-          
-          const date = new Date(order.timestamp);
-          const dateStr = date.toLocaleString('ar-EG');
-          
-          let statusText = '';
-          switch(order.status) {
-            case 'pending': statusText = 'قيد الانتظار'; break;
-            case 'preparing': statusText = 'قيد التحضير'; break;
-            case 'ready': statusText = 'جاهز للتقديم'; break;
-            case 'completed': statusText = 'مكتمل'; break;
-          }
-          
-          document.getElementById('orderNumber').textContent = orderId.substring(0, 6);
-          document.getElementById('orderTable').textContent = order.table;
-          document.getElementById('orderDate').textContent = dateStr;
-          document.getElementById('orderStatus').textContent = statusText;
-          document.getElementById('orderNotes').textContent = order.notes || 'لا يوجد';
-          document.getElementById('orderTotal').textContent = order.total.toLocaleString('fr-FR');
-          document.getElementById('updateStatus').value = order.status;
-          
-          // تعبئة أصناف الطلب
-          const orderItemsList = document.getElementById('orderItemsList');
-          orderItemsList.innerHTML = '';
-          
-          order.items.forEach(item => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'order-item';
-            itemDiv.innerHTML = `
-              <div>${item.plat}</div>
-              <div>${item.quantity} × ${item.prix.toLocaleString('fr-FR')} درهم</div>
-              <div style="font-weight: 700;">${(item.quantity * item.prix).toLocaleString('fr-FR')} درهم</div>
-            `;
-            orderItemsList.appendChild(itemDiv);
-          });
-          
-          orderModalEl.classList.add('active');
-        });
-    }
-
-    // دالة تحديث حالة الطلب
-    function updateOrderStatus() {
-      const newStatus = document.getElementById('updateStatus').value;
-      
-      database.ref(`orders/${currentOrder.id}/status`).set(newStatus)
+      // حفظ التغييرات في Firebase
+      menuRef.set(menuData)
         .then(() => {
-          orderModalEl.classList.remove('active');
-          loadDashboard();
+          showAlert(isEditing ? 'تم تحديث الصنف بنجاح' : 'تم إضافة الصنف بنجاح', 'success');
+          closeItemModal();
+        })
+        .catch(error => {
+          showAlert('حدث خطأ أثناء حفظ الصنف: ' + error.message, 'danger');
         });
     }
 
-    // دالة حذف الطلب
-    function deleteOrder(orderId) {
-      if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
-        database.ref(`orders/${orderId}`).remove()
-          .then(() => {
-            loadDashboard();
-          });
+    // حذف صنف
+    function deleteItem(mealType, sectionIndex, itemIndex) {
+      if (!confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
+        return;
       }
-    }
-
-    // دالة إكمال الطلب
-    function completeOrder(orderId) {
-      database.ref(`orders/${orderId}/status`).set('completed')
+      
+      // حذف الصنف من البيانات المحلية
+      menuData[mealType][sectionIndex].items.splice(itemIndex, 1);
+      
+      // إذا لم يعد هناك أصناف في القسم، يمكن حذف القسم (اختياري)
+      
+      // حفظ التغييرات في Firebase
+      menuRef.set(menuData)
         .then(() => {
-          loadDashboard();
+          showAlert('تم حذف الصنف بنجاح', 'success');
+        })
+        .catch(error => {
+          showAlert('حدث خطأ أثناء حذف الصنف: ' + error.message, 'danger');
         });
     }
 
-    // دالة تحضير الطلب للطباعة
-    function preparePrintOrders(tableId) {
-      const table = document.getElementById(tableId);
-      const rows = table.querySelectorAll('tbody tr');
-      const printOrders = document.getElementById('printOrders');
-      const printDate = document.getElementById('printDate');
-      const printCount = document.getElementById('printCount');
-      const printTotal = document.getElementById('printTotal');
-      
-      printOrders.innerHTML = '';
-      let total = 0;
-      let count = 0;
-      
-      rows.forEach(row => {
-        const cells = row.cells;
-        const orderId = cells[0].textContent;
-        const tableNumber = cells[1].textContent;
-        const date = cells[2].textContent;
-        const orderTotal = parseFloat(cells[3].textContent.replace(/\s/g, '')) || 0;
-        const status = cells[4].querySelector('span').textContent;
-        
-        const printRow = document.createElement('tr');
-        printRow.innerHTML = `
-          <td>${orderId}</td>
-          <td>${tableNumber}</td>
-          <td>${date}</td>
-          <td>${orderTotal.toLocaleString('fr-FR')} درهم</td>
-          <td>${status}</td>
-        `;
-        
-        printOrders.appendChild(printRow);
-        total += orderTotal;
-        count++;
-      });
-      
-      printDate.textContent = new Date().toLocaleString('ar-EG');
-      printCount.textContent = count.toLocaleString('fr-FR');
-      printTotal.textContent = total.toLocaleString('fr-FR');
+    // إغلاق مودال الصنف
+    function closeItemModal() {
+      itemModal.classList.remove('active');
     }
 
-    // دالة طباعة السجل
-    function printOrders() {
-      preparePrintOrders('allOrders');
-      printArea.style.display = 'block';
-      window.print();
-      printArea.style.display = 'none';
-    }
-
-    // دالة طباعة السجل الحديث
-    function printRecentOrders() {
-      preparePrintOrders('recentOrders');
-      printArea.style.display = 'block';
-      window.print();
-      printArea.style.display = 'none';
-    }
-
-    // أحداث DOM
-    document.addEventListener('DOMContentLoaded', () => {
-      // تسجيل الدخول
-      loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        login(email, password);
-      });
-      
-      // تسجيل الخروج
-      logoutBtn.addEventListener('click', logout);
-      
-      // التنقل بين الأقسام
-      document.querySelectorAll('.admin-nav a').forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          
-          // إزالة التنشيط من جميع الروابط
-          document.querySelectorAll('.admin-nav a').forEach(l => l.classList.remove('active'));
-          
-          // تنشيط الرابط الحالي
-          link.classList.add('active');
-          
-          // إخفاء جميع الأقسام
-          dashboardSection.style.display = 'none';
-          ordersSection.style.display = 'none';
-          menuSection.style.display = 'none';
-          sectionsSection.style.display = 'none';
-          
-          // إظهار القسم المحدد
-          const section = link.dataset.section;
-          if (section === 'dashboard') {
-            dashboardSection.style.display = 'block';
-            loadDashboard();
-          } else if (section === 'orders') {
-            ordersSection.style.display = 'block';
-            loadAllOrders();
-          } else if (section === 'menu') {
-            menuSection.style.display = 'block';
-            loadMenuItems();
-          } else if (section === 'sections') {
-            sectionsSection.style.display = 'block';
-            loadSections();
-          }
-        });
-      });
-      
-      // تبديل أقسام القائمة
-      menuTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          menuTabs.forEach(t => t.classList.remove('active'));
+    // تبديل التبويبات
+    function switchTab(tabId) {
+      tabs.forEach(tab => {
+        if (tab.dataset.tab === tabId) {
           tab.classList.add('active');
-          
-          menuItemsContainers.forEach(container => container.classList.remove('active'));
-          document.getElementById(`${tab.dataset.tab}Items`).classList.add('active');
-        });
-      });
-      
-      // إضافة صنف جديد
-      addItemBtn.addEventListener('click', () => openItemModal());
-      
-      // إضافة قسم جديد
-      addSectionBtn.addEventListener('click', () => openSectionModal());
-      
-      // حفظ الصنف
-      itemForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        saveMenuItem();
-      });
-      
-      // حفظ القسم
-      sectionForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        saveMenuSection();
-      });
-      
-      // إغلاق النماذج
-      document.getElementById('closeModal').addEventListener('click', () => {
-        itemModal.classList.remove('active');
-      });
-      
-      document.getElementById('closeSectionModal').addEventListener('click', () => {
-        sectionModal.classList.remove('active');
-      });
-      
-      document.getElementById('closeOrderModal').addEventListener('click', () => {
-        orderModalEl.classList.remove('active');
-      });
-      
-      // تحديث حالة الطلب
-      updateStatusBtn.addEventListener('click', updateOrderStatus);
-      
-      // أحداث الفلاتر
-      statusFilter.addEventListener('change', loadAllOrders);
-      dateFilter.addEventListener('change', loadAllOrders);
-      
-      // أحداث الطباعة
-      printAllBtn.addEventListener('click', printOrders);
-      printRecentBtn.addEventListener('click', printRecentOrders);
-      
-      // أحداث النقر على الطلبات
-      document.addEventListener('click', (e) => {
-        // عرض تفاصيل الطلب
-        if (e.target.closest('.action-btn.edit')) {
-          const btn = e.target.closest('.action-btn.edit');
-          if (btn.dataset.id) {
-            const orderId = btn.dataset.id;
-            openOrderDetails(orderId);
-          }
-        }
-        
-        // حذف الطلب
-        else if (e.target.closest('.action-btn.delete')) {
-          const btn = e.target.closest('.action-btn.delete');
-          if (btn.dataset.id) {
-            const orderId = btn.dataset.id;
-            deleteOrder(orderId);
-          }
-        }
-        
-        // إكمال الطلب
-        else if (e.target.closest('.action-btn.complete')) {
-          const btn = e.target.closest('.action-btn.complete');
-          if (btn.dataset.id) {
-            const orderId = btn.dataset.id;
-            completeOrder(orderId);
-          }
-        }
-      });
-      
-      // أحداث النقر على أصناف القائمة
-      document.addEventListener('click', (e) => {
-        // تعديل الصنف
-        if (e.target.closest('.action-btn.edit')) {
-          const btn = e.target.closest('.action-btn.edit');
-          if (btn.dataset.category && btn.dataset.section !== undefined && btn.dataset.item !== undefined) {
-            const category = btn.dataset.category;
-            const sectionIndex = parseInt(btn.dataset.section);
-            const itemIndex = parseInt(btn.dataset.item);
-            openItemModal(category, sectionIndex, itemIndex);
-          }
-        }
-        
-        // حذف الصنف
-        else if (e.target.closest('.action-btn.delete')) {
-          const btn = e.target.closest('.action-btn.delete');
-          if (btn.dataset.category && btn.dataset.section !== undefined && btn.dataset.item !== undefined) {
-            const category = btn.dataset.category;
-            const sectionIndex = parseInt(btn.dataset.section);
-            const itemIndex = parseInt(btn.dataset.item);
-            deleteMenuItem(category, sectionIndex, itemIndex);
-          }
-        }
-      });
-      
-      // أحداث النقر على أقسام القائمة
-      document.addEventListener('click', (e) => {
-        // تعديل القسم
-        if (e.target.closest('.action-btn.edit')) {
-          const btn = e.target.closest('.action-btn.edit');
-          if (btn.dataset.category && btn.dataset.section !== undefined) {
-            const category = btn.dataset.category;
-            const sectionIndex = btn.dataset.section === 'new' ? undefined : parseInt(btn.dataset.section);
-            openSectionModal(category, sectionIndex);
-          }
-        }
-        
-        // حذف القسم
-        else if (e.target.closest('.action-btn.delete')) {
-          const btn = e.target.closest('.action-btn.delete');
-          if (btn.dataset.category && btn.dataset.section !== undefined) {
-            const category = btn.dataset.category;
-            const sectionIndex = parseInt(btn.dataset.section);
-            deleteMenuSection(category, sectionIndex);
-          }
-        }
-      });
-      
-      // التحقق من حالة المستخدم عند تحميل الصفحة
-      auth.onAuthStateChanged((user) => {
-        if (user) {
-          currentUser = user;
-          loginPage.style.display = 'none';
-          dashboardPage.style.display = 'block';
-          loadDashboard();
         } else {
-          currentUser = null;
-          dashboardPage.style.display = 'none';
-          loginPage.style.display = 'flex';
+          tab.classList.remove('active');
         }
       });
-    });
+      
+      tabContents.forEach(content => {
+        if (content.id === tabId) {
+          content.classList.add('active');
+        } else {
+          content.classList.remove('active');
+        }
+      });
+    }
+
+    // إعداد التبويبات
+    function setupTabs() {
+      // تحديد التبويب الأول بشكل افتراضي
+      tabs[0].click();
+    }
+
+    // تحديث نص حالة الصنف
+    function updateItemStatusText() {
+      itemStatusText.textContent = itemStatusInput.checked ? 'مفعل' : 'غير مفعل';
+    }
+
+    // عرض رسالة تنبيه
+    function showAlert(message, type) {
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        ${message}
+      `;
+      alertContainer.appendChild(alert);
+      
+      // إزالة التنبيه بعد 5 ثواني
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    // الحصول على اسم نوع الوجبة
+    function getMealTypeName(mealType) {
+      const names = {
+        breakfast: 'فطور',
+        lunch: 'غداء',
+        dinner: 'عشاء',
+        desserts: 'حلويات',
+        drinks: 'مشروبات'
+      };
+      return names[mealType] || mealType;
+    }
+
+    // بدء التطبيق
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
