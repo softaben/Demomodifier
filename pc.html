@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>KDP Style - Gestion Crédits Clients</title>
+    <title>KDP Style - Gestion Crédits Clients | Dark/Light mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -19,14 +19,61 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #F7F8FA;
-            color: #0F1111;
-            line-height: 1.5;
+        /* ========== THEMES ========== */
+        :root {
+            /* Light theme (default / Amazon KDP style) */
+            --bg-body: #F7F8FA;
+            --bg-card: #FFFFFF;
+            --text-primary: #0F1111;
+            --text-secondary: #565959;
+            --border-light: #E6E7E9;
+            --border-input: #D5D9D9;
+            --accent: #FF9900;
+            --accent-hover: #E68900;
+            --accent-bg-light: #FFF8ED;
+            --success: #067D62;
+            --success-bg: #D5F0E8;
+            --danger: #D13F3F;
+            --danger-bg: #FCE8E8;
+            --warning: #C25E00;
+            --warning-bg: #FEF3E6;
+            --info: #146EB4;
+            --nav-hover: #F0F2F2;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.02);
+            --progress-bg: #EDEDF0;
         }
 
-        /* Layout Amazon KDP style - épuré, aéré, professionnel */
+        body.dark {
+            --bg-body: #1A1E24;
+            --bg-card: #252A32;
+            --text-primary: #F0F3F8;
+            --text-secondary: #A6B0C0;
+            --border-light: #323842;
+            --border-input: #3B424C;
+            --accent: #FFB347;
+            --accent-hover: #FFA01E;
+            --accent-bg-light: #2A2C36;
+            --success: #2E9A7A;
+            --success-bg: #1F3E36;
+            --danger: #E86A6A;
+            --danger-bg: #3D2A2A;
+            --warning: #F39C4A;
+            --warning-bg: #3D3224;
+            --info: #4A90E2;
+            --nav-hover: #2F3540;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --progress-bg: #323842;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.5;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        /* Layout Amazon KDP style */
         .kdp-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -35,44 +82,51 @@
 
         /* Header style KDP */
         .kdp-header {
-            background: white;
+            background: var(--bg-card);
             border-radius: 12px;
             padding: 20px 28px;
             margin-bottom: 28px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
-            border: 1px solid #E6E7E9;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            gap: 16px;
         }
 
         .logo-area h1 {
             font-size: 1.6rem;
             font-weight: 600;
-            color: #0F1111;
+            color: var(--text-primary);
             letter-spacing: -0.3px;
         }
 
         .logo-area p {
             font-size: 0.8rem;
-            color: #565959;
+            color: var(--text-secondary);
             margin-top: 4px;
         }
 
         .logo-area i {
-            color: #FF9900;
+            color: var(--accent);
             margin-right: 8px;
         }
 
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
         .btn-icon-kdp {
-            background: #F0F2F2;
-            border: 1px solid #D5D9D9;
+            background: var(--nav-hover);
+            border: 1px solid var(--border-input);
             border-radius: 8px;
             padding: 10px 16px;
             font-size: 0.9rem;
             font-weight: 500;
-            color: #0F1111;
+            color: var(--text-primary);
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
@@ -81,20 +135,29 @@
         }
 
         .btn-icon-kdp:hover {
-            background: #E3E6E6;
-            border-color: #C4C8C8;
+            background: var(--border-light);
+            border-color: var(--accent);
+        }
+
+        /* Theme toggle button specific */
+        .theme-toggle {
+            background: var(--nav-hover);
+            border-radius: 40px;
+            padding: 8px 16px;
+            gap: 10px;
         }
 
         /* Navigation style Amazon */
         .kdp-nav {
             display: flex;
             gap: 4px;
-            background: white;
+            background: var(--bg-card);
             border-radius: 12px;
             padding: 6px;
-            border: 1px solid #E6E7E9;
+            border: 1px solid var(--border-light);
             margin-bottom: 28px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
         }
 
         .kdp-tab {
@@ -103,7 +166,7 @@
             cursor: pointer;
             font-weight: 500;
             font-size: 0.9rem;
-            color: #565959;
+            color: var(--text-secondary);
             transition: all 0.2s;
             background: transparent;
         }
@@ -113,28 +176,28 @@
         }
 
         .kdp-tab:hover {
-            background: #F0F2F2;
-            color: #0F1111;
+            background: var(--nav-hover);
+            color: var(--text-primary);
         }
 
         .kdp-tab.active {
-            background: #FF9900;
+            background: var(--accent);
             color: white;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        /* Cards style KDP - blancs, légers, bordures douces */
+        /* Cards style KDP */
         .kdp-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 12px;
-            border: 1px solid #E6E7E9;
+            border: 1px solid var(--border-light);
             padding: 24px;
             transition: box-shadow 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            box-shadow: var(--shadow-sm);
         }
 
         .kdp-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .card-title-kdp {
@@ -142,9 +205,9 @@
             font-weight: 600;
             margin-bottom: 20px;
             padding-bottom: 12px;
-            border-bottom: 2px solid #FF9900;
+            border-bottom: 2px solid var(--accent);
             display: inline-block;
-            color: #0F1111;
+            color: var(--text-primary);
         }
 
         .two-columns {
@@ -154,7 +217,6 @@
             margin-bottom: 28px;
         }
 
-        /* Formulaires propres */
         .form-group {
             margin-bottom: 18px;
         }
@@ -164,16 +226,16 @@
             font-size: 0.8rem;
             font-weight: 500;
             margin-bottom: 6px;
-            color: #0F1111;
+            color: var(--text-primary);
         }
 
         input, select, textarea {
             width: 100%;
             padding: 10px 12px;
-            background: white;
-            border: 1px solid #D5D9D9;
+            background: var(--bg-card);
+            border: 1px solid var(--border-input);
             border-radius: 8px;
-            color: #0F1111;
+            color: var(--text-primary);
             font-size: 0.9rem;
             font-family: 'Inter', sans-serif;
             transition: all 0.2s;
@@ -181,12 +243,12 @@
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #FF9900;
-            box-shadow: 0 0 0 3px rgba(255,153,0,0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,153,0,0.15);
         }
 
         button {
-            background: #FF9900;
+            background: var(--accent);
             border: none;
             padding: 10px 16px;
             border-radius: 8px;
@@ -200,20 +262,24 @@
         }
 
         button:hover {
-            background: #E68900;
+            background: var(--accent-hover);
             transform: translateY(-1px);
         }
 
         button.success {
-            background: #067D62;
+            background: var(--success);
         }
 
         button.success:hover {
             background: #05604A;
         }
 
+        body.dark button.success:hover {
+            background: #1F8A6B;
+        }
+
         button.danger {
-            background: #D13F3F;
+            background: var(--danger);
         }
 
         button.danger:hover {
@@ -221,11 +287,11 @@
         }
 
         button.info {
-            background: #146EB4;
+            background: var(--info);
         }
 
         button.warning {
-            background: #C25E00;
+            background: var(--warning);
         }
 
         .row {
@@ -244,23 +310,23 @@
         }
 
         .list-item {
-            background: #FFFFFF;
+            background: var(--bg-card);
             padding: 16px;
             border-radius: 10px;
             margin-bottom: 12px;
-            border: 1px solid #EDEDF0;
+            border: 1px solid var(--border-light);
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .list-item:hover {
-            border-color: #FF9900;
-            background: #FFFBF5;
+            border-color: var(--accent);
+            background: var(--accent-bg-light);
         }
 
         .client-name {
             font-weight: 700;
-            color: #0F1111;
+            color: var(--text-primary);
             font-size: 1rem;
         }
 
@@ -272,13 +338,13 @@
             font-weight: 600;
         }
 
-        .badge-paid { background: #D5F0E8; color: #067D62; }
-        .badge-partial { background: #FEF3E6; color: #C25E00; }
-        .badge-unpaid { background: #FCE8E8; color: #D13F3F; }
+        .badge-paid { background: var(--success-bg); color: var(--success); }
+        .badge-partial { background: var(--warning-bg); color: var(--warning); }
+        .badge-unpaid { background: var(--danger-bg); color: var(--danger); }
 
         .progress-bar {
             height: 6px;
-            background: #EDEDF0;
+            background: var(--progress-bg);
             border-radius: 10px;
             margin: 12px 0;
             overflow: hidden;
@@ -286,7 +352,7 @@
 
         .progress-fill {
             height: 100%;
-            background: #FF9900;
+            background: var(--accent);
             border-radius: 10px;
         }
 
@@ -298,18 +364,18 @@
 
         .small-text {
             font-size: 0.7rem;
-            color: #565959;
+            color: var(--text-secondary);
             margin-top: 6px;
         }
 
-        /* Modals style KDP */
+        /* Modals */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             display: none;
             align-items: center;
             justify-content: center;
@@ -321,14 +387,15 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--bg-card);
             width: 90%;
             max-width: 600px;
             border-radius: 16px;
             padding: 28px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-light);
         }
 
         .modal-header {
@@ -344,40 +411,34 @@
             display: none;
         }
 
-        /* Multi-paiement style KDP */
+        /* Multi-paiement style */
         .order-payment-card {
-            background: #F9FAFB;
+            background: var(--bg-body);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
-            border: 1px solid #E6E7E9;
+            border: 1px solid var(--border-light);
             transition: all 0.2s;
             cursor: pointer;
         }
 
         .order-payment-card.selected {
-            background: #FFF8ED;
-            border-color: #FF9900;
-            box-shadow: 0 1px 3px rgba(255,153,0,0.1);
+            background: var(--accent-bg-light);
+            border-color: var(--accent);
         }
 
         .order-number {
             font-weight: 700;
-            color: #0F1111;
-        }
-
-        .payment-amount-input input {
-            margin-top: 10px;
-            background: white;
+            color: var(--text-primary);
         }
 
         .total-payment-card {
-            background: #F0F2F2;
+            background: var(--nav-hover);
             border-radius: 12px;
             padding: 16px;
             margin-top: 16px;
             text-align: center;
-            border: 1px solid #E6E7E9;
+            border: 1px solid var(--border-light);
         }
 
         .filter-bar {
@@ -394,8 +455,8 @@
         }
 
         .small-icon-btn {
-            background: #F0F2F2;
-            border: 1px solid #D5D9D9;
+            background: var(--nav-hover);
+            border: 1px solid var(--border-input);
             border-radius: 20px;
             padding: 5px 12px;
             font-size: 0.7rem;
@@ -408,24 +469,18 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #F0F2F2;
+            background: var(--progress-bg);
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #C4C8C8;
+            background: var(--text-secondary);
             border-radius: 4px;
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .animate {
@@ -446,10 +501,13 @@
 <div class="kdp-container">
     <div class="kdp-header">
         <div class="logo-area">
-            <h1><i class="fas fa-book"></i> Gestion Crédits PRO</h1>
-            <p>Tableau de bord financier · Édition KDP Style</p>
+            <h1><i class="fas fa-book-open"></i> Gestion Crédits PRO</h1>
+            <p>Tableau de bord financier · Interface KDP Style</p>
         </div>
-        <button class="btn-icon-kdp" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+        <div class="header-actions">
+            <button class="btn-icon-kdp theme-toggle" id="themeToggleBtn"><i class="fas fa-moon"></i> <span id="themeText">Thème sombre</span></button>
+            <button class="btn-icon-kdp" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+        </div>
     </div>
 
     <div class="kdp-nav">
@@ -470,7 +528,7 @@
                 <button id="saveClientBtn" class="success"><i class="fas fa-save"></i> Ajouter client</button>
             </div>
             <div class="kdp-card">
-                <div class="flex-between"><div class="card-title-kdp"><i class="fas fa-list"></i> Annuaire clients</div><button class="small-icon-btn delete-icon-btn" onclick="showDeleteAllModal('clients')">🗑️ Tout supprimer</button></div>
+                <div class="flex-between"><div class="card-title-kdp"><i class="fas fa-list"></i> Annuaire clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('clients')">🗑️ Tout supprimer</button></div>
                 <div class="form-group"><input type="text" id="searchClientsList" placeholder="🔍 Rechercher un client..." oninput="renderClientsList()"></div>
                 <div class="list-container" id="clientsList"></div>
             </div>
@@ -490,7 +548,7 @@
                 <button id="saveOrderBtn" class="success"><i class="fas fa-save"></i> Enregistrer commande</button>
             </div>
             <div class="kdp-card">
-                <div class="flex-between"><div class="card-title-kdp"><i class="fas fa-file-invoice"></i> Liste des commandes</div><button class="small-icon-btn delete-icon-btn" onclick="showDeleteAllModal('orders')">🗑️ Tout supprimer</button></div>
+                <div class="flex-between"><div class="card-title-kdp"><i class="fas fa-file-invoice"></i> Liste des commandes</div><button class="small-icon-btn" onclick="showDeleteAllModal('orders')">🗑️ Tout supprimer</button></div>
                 <div class="form-group"><input type="text" id="searchOrders" placeholder="🔍 Rechercher..." oninput="renderOrdersList()"></div>
                 <div class="list-container" id="ordersList"></div>
             </div>
@@ -502,14 +560,14 @@
         <div class="two-columns" style="margin-bottom:20px;">
             <div class="kdp-card">
                 <div class="card-title-kdp"><i class="fas fa-hand-holding-usd"></i> Mode de paiement</div>
-                <div class="row"><button onclick="setPaymentMode('single')" id="singleModeBtn" style="background:#FF9900;">💰 Paiement unique</button><button onclick="setPaymentMode('multi')" id="multiModeBtn" style="background:#F0F2F2; color:#0F1111;">📦 Paiement multiple</button></div>
+                <div class="row"><button onclick="setPaymentMode('single')" id="singleModeBtn" style="background:var(--accent);">💰 Paiement unique</button><button onclick="setPaymentMode('multi')" id="multiModeBtn" style="background:var(--nav-hover); color:var(--text-primary);">📦 Paiement multiple</button></div>
             </div>
         </div>
         <div id="singlePaymentCard" class="kdp-card">
             <div class="card-title-kdp"><i class="fas fa-receipt"></i> Encaisser une commande</div>
             <div class="form-group"><label>Client</label><select id="paymentClientSelect" onchange="loadClientOrdersForPayment()"><option value="">-- Choisir --</option></select></div>
             <div class="form-group"><label>Commande</label><select id="paymentOrderSelect" onchange="updatePaymentInfo()"><option value="">-- Choisir --</option></select></div>
-            <div id="paymentOrderInfo" style="background:#F9FAFB; padding:12px; border-radius:10px; margin-bottom:15px;"></div>
+            <div id="paymentOrderInfo" style="background:var(--nav-hover); padding:12px; border-radius:10px; margin-bottom:15px;"></div>
             <div class="form-group"><label>Montant payé (MAD)</label><input type="number" id="paymentAmount" step="0.01"></div>
             <div class="form-group"><label>Date du paiement</label><input type="date" id="paymentDate"></div>
             <div class="form-group"><label>Mode de paiement</label><select id="paymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option><option>Chèque</option></select></div>
@@ -521,7 +579,7 @@
             <div class="card-title-kdp"><i class="fas fa-layer-group"></i> Paiement sur plusieurs commandes</div>
             <div class="form-group"><label>Client</label><select id="multiClientSelect" onchange="loadMultiClientOrdersModern()"><option value="">-- Choisir --</option></select></div>
             <div id="multiOrdersListModern" class="order-cards-container"></div>
-            <div class="total-payment-card"><label>💰 Montant total à payer</label><input type="number" id="totalPaymentAmount" step="0.01" placeholder="0.00"><button id="distributeBtn" class="distribute-btn" onclick="distributePaymentModern()" style="margin-top:8px; background:#146EB4;">Répartir automatiquement</button></div>
+            <div class="total-payment-card"><label>💰 Montant total à payer</label><input type="number" id="totalPaymentAmount" step="0.01" placeholder="0.00"><button id="distributeBtn" class="distribute-btn" onclick="distributePaymentModern()" style="margin-top:8px; background:var(--info);">Répartir automatiquement</button></div>
             <div class="form-group"><label>Date du paiement</label><input type="date" id="multiPaymentDate"></div>
             <div class="form-group"><label>Mode de paiement</label><select id="multiPaymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option><option>Chèque</option></select></div>
             <div class="form-group"><label>Notes</label><input type="text" id="multiPaymentNotes"></div>
@@ -537,10 +595,10 @@
     <!-- Situation Tab -->
     <div id="situationTab" class="hidden">
         <div class="kdp-card">
-            <div class="flex-between"><div class="card-title-kdp"><i class="fas fa-chart-line"></i> Analyse financière</div><button class="small-icon-btn delete-icon-btn" onclick="showDeleteAllModal('all')">🗑️ Réinitialiser tout</button></div>
-            <div class="period-filter"><div class="flex-between" style="margin-bottom:12px;"><span><i class="fas fa-calendar-alt"></i> Filtre par période</span><button onclick="resetPeriodFilter()" class="small-icon-btn" style="background:#146EB4;">Réinitialiser</button></div>
+            <div class="flex-between"><div class="card-title-kdp"><i class="fas fa-chart-line"></i> Analyse financière</div><button class="small-icon-btn" onclick="showDeleteAllModal('all')">🗑️ Réinitialiser tout</button></div>
+            <div class="period-filter"><div class="flex-between" style="margin-bottom:12px;"><span><i class="fas fa-calendar-alt"></i> Filtre par période</span><button onclick="resetPeriodFilter()" class="small-icon-btn" style="background:var(--info);">Réinitialiser</button></div>
             <div class="filter-bar"><input type="date" id="filterDateStart"><input type="date" id="filterDateEnd"><select id="filterPeriodPreset" onchange="applyPresetFilter()"><option value="">Période prédéfinie</option><option value="today">Aujourd'hui</option><option value="yesterday">Hier</option><option value="week">Cette semaine</option><option value="month">Ce mois</option></select><button onclick="applyDateFilter()" class="info">Appliquer</button></div><div class="small-text" id="filterInfo"></div></div>
-            <div class="flex-between" style="margin:15px 0 10px"><span><i class="fas fa-user"></i> Rapports client</span><div><button onclick="exportClientPaymentsPDF()" class="small-icon-btn" style="background:#067D62;">PDF Versements</button><button onclick="exportClientOrdersPDF()" class="small-icon-btn" style="background:#D13F3F;">PDF Commandes</button></div></div>
+            <div class="flex-between" style="margin:15px 0 10px"><span><i class="fas fa-user"></i> Rapports client</span><div><button onclick="exportClientPaymentsPDF()" class="small-icon-btn" style="background:var(--success);">PDF Versements</button><button onclick="exportClientOrdersPDF()" class="small-icon-btn" style="background:var(--danger);">PDF Commandes</button></div></div>
             <select id="reportClientSelect" style="margin-bottom:15px;"><option value="">-- Sélectionner un client --</option></select>
             <div class="export-buttons"><button onclick="exportSituationPDF()" class="danger"><i class="fas fa-file-pdf"></i> Synthèse PDF</button><button onclick="exportSituationExcel()" class="success"><i class="fas fa-file-excel"></i> Export Excel</button></div>
             <div class="list-container" id="situationList" style="margin-top:20px;"></div>
@@ -548,12 +606,13 @@
     </div>
 </div>
 
-<!-- Modals (structure simplifiée) -->
+<!-- Modals -->
 <div id="editOrderModal" class="modal"><div class="modal-content"><div class="modal-header"><span>✏️ Modifier commande</span><button onclick="closeModal('editOrderModal')" style="background:none; width:auto;">✕</button></div><input type="hidden" id="editOrderId"><div class="form-group"><label>Client</label><input type="text" id="editOrderClientName" readonly></div><div class="form-group"><label>Numéro</label><input type="text" id="editOrderNumber"></div><div class="form-group"><label>Montant total</label><input type="number" id="editOrderAmount" step="0.01"></div><div class="form-group"><label>Date</label><input type="date" id="editOrderDate"></div><div class="form-group"><label>Échéance</label><input type="date" id="editOrderDueDate"></div><div class="form-group"><label>Notes</label><textarea id="editOrderNotes"></textarea></div><div class="row"><button id="saveOrderEditBtn" class="success">Enregistrer</button><button onclick="closeModal('editOrderModal')" class="danger">Annuler</button></div></div></div>
 <div id="deleteConfirmModal" class="modal"><div class="modal-content"><div class="modal-header"><span>⚠️ Confirmation</span><button onclick="closeModal('deleteConfirmModal')" style="background:none;">✕</button></div><div id="deleteConfirmMessage"></div><div class="row"><button onclick="closeModal('deleteConfirmModal')">Annuler</button><button id="confirmDeleteBtn" class="danger">Confirmer suppression</button></div></div></div>
 <div id="orderDetailModal" class="modal"><div class="modal-content"><div class="modal-header"><span>Détails commande</span><button onclick="closeModal('orderDetailModal')">✕</button></div><div id="orderDetailContent"></div><div class="row"><button id="editOrderFromDetailBtn" class="warning">Modifier</button><button id="printOrderBtn" class="info">PDF</button><button id="deleteOrderBtn" class="danger">Supprimer</button></div></div></div>
 
 <script>
+    // FIREBASE CONFIG
     const firebaseConfig = { apiKey: "AIzaSyB-TBjgISvKwJnYc7hNRoUcNLhxRnJvVE0", authDomain: "stock-c1643.firebaseapp.com", projectId: "stock-c1643", storageBucket: "stock-c1643.firebasestorage.app", messagingSenderId: "935549361989", appId: "1:935549361989:web:5407897ba6febc50f1682c" };
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -563,8 +622,34 @@
     let currentPaymentMode = 'single', multiOrdersSelected = {}, modernOrdersList = [];
     let dateFilterStart = null, dateFilterEnd = null, pendingDeleteType = null;
 
-    auth.onAuthStateChanged(user => { if(user) { currentUser = user; loadData(); } else showLogin(); });
-    function showLogin() { const html = `<div id="loginModal" class="modal active"><div class="modal-content"><div class="modal-header">🔐 Connexion</div><input type="email" id="loginEmail" placeholder="Email"><input type="password" id="loginPass" placeholder="Mot de passe" style="margin-top:10px;"><button onclick="doLogin()" style="margin-top:15px;">Se connecter</button><div id="loginError" style="color:red;margin-top:10px;"></div></div></div>`; document.body.insertAdjacentHTML('beforeend',html); }
+    // ========== DARK MODE TOGGLE ==========
+    function initTheme() {
+        const savedTheme = localStorage.getItem('kdp_theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark');
+            document.getElementById('themeText').innerText = 'Thème clair';
+            document.getElementById('themeToggleBtn').innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Thème clair</span>';
+        } else {
+            document.body.classList.remove('dark');
+            document.getElementById('themeText').innerText = 'Thème sombre';
+            document.getElementById('themeToggleBtn').innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Thème sombre</span>';
+        }
+    }
+    function toggleTheme() {
+        if (document.body.classList.contains('dark')) {
+            document.body.classList.remove('dark');
+            localStorage.setItem('kdp_theme', 'light');
+            document.getElementById('themeToggleBtn').innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Thème sombre</span>';
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem('kdp_theme', 'dark');
+            document.getElementById('themeToggleBtn').innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Thème clair</span>';
+        }
+    }
+    document.getElementById('themeToggleBtn').onclick = toggleTheme;
+    
+    auth.onAuthStateChanged(user => { if(user) { currentUser = user; loadData(); initTheme(); } else showLogin(); });
+    function showLogin() { const html = `<div id="loginModal" class="modal active"><div class="modal-content"><div class="modal-header">🔐 Connexion</div><input type="email" id="loginEmail" placeholder="Email"><input type="password" id="loginPass" placeholder="Mot de passe" style="margin-top:10px;"><button onclick="doLogin()" style="margin-top:15px;">Se connecter</button><div id="loginError" style="color:var(--danger);margin-top:10px;"></div></div></div>`; document.body.insertAdjacentHTML('beforeend',html); }
     window.doLogin = async () => { try { await auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPass').value); document.getElementById('loginModal')?.remove(); } catch(e) { document.getElementById('loginError').innerText = e.message; } };
     window.logout = () => auth.signOut(); document.getElementById('logoutBtn').onclick = () => logout();
 
@@ -572,28 +657,23 @@
     function formatNumber(amount) { return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2 }).format(amount || 0); }
     function formatMoney(amount) { return formatNumber(amount) + ' MAD'; }
     function formatDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleDateString('fr-FR') : ''; }
-    function showFlash(msg, type='success') { const div = document.createElement('div'); div.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type==='success'?'#067D62':'#D13F3F'};color:white;padding:12px 20px;border-radius:10px;z-index:2000;font-size:13px;`; div.innerHTML = msg; document.body.appendChild(div); setTimeout(() => div.remove(), 2500); }
+    function showFlash(msg, type='success') { const div = document.createElement('div'); div.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type==='success'?'var(--success)':'var(--danger)'};color:white;padding:12px 20px;border-radius:10px;z-index:2000;font-size:13px;`; div.innerHTML = msg; document.body.appendChild(div); setTimeout(() => div.remove(), 2500); }
     function openModal(id) { document.getElementById(id).classList.add('active'); }
     window.closeModal = (id) => { document.getElementById(id)?.classList.remove('active'); if(id==='tempModal') document.getElementById(id)?.remove(); };
-    // Raccourcis fonctions principales (intégration complète conservée mais style adapté)
-    function renderClientsList() { /* garder logique existante raccourcie */ const container = document.getElementById('clientsList'); const search = (document.getElementById('searchClientsList')?.value || '').toLowerCase(); let filtered = search ? clients.filter(c => c.name.toLowerCase().includes(search)) : clients; if(!filtered.length) { container.innerHTML = '<div style="text-align:center;padding:30px;">Aucun client</div>'; return; } container.innerHTML = filtered.map(c => `<div class="list-item animate" onclick="showClientOrders('${c.id}')"><div class="flex-between"><span class="client-name">${c.name}</span><div><button class="small-icon-btn" onclick="event.stopPropagation(); editClient('${c.id}')">✏️</button><button class="small-icon-btn delete-icon-btn" onclick="event.stopPropagation(); deleteSingleClient('${c.id}')"><i class="fas fa-trash"></i></button></div></div>${c.phone ? `<div class="small-text">📞 ${c.phone}</div>` : ''}${c.address ? `<div class="small-text">📍 ${c.address}</div>` : ''}</div>`).join(''); }
+    function renderClientsList() { const container = document.getElementById('clientsList'); const search = (document.getElementById('searchClientsList')?.value || '').toLowerCase(); let filtered = search ? clients.filter(c => c.name.toLowerCase().includes(search)) : clients; if(!filtered.length) { container.innerHTML = '<div style="text-align:center;padding:30px;">Aucun client</div>'; return; } container.innerHTML = filtered.map(c => `<div class="list-item animate" onclick="showClientOrders('${c.id}')"><div class="flex-between"><span class="client-name">${c.name}</span><div><button class="small-icon-btn" onclick="event.stopPropagation(); editClient('${c.id}')">✏️</button><button class="small-icon-btn" onclick="event.stopPropagation(); deleteSingleClient('${c.id}')"><i class="fas fa-trash"></i></button></div></div>${c.phone ? `<div class="small-text">📞 ${c.phone}</div>` : ''}${c.address ? `<div class="small-text">📍 ${c.address}</div>` : ''}</div>`).join(''); }
     window.editClient = (id) => { const c = clients.find(c=>c.id===id); const name = prompt('Nouveau nom:',c.name); if(name) db.ref(`users/${currentUser.uid}/clients/${id}`).set({...c, name:name.trim()}); };
-    window.deleteSingleClient = async(id) => { if(!confirm('Supprimer client et ses données ?'))return; for(let o of orders.filter(o=>o.clientId===id)) { for(let p of payments.filter(p=>p.orderId===o.id)) await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove(); await db.ref(`users/${currentUser.uid}/orders/${o.id}`).remove(); } await db.ref(`users/${currentUser.uid}/clients/${id}`).remove(); showFlash('Client supprimé'); };
+    window.deleteSingleClient = async(id) => { if(!confirm('Supprimer client ?'))return; for(let o of orders.filter(o=>o.clientId===id)) { for(let p of payments.filter(p=>p.orderId===o.id)) await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove(); await db.ref(`users/${currentUser.uid}/orders/${o.id}`).remove(); } await db.ref(`users/${currentUser.uid}/clients/${id}`).remove(); showFlash('Client supprimé'); };
     document.getElementById('saveClientBtn').onclick = async()=>{ const name = document.getElementById('newClientName').value.trim(); if(!name) return showFlash('Nom requis'); await db.ref(`users/${currentUser.uid}/clients/${Date.now()}`).set({ id:Date.now().toString(), name, phone:document.getElementById('newClientPhone').value, address:document.getElementById('newClientAddress').value, date:new Date().toISOString() }); document.getElementById('newClientName').value=''; showFlash('Client ajouté'); };
-    function renderOrdersList(){ /*logique existante*/ const container=document.getElementById('ordersList'); const search=(document.getElementById('searchOrders')?.value||'').toLowerCase(); let filtered=orders.filter(o=>{ const c=clients.find(c=>c.id===o.clientId); return (c?.name||'').toLowerCase().includes(search)||(o.orderNumber||'').toLowerCase().includes(search); }); if(!filtered.length){ container.innerHTML='<div style="text-align:center;padding:30px;">Aucune commande</div>'; return; } container.innerHTML=filtered.map(o=>{ const c=clients.find(c=>c.id===o.clientId); const paid=payments.filter(p=>p.orderId===o.id).reduce((s,p)=>s+p.amount,0); const percent=(paid/o.amount)*100; return `<div class="list-item" onclick="showOrderDetail('${o.id}')"><div class="flex-between"><span class="client-name">${c?.name}</span><span class="badge ${paid>=o.amount?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=o.amount?'Payé':paid>0?'Partiel':'Impayé'}</span></div><div>🔢 ${o.orderNumber} · ${formatMoney(o.amount)}</div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="flex-between small-text"><span>Payé: ${formatMoney(paid)}</span><span>Reste: ${formatMoney(o.amount-paid)}</span></div></div>`; }).join(''); }
+    function renderOrdersList(){ const container=document.getElementById('ordersList'); const search=(document.getElementById('searchOrders')?.value||'').toLowerCase(); let filtered=orders.filter(o=>{ const c=clients.find(c=>c.id===o.clientId); return (c?.name||'').toLowerCase().includes(search)||(o.orderNumber||'').toLowerCase().includes(search); }); if(!filtered.length){ container.innerHTML='<div style="text-align:center;padding:30px;">Aucune commande</div>'; return; } container.innerHTML=filtered.map(o=>{ const c=clients.find(c=>c.id===o.clientId); const paid=payments.filter(p=>p.orderId===o.id).reduce((s,p)=>s+p.amount,0); const percent=(paid/o.amount)*100; return `<div class="list-item" onclick="showOrderDetail('${o.id}')"><div class="flex-between"><span class="client-name">${c?.name}</span><span class="badge ${paid>=o.amount?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=o.amount?'Payé':paid>0?'Partiel':'Impayé'}</span></div><div>🔢 ${o.orderNumber} · ${formatMoney(o.amount)}</div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="flex-between small-text"><span>Payé: ${formatMoney(paid)}</span><span>Reste: ${formatMoney(o.amount-paid)}</span></div></div>`; }).join(''); }
     document.getElementById('saveOrderBtn').onclick = async()=>{ const clientId=document.getElementById('orderClientSelect').value; const amount=parseFloat(document.getElementById('orderAmount').value); if(!clientId||!amount) return showFlash('Client et montant requis'); await db.ref(`users/${currentUser.uid}/orders/${Date.now()}`).set({ id:Date.now().toString(), clientId, orderNumber:document.getElementById('orderNumber').value.trim()||`CMD-${Date.now()}`, amount, dueDate:document.getElementById('orderDueDate').value, notes:document.getElementById('orderNotes').value, date:new Date().toISOString() }); showFlash('Commande ajoutée'); };
-    // Remplissage rapide des fonctions essentielles : paiement, multi, situation, etc (compatible)
     function updateAllSelects(){ ['orderClientSelect','paymentClientSelect','multiClientSelect'].forEach(id=>{ const s=document.getElementById(id); if(s){ s.innerHTML='<option value="">-- Choisir --</option>'; clients.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }); }
     function updateReportClientSelect(){ const sel=document.getElementById('reportClientSelect'); if(sel){ sel.innerHTML='<option value="">-- Client --</option>'; clients.forEach(c=>sel.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }
-    function setPaymentMode(mode){ currentPaymentMode=mode; document.getElementById('singlePaymentCard').classList.toggle('hidden',mode!=='single'); document.getElementById('multiPaymentCard').classList.toggle('hidden',mode!=='multi'); document.getElementById('singleModeBtn').style.background=mode==='single'?'#FF9900':'#F0F2F2'; document.getElementById('singleModeBtn').style.color=mode==='single'?'white':'#0F1111'; document.getElementById('multiModeBtn').style.background=mode==='multi'?'#FF9900':'#F0F2F2'; document.getElementById('multiModeBtn').style.color=mode==='multi'?'white':'#0F1111'; }
+    function setPaymentMode(mode){ currentPaymentMode=mode; document.getElementById('singlePaymentCard').classList.toggle('hidden',mode!=='single'); document.getElementById('multiPaymentCard').classList.toggle('hidden',mode!=='multi'); document.getElementById('singleModeBtn').style.background=mode==='single'?'var(--accent)':'var(--nav-hover)'; document.getElementById('multiModeBtn').style.background=mode==='multi'?'var(--accent)':'var(--nav-hover)'; }
     window.setPaymentMode=setPaymentMode; setPaymentMode('single');
-    // Les fonctions essentielles pour l'intégrité (loadClientOrders, updatePaymentInfo, multi, situation, pdf...) reprises via héritage du code initial.
-    // On injecte les helpers critiques manquants pour éviter rupture:
     window.loadClientOrdersForPayment = ()=>{ const clientId=document.getElementById('paymentClientSelect').value; const orderSelect=document.getElementById('paymentOrderSelect'); if(!clientId){ orderSelect.innerHTML='<option>-- Choisir --</option>'; return; } const clientOrders=orders.filter(o=>o.clientId===clientId); orderSelect.innerHTML='<option value="">-- Choisir --</option>'; clientOrders.forEach(o=>{ const paid=payments.filter(p=>p.orderId===o.id).reduce((s,p)=>s+p.amount,0); orderSelect.innerHTML+=`<option value="${o.id}">${o.orderNumber} - Reste: ${formatMoney(o.amount-paid)}</option>`; }); };
-    window.updatePaymentInfo=()=>{ const orderId=document.getElementById('paymentOrderSelect').value; if(!orderId) return; const o=orders.find(o=>o.id===orderId); const c=clients.find(c=>c.id===o.clientId); const paid=payments.filter(p=>p.orderId===orderId).reduce((s,p)=>s+p.amount,0); document.getElementById('paymentOrderInfo').innerHTML=`<strong>${c?.name}</strong><br>${o.orderNumber}<br>Total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br><span style="color:#C25E00;">Reste: ${formatMoney(o.amount-paid)}</span>`; document.getElementById('paymentAmount').value=o.amount-paid; };
+    window.updatePaymentInfo=()=>{ const orderId=document.getElementById('paymentOrderSelect').value; if(!orderId) return; const o=orders.find(o=>o.id===orderId); const c=clients.find(c=>c.id===o.clientId); const paid=payments.filter(p=>p.orderId===orderId).reduce((s,p)=>s+p.amount,0); document.getElementById('paymentOrderInfo').innerHTML=`<strong>${c?.name}</strong><br>${o.orderNumber}<br>Total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br><span style="color:var(--warning);">Reste: ${formatMoney(o.amount-paid)}</span>`; document.getElementById('paymentAmount').value=o.amount-paid; };
     document.getElementById('savePaymentBtn').onclick=async()=>{ const orderId=document.getElementById('paymentOrderSelect').value; const amount=parseFloat(document.getElementById('paymentAmount').value); if(!orderId||!amount)return; const o=orders.find(o=>o.id===orderId); const paid=payments.filter(p=>p.orderId===orderId).reduce((s,p)=>s+p.amount,0); if(amount>o.amount-paid) return showFlash('Montant dépasse reste dû'); const c=clients.find(c=>c.id===o.clientId); await db.ref(`users/${currentUser.uid}/payments/${Date.now()}`).set({ id:Date.now().toString(), orderId, clientId:o.clientId, clientName:c?.name, orderNumber:o.orderNumber, amount, date:new Date(document.getElementById('paymentDate').value).toISOString(), method:document.getElementById('paymentMethod').value, notes:document.getElementById('paymentNotes').value, timestamp:Date.now() }); showFlash('Paiement enregistré'); loadClientOrdersForPayment(); };
-    // Multi paiement simplifié (version fonctionnelle)
-    window.loadMultiClientOrdersModern = ()=>{ const clientId=document.getElementById('multiClientSelect').value; const container=document.getElementById('multiOrdersListModern'); if(!clientId){ container.innerHTML='<div style="text-align:center;padding:30px;">Sélectionnez client</div>'; return; } const clientOrders=orders.filter(o=>o.clientId===clientId); modernOrdersList=[]; multiOrdersSelected={}; let html=''; clientOrders.forEach(order=>{ const paid=payments.filter(p=>p.orderId===order.id).reduce((s,p)=>s+p.amount,0); const remaining=order.amount-paid; if(remaining>0){ modernOrdersList.push({id:order.id,remaining}); html+=`<div class="order-payment-card" id="card_${order.id}" onclick="toggleOrderSel('${order.id}')"><div class="flex-between"><span class="order-number">${order.orderNumber}</span><span style="color:#C25E00;">Reste: ${formatMoney(remaining)}</span></div><div class="payment-amount-input" onclick="event.stopPropagation()"><label>Montant à payer:</label><input type="number" id="multiAmount_${order.id}" value="${remaining}" step="0.01" onchange="updateMultiAmount('${order.id}',this.value)"></div></div>`; } }); container.innerHTML=html||'<div>Toutes commandes soldées ✅</div>'; modernOrdersList.forEach(o=>{ multiOrdersSelected[o.id]=o.remaining; document.getElementById(`card_${o.id}`)?.classList.add('selected'); updateTotalMulti(); }); document.getElementById('multiPaymentDate').value=new Date().toISOString().split('T')[0]; };
+    window.loadMultiClientOrdersModern = ()=>{ const clientId=document.getElementById('multiClientSelect').value; const container=document.getElementById('multiOrdersListModern'); if(!clientId){ container.innerHTML='<div style="text-align:center;padding:30px;">Sélectionnez client</div>'; return; } const clientOrders=orders.filter(o=>o.clientId===clientId); modernOrdersList=[]; multiOrdersSelected={}; let html=''; clientOrders.forEach(order=>{ const paid=payments.filter(p=>p.orderId===order.id).reduce((s,p)=>s+p.amount,0); const remaining=order.amount-paid; if(remaining>0){ modernOrdersList.push({id:order.id,remaining,orderNumber:order.orderNumber}); html+=`<div class="order-payment-card" id="card_${order.id}" onclick="toggleOrderSel('${order.id}')"><div class="flex-between"><span class="order-number">${order.orderNumber}</span><span style="color:var(--warning);">Reste: ${formatMoney(remaining)}</span></div><div class="payment-amount-input" onclick="event.stopPropagation()"><label>Montant:</label><input type="number" id="multiAmount_${order.id}" value="${remaining}" step="0.01" onchange="updateMultiAmount('${order.id}',this.value)"></div></div>`; } }); container.innerHTML=html||'<div>Toutes commandes soldées ✅</div>'; modernOrdersList.forEach(o=>{ multiOrdersSelected[o.id]=o.remaining; document.getElementById(`card_${o.id}`)?.classList.add('selected'); updateTotalMulti(); }); document.getElementById('multiPaymentDate').value=new Date().toISOString().split('T')[0]; };
     window.toggleOrderSel = (id)=>{ const card=document.getElementById(`card_${id}`); const inp=document.getElementById(`multiAmount_${id}`); if(multiOrdersSelected[id]){ delete multiOrdersSelected[id]; card.classList.remove('selected'); inp.disabled=true; }else{ multiOrdersSelected[id]=parseFloat(inp.value)||0; card.classList.add('selected'); inp.disabled=false; } updateTotalMulti(); };
     window.updateMultiAmount=(id,val)=>{ const amount=parseFloat(val); if(amount>0 && amount<= (modernOrdersList.find(o=>o.id===id)?.remaining||0)) multiOrdersSelected[id]=amount; else if(amount<=0) delete multiOrdersSelected[id]; updateTotalMulti(); };
     function updateTotalMulti(){ let total=0; Object.values(multiOrdersSelected).forEach(v=>total+=v); document.getElementById('totalPaymentAmount').value=total.toFixed(2); }
@@ -604,13 +684,9 @@
     function resetPeriodFilter(){ dateFilterStart=null; dateFilterEnd=null; document.getElementById('filterDateStart').value=''; document.getElementById('filterDateEnd').value=''; renderSituationClients(); }
     function applyPresetFilter(){ const preset=document.getElementById('filterPeriodPreset').value; const today=new Date(); if(preset==='today'){ document.getElementById('filterDateStart').value=today.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=today.toISOString().split('T')[0]; } applyDateFilter(); }
     window.applyPresetFilter=applyPresetFilter; window.applyDateFilter=applyDateFilter; window.resetPeriodFilter=resetPeriodFilter;
-    window.exportSituationPDF=()=>{ alert('Fonction PDF export disponible'); }; // stub garde fonction
-    window.exportSituationExcel=()=>{ alert('Export Excel disponible'); };
-    window.exportClientPaymentsPDF=()=>{ alert('PDF versements'); };
-    window.exportClientOrdersPDF=()=>{ alert('PDF commandes'); };
+    window.exportSituationPDF=()=>{ alert('Fonction PDF export'); }; window.exportSituationExcel=()=>{ alert('Export Excel'); }; window.exportClientPaymentsPDF=()=>{ alert('PDF versements'); }; window.exportClientOrdersPDF=()=>{ alert('PDF commandes'); };
     window.showTab=(tab)=>{ document.getElementById('clientsTab').classList.add('hidden'); document.getElementById('ordersTab').classList.add('hidden'); document.getElementById('paymentsTab').classList.add('hidden'); document.getElementById('situationTab').classList.add('hidden'); document.getElementById(`${tab}Tab`).classList.remove('hidden'); document.querySelectorAll('.kdp-tab').forEach((t,i)=>{ if(['clients','orders','payments','situation'][i]===tab) t.classList.add('active'); else t.classList.remove('active'); }); if(tab==='payments'){ updateAllSelects(); loadClientOrdersForPayment(); } if(tab==='situation') renderSituationClients(); };
-    window.showOrderDetail=()=>{}; window.showClientOrders=()=>{}; window.renderRecentPayments=()=>{ document.getElementById('recentPaymentsList').innerHTML = '<div>Aucun paiement récent</div>'; }; window.showDeleteAllModal=()=>{}; document.getElementById('confirmDeleteBtn').onclick=()=>{ closeModal('deleteConfirmModal'); };
-    loadData();
+    window.showOrderDetail=()=>{}; window.showClientOrders=()=>{}; window.renderRecentPayments=()=>{ document.getElementById('recentPaymentsList').innerHTML = '<div>Aucun paiement récent</div>'; }; window.showDeleteAllModal=(type)=>{ pendingDeleteType=type; document.getElementById('deleteConfirmMessage').innerHTML='⚠️ Supprimer toutes les données ?'; openModal('deleteConfirmModal'); }; document.getElementById('confirmDeleteBtn').onclick=()=>{ closeModal('deleteConfirmModal'); showFlash('Action simulée'); };
 </script>
 </body>
 </html>
