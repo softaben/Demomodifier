@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>EL FATH SERVICE - Système de Gestion de Crédit</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -56,17 +56,17 @@
             --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
             --progress-bg: #334155;
         }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-body); color: var(--text-primary); transition: 0.2s; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-primary); transition: 0.2s; }
         .app-container { max-width: 1400px; margin: 0 auto; padding: 24px; }
         .app-header { background: var(--bg-card); border-radius: 16px; padding: 20px 28px; margin-bottom: 28px; border: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo-area h1 { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
         .logo-area p { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
-        .logo-area i { margin-left: 8px; }
+        .logo-area i { margin-right: 8px; }
         .btn-icon { background: var(--nav-hover); border: 1px solid var(--border-input); border-radius: 10px; padding: 8px 18px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; color: var(--text-primary); font-weight: 500; transition: 0.2s; }
         .btn-icon:hover { background: var(--border-light); border-color: var(--accent); }
         .app-nav { display: flex; gap: 6px; background: var(--bg-card); border-radius: 14px; padding: 6px; border: 1px solid var(--border-light); margin-bottom: 28px; flex-wrap: wrap; }
         .nav-tab { padding: 10px 24px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); transition: 0.2s; }
-        .nav-tab i { margin-left: 8px; }
+        .nav-tab i { margin-right: 8px; }
         .nav-tab:hover { background: var(--nav-hover); color: var(--text-primary); }
         .nav-tab.active { background: var(--accent); color: white; }
         .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 28px; }
@@ -74,7 +74,7 @@
         .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid var(--accent); display: inline-block; color: var(--text-primary); }
         .form-group { margin-bottom: 18px; }
         label { font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 6px; }
-        input, select, textarea { width: 100%; padding: 10px 12px; background: var(--bg-card); border: 1px solid var(--border-input); border-radius: 10px; color: var(--text-primary); font-size: 0.9rem; font-family: 'Tajawal', monospace; transition: 0.2s; }
+        input, select, textarea { width: 100%; padding: 10px 12px; background: var(--bg-card); border: 1px solid var(--border-input); border-radius: 10px; color: var(--text-primary); font-size: 0.9rem; transition: 0.2s; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,148,136,0.15); }
         button { background: var(--accent); border: none; padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; color: white; font-size: 0.9rem; transition: 0.2s; }
         button:hover { background: var(--accent-hover); transform: translateY(-1px); }
@@ -128,16 +128,16 @@
     </div>
 
     <!-- Clients Tab -->
-    <div id="clientsTab"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-user-plus"></i> Nouveau Client</div><div class="form-group"><label>Nom complet *</label><input type="text" id="newClientName" placeholder="Ex: Ahmed Benali"></div><div class="form-group"><label>Téléphone</label><input type="tel" id="newClientPhone"></div><div class="form-group"><label>Adresse</label><input type="text" id="newClientAddress"></div><button id="saveClientBtn" class="success"><i class="fas fa-save"></i> Ajouter Client</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-list"></i> Liste des Clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('clients')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchClientsList" placeholder="Rechercher un client..." oninput="renderClientsList()"><div class="list-container" id="clientsList"></div></div></div></div>
+    <div id="clientsTab"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-user-plus"></i> Nouveau Client</div><div class="form-group"><label>Nom complet *</label><input type="text" id="newClientName" placeholder="Ex: Ahmed Benali"></div><div class="form-group"><label>Téléphone</label><input type="tel" id="newClientPhone" placeholder="06XXXXXXXX"></div><div class="form-group"><label>Adresse</label><input type="text" id="newClientAddress" placeholder="Casablanca, Maroc"></div><button id="saveClientBtn" class="success"><i class="fas fa-save"></i> Ajouter Client</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-list"></i> Liste des Clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('clients')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchClientsList" placeholder="Rechercher un client..." oninput="renderClientsList()"><div class="list-container" id="clientsList"></div></div></div></div>
 
     <!-- Orders Tab -->
-    <div id="ordersTab" class="hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-cart-plus"></i> Nouvelle Commande</div><div class="form-group"><label>Choisir le client *</label><select id="orderClientSelect"><option>-- Sélectionner --</option></select></div><div class="form-group"><label>Numéro de commande</label><input type="text" id="orderNumber" placeholder="N° facture"></div><div class="form-group"><label>Montant total (MAD) *</label><input type="number" id="orderAmount" placeholder="0.00"></div><div class="form-group"><label>Date d'échéance</label><input type="date" id="orderDueDate"></div><div class="form-group"><label>Notes</label><textarea id="orderNotes" rows="2"></textarea></div><button id="saveOrderBtn" class="success">Enregistrer la commande</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-file-invoice"></i> Liste des Commandes</div><button class="small-icon-btn" onclick="showDeleteAllModal('orders')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchOrders" placeholder="Rechercher..." oninput="renderOrdersList()"><div class="list-container" id="ordersList"></div></div></div></div>
+    <div id="ordersTab" class="hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-cart-plus"></i> Nouvelle Commande</div><div class="form-group"><label>Choisir le client *</label><select id="orderClientSelect"><option>-- Sélectionner --</option></select></div><div class="form-group"><label>Numéro de commande</label><input type="text" id="orderNumber" placeholder="N° facture"></div><div class="form-group"><label>Montant total (MAD) *</label><input type="number" id="orderAmount" placeholder="0,00"></div><div class="form-group"><label>Date d'échéance</label><input type="date" id="orderDueDate"></div><div class="form-group"><label>Notes</label><textarea id="orderNotes" rows="2" placeholder="Notes optionnelles"></textarea></div><button id="saveOrderBtn" class="success">Enregistrer la commande</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-file-invoice"></i> Liste des Commandes</div><button class="small-icon-btn" onclick="showDeleteAllModal('orders')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchOrders" placeholder="Rechercher..." oninput="renderOrdersList()"><div class="list-container" id="ordersList"></div></div></div></div>
 
     <!-- Payments Tab -->
-    <div id="paymentsTab" class="hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-hand-holding-usd"></i> Mode de Paiement</div><div class="row"><button onclick="setPaymentMode('single')" id="singleModeBtn" style="background:var(--accent);">Paiement unique</button><button onclick="setPaymentMode('multi')" id="multiModeBtn" style="background:var(--nav-hover);">Paiement multiple</button></div></div></div><div id="singlePaymentCard" class="card"><div class="card-title"><i class="fas fa-receipt"></i> Enregistrer un paiement</div><select id="paymentClientSelect" onchange="loadClientOrdersForPayment()"><option>-- Choisir client --</option></select><select id="paymentOrderSelect" onchange="updatePaymentInfo()"><option>-- Choisir commande --</option></select><div id="paymentOrderInfo" style="background:var(--nav-hover);padding:12px;border-radius:12px;margin-bottom:15px;"></div><input type="number" id="paymentAmount" placeholder="Montant payé"><input type="date" id="paymentDate"><select id="paymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option><option>Chèque</option></select><input type="text" id="paymentNotes" placeholder="Notes"><button id="savePaymentBtn" class="success">Enregistrer le paiement</button></div><div id="multiPaymentCard" class="card hidden"><div class="card-title"><i class="fas fa-layer-group"></i> Paiement multiple</div><select id="multiClientSelect" onchange="loadMultiClientOrdersModern()"><option>-- Choisir client --</option></select><div id="multiOrdersListModern"></div><div class="total-payment-card"><label>💰 Montant total à payer</label><input type="number" id="totalPaymentAmount" step="0.01"><button onclick="distributePaymentModern()" style="margin-top:8px;background:var(--info);">Répartir automatiquement</button></div><input type="date" id="multiPaymentDate"><select id="multiPaymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option></select><input type="text" id="multiPaymentNotes"><button id="saveMultiPaymentBtn" class="success">Valider les paiements</button></div><div class="card"><div class="card-title"><i class="fas fa-history"></i> Derniers paiements</div><div id="recentPaymentsList" class="list-container"></div></div></div>
+    <div id="paymentsTab" class="hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-hand-holding-usd"></i> Mode de Paiement</div><div class="row"><button onclick="setPaymentMode('single')" id="singleModeBtn" style="background:var(--accent);">Paiement unique</button><button onclick="setPaymentMode('multi')" id="multiModeBtn" style="background:var(--nav-hover);">Paiement multiple</button></div></div></div><div id="singlePaymentCard" class="card"><div class="card-title"><i class="fas fa-receipt"></i> Enregistrer un paiement</div><select id="paymentClientSelect" onchange="loadClientOrdersForPayment()"><option>-- Choisir client --</option></select><select id="paymentOrderSelect" onchange="updatePaymentInfo()"><option>-- Choisir commande --</option></select><div id="paymentOrderInfo" style="background:var(--nav-hover);padding:12px;border-radius:12px;margin-bottom:15px;"></div><input type="number" id="paymentAmount" placeholder="Montant payé"><input type="date" id="paymentDate"><select id="paymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option><option>Chèque</option></select><input type="text" id="paymentNotes" placeholder="Notes"><button id="savePaymentBtn" class="success">Enregistrer le paiement</button></div><div id="multiPaymentCard" class="card hidden"><div class="card-title"><i class="fas fa-layer-group"></i> Paiement multiple</div><select id="multiClientSelect" onchange="loadMultiClientOrdersModern()"><option>-- Choisir client --</option></select><div id="multiOrdersListModern"></div><div class="total-payment-card"><label>💰 Montant total à payer</label><input type="number" id="totalPaymentAmount" step="0.01" placeholder="0,00"><button onclick="distributePaymentModern()" style="margin-top:8px;background:var(--info);">Répartir automatiquement</button></div><input type="date" id="multiPaymentDate"><select id="multiPaymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option></select><input type="text" id="multiPaymentNotes" placeholder="Notes"><button id="saveMultiPaymentBtn" class="success">Valider les paiements</button></div><div class="card"><div class="card-title"><i class="fas fa-history"></i> Derniers paiements</div><div id="recentPaymentsList" class="list-container"></div></div></div>
 
     <!-- Situation Tab -->
-    <div id="situationTab" class="hidden"><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-chart-simple"></i> Situation financière des clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('all')"><i class="fas fa-trash"></i> Tout supprimer</button></div><div class="filter-bar"><input type="date" id="filterDateStart"><input type="date" id="filterDateEnd"><select id="filterPeriodPreset" onchange="applyPresetFilter()"><option value="">Période personnalisée</option><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option></select><button onclick="applyDateFilter()" class="info">Appliquer</button><button onclick="resetPeriodFilter()">Réinitialiser</button></div><div class="flex-between" style="margin:15px 0"><span><i class="fas fa-file-pdf"></i> Rapports client</span><div><button onclick="exportClientPaymentsPDF()" class="small-icon-btn" style="background:var(--success);">PDF Paiements</button><button onclick="exportClientOrdersPDF()" class="small-icon-btn" style="background:var(--danger);">PDF Commandes</button></div></div><select id="reportClientSelect"><option>-- Sélectionner un client --</option></select><div class="row" style="margin:15px 0;"><button onclick="exportSituationPDF()" class="danger"><i class="fas fa-file-pdf"></i> PDF Synthèse</button><button onclick="exportSituationExcel()" class="success"><i class="fas fa-file-excel"></i> Excel Synthèse</button></div><div id="situationList" class="list-container"></div></div></div>
+    <div id="situationTab" class="hidden"><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-chart-simple"></i> Situation financière des clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('all')"><i class="fas fa-trash"></i> Tout supprimer</button></div><div class="filter-bar"><input type="date" id="filterDateStart"><input type="date" id="filterDateEnd"><select id="filterPeriodPreset" onchange="applyPresetFilter()"><option value="">Période personnalisée</option><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option></select><button onclick="applyDateFilter()" class="info">Appliquer</button><button onclick="resetPeriodFilter()">Réinitialiser</button></div><div class="flex-between" style="margin:15px 0"><span><i class="fas fa-file-pdf"></i> Rapports</span><div><button onclick="exportJournalCommandesPDF()" class="small-icon-btn" style="background:var(--info);"><i class="fas fa-book"></i> Journal Commandes PDF</button></div></div><div class="flex-between" style="margin:10px 0"><span><i class="fas fa-file-pdf"></i> Rapports client</span><div><button onclick="exportClientPaymentsPDF()" class="small-icon-btn" style="background:var(--success);">PDF Paiements</button><button onclick="exportClientOrdersPDF()" class="small-icon-btn" style="background:var(--danger);">PDF Commandes</button></div></div><select id="reportClientSelect"><option>-- Sélectionner un client --</option></select><div class="row" style="margin:15px 0;"><button onclick="exportSituationPDF()" class="danger"><i class="fas fa-file-pdf"></i> PDF Synthèse</button><button onclick="exportSituationExcel()" class="success"><i class="fas fa-file-excel"></i> Excel Synthèse</button></div><div id="situationList" class="list-container"></div></div></div>
 </div>
 
 <!-- Modals -->
@@ -196,7 +196,103 @@
     function applyPresetFilter(){ let p=document.getElementById('filterPeriodPreset').value; let d=new Date(); if(p==='today'){ document.getElementById('filterDateStart').value=d.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } else if(p==='week'){ let start=new Date(d); start.setDate(d.getDate()-7); document.getElementById('filterDateStart').value=start.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } else if(p==='month'){ let start=new Date(d); start.setDate(d.getDate()-30); document.getElementById('filterDateStart').value=start.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } }
     window.applyPresetFilter=applyPresetFilter; window.applyDateFilter=applyDateFilter; window.resetPeriodFilter=resetPeriodFilter;
 
-    // ========== PDF EXPORTS EN FRANÇAIS ==========
+    // ========== NOUVEAU: EXPORT JOURNAL DES COMMANDES PDF ==========
+    window.exportJournalCommandesPDF = () => {
+        let commandesFiltrees = [...orders];
+        if (dateFilterStart || dateFilterEnd) {
+            commandesFiltrees = commandesFiltrees.filter(o => {
+                let d = new Date(o.date);
+                if (dateFilterStart && d < dateFilterStart) return false;
+                if (dateFilterEnd && d > dateFilterEnd) return false;
+                return true;
+            });
+        }
+        if (commandesFiltrees.length === 0) {
+            showFlash('Aucune commande à exporter pour la période sélectionnée', 'danger');
+            return;
+        }
+        commandesFiltrees.sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        // En-tête
+        doc.setFillColor(13, 148, 136);
+        doc.rect(0, 0, 210, 45, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.text('EL FATH SERVICE', 105, 22, { align: 'center' });
+        doc.setFontSize(11);
+        doc.text('Journal des Commandes', 105, 34, { align: 'center' });
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        let periodText = (dateFilterStart && dateFilterEnd) ? `Période: du ${formatDateFr(dateFilterStart)} au ${formatDateFr(dateFilterEnd)}` : 'Toutes les commandes';
+        doc.text(periodText, 14, 55);
+        doc.text(`Date d'édition: ${formatDateFr(new Date())}`, 14, 63);
+        doc.text(`Nombre total de commandes: ${commandesFiltrees.length}`, 14, 71);
+        
+        // Préparer les données pour le tableau
+        let totalGeneral = 0;
+        let totalPayeGeneral = 0;
+        let totalRestantGeneral = 0;
+        
+        const tableData = commandesFiltrees.map(o => {
+            const c = clients.find(cl => cl.id === o.clientId);
+            const paid = payments.filter(p => p.orderId === o.id).reduce((s, p) => s + p.amount, 0);
+            const restant = o.amount - paid;
+            totalGeneral += o.amount;
+            totalPayeGeneral += paid;
+            totalRestantGeneral += restant;
+            return [
+                o.orderNumber,
+                c?.name || 'Client inconnu',
+                formatDateFr(o.date),
+                o.dueDate ? formatDateFr(o.dueDate) : '-',
+                formatNumber(o.amount),
+                formatNumber(paid),
+                formatNumber(restant),
+                paid >= o.amount ? 'Payée' : (paid > 0 ? 'Partielle' : 'Impayée')
+            ];
+        });
+        
+        doc.autoTable({
+            startY: 80,
+            head: [['N° Commande', 'Client', 'Date', 'Échéance', 'Total', 'Payé', 'Reste', 'Statut']],
+            body: tableData,
+            headStyles: { fillColor: [13, 148, 136], textColor: 255, fontSize: 8, fontStyle: 'bold' },
+            bodyStyles: { fontSize: 7 },
+            columnStyles: { 4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'right' } },
+            margin: { left: 10, right: 10 },
+            alternateRowStyles: { fillColor: [240, 240, 245] }
+        });
+        
+        let y = doc.lastAutoTable.finalY + 10;
+        // Récapitulatif
+        doc.setFillColor(240, 240, 245);
+        doc.rect(14, y, 182, 45, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(13, 148, 136);
+        doc.text('RÉCAPITULATIF', 20, y + 8);
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Nombre de commandes: ${commandesFiltrees.length}`, 20, y + 20);
+        doc.text(`Total général des commandes: ${formatMoney(totalGeneral)}`, 20, y + 30);
+        doc.text(`Total des paiements: ${formatMoney(totalPayeGeneral)}`, 20, y + 40);
+        doc.setTextColor(totalRestantGeneral > 0 ? 220 : 5, totalRestantGeneral > 0 ? 38 : 150, totalRestantGeneral > 0 ? 38 : 105);
+        doc.text(`Solde global restant: ${formatMoney(totalRestantGeneral)}`, 20, y + 52);
+        
+        // Pied de page
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text('EL FATH SERVICE - Système de gestion de crédit', 105, 280, { align: 'center' });
+        
+        doc.save(`Journal_Commandes_${formatDateFr(new Date()).replace(/\//g, '-')}.pdf`);
+        showFlash('Journal des commandes PDF généré avec succès');
+    };
+
+    // ========== AUTRES EXPORTS PDF ==========
     window.exportClientPaymentsPDF = () => { const clientId = document.getElementById('reportClientSelect').value; if(!clientId){ showFlash('Veuillez sélectionner un client'); return; } const c = clients.find(c=>c.id===clientId); const clientOrders = orders.filter(o=>o.clientId===clientId); const clientPayments = payments.filter(p=>clientOrders.some(o=>o.id===p.orderId)).sort((a,b)=>new Date(a.date)-new Date(b.date)); const totalGeneral = clientOrders.reduce((s,o)=>s+o.amount,0); const totalPaye = clientPayments.reduce((s,p)=>s+p.amount,0); const solde = totalGeneral - totalPaye; const { jsPDF } = window.jspdf; const doc = new jsPDF('p','mm','a4'); doc.setFillColor(13,148,136); doc.rect(0,0,210,45,'F'); doc.setTextColor(255,255,255); doc.setFontSize(22); doc.text('EL FATH SERVICE',105,22,{align:'center'}); doc.setFontSize(11); doc.text('Historique des versements',105,34,{align:'center'}); doc.setTextColor(0,0,0); doc.setFontSize(11); doc.text(`Client: ${c.name}`,14,55); if(c.phone) doc.text(`Téléphone: ${c.phone}`,14,63); let periodTxt = dateFilterStart&&dateFilterEnd ? `Période: du ${formatDateFr(dateFilterStart)} au ${formatDateFr(dateFilterEnd)}` : 'Toutes les périodes'; doc.text(periodTxt,14,71); if(clientPayments.length){ let body = clientPayments.map(p=>[formatDateFr(p.date), p.orderNumber, formatNumber(p.amount), p.method||'-', p.notes||'-']); doc.autoTable({ startY:85, head:[['Date','N° Commande','Montant','Mode','Notes']], body, headStyles:{fillColor:[13,148,136],textColor:255}, styles:{fontSize:9}, margin:{left:14,right:14} }); } else { doc.text('Aucun versement enregistré',14,85); } let y = doc.lastAutoTable ? doc.lastAutoTable.finalY+15 : 110; doc.setFillColor(240,240,245); doc.rect(14,y,182,35,'F'); doc.text(`Total des commandes: ${formatMoney(totalGeneral)}`,20,y+8); doc.text(`Total versé: ${formatMoney(totalPaye)}`,20,y+18); doc.text(`Solde restant: ${formatMoney(solde)}`,20,y+28); doc.save(`Versements_${c.name.replace(/\s/g,'_')}.pdf`); showFlash('PDF généré avec succès'); };
     window.exportClientOrdersPDF = () => { const clientId = document.getElementById('reportClientSelect').value; if(!clientId) return; const c = clients.find(c=>c.id===clientId); const clientOrders = orders.filter(o=>o.clientId===clientId); if(!clientOrders.length){ showFlash('Aucune commande pour ce client'); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF('p','mm','a4'); doc.setFillColor(13,148,136); doc.rect(0,0,210,45,'F'); doc.text('EL FATH SERVICE',105,22,{align:'center'}); doc.text('Liste des commandes',105,34,{align:'center'}); doc.setTextColor(0,0,0); doc.text(`Client: ${c.name}`,14,55); let body = clientOrders.map(o=>{ let paid=payments.filter(p=>p.orderId===o.id).reduce((s,p)=>s+p.amount,0); return [o.orderNumber, formatDateFr(o.date), formatNumber(o.amount), formatNumber(paid), formatNumber(o.amount-paid), paid>=o.amount?'Payée':'Impayée']; }); doc.autoTable({ startY:65, head:[['N° Commande','Date','Total','Payé','Reste','Statut']], body, headStyles:{fillColor:[13,148,136],textColor:255}, margin:{left:14} }); doc.save(`Commandes_${c.name}.pdf`); showFlash('PDF commandes généré'); };
     window.exportSituationPDF = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF('p','mm','a4'); doc.setFillColor(13,148,136); doc.rect(0,0,210,45,'F'); doc.text('EL FATH SERVICE',105,22,{align:'center'}); doc.text('Situation des clients',105,34,{align:'center'}); let body = clients.map(c=>{ let co=orders.filter(o=>o.clientId===c.id); let total=co.reduce((s,o)=>s+o.amount,0); let paid=payments.filter(p=>co.some(o=>o.id===p.orderId)).reduce((s,p)=>s+p.amount,0); return [c.name, c.phone||'-', co.length, formatNumber(total), formatNumber(paid), formatNumber(total-paid)]; }); doc.autoTable({ startY:55, head:[['Client','Téléphone','Nb Commandes','Total','Payé','Reste']], body, headStyles:{fillColor:[13,148,136],textColor:255} }); doc.save('Situation_Clients.pdf'); showFlash('PDF synthèse généré'); };
