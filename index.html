@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>نظام إدارة العملاء والطلبيات والدفعات</title>
+    <title>Système de Gestion des Clients et Paiements Échelonnés</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -27,7 +29,7 @@
         }
         .logo { font-size: 20px; font-weight: bold; }
         .logo i { color: #9b59b6; margin-left: 8px; }
-        .container { padding: 15px; max-width: 600px; margin: auto; }
+        .container { padding: 15px; max-width: 650px; margin: auto; }
         .card {
             background: #1a1a2e;
             border-radius: 16px;
@@ -40,8 +42,8 @@
             font-weight: bold;
             margin-bottom: 12px;
             color: #9b59b6;
-            border-right: 3px solid #9b59b6;
-            padding-right: 10px;
+            border-left: 3px solid #9b59b6;
+            padding-left: 10px;
         }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 13px; margin-bottom: 5px; color: #a0a0b0; }
@@ -78,7 +80,9 @@
             margin-bottom: 10px;
             border: 1px solid #2d2d44;
             cursor: pointer;
+            transition: transform 0.2s;
         }
+        .list-item:hover { transform: scale(1.01); }
         .customer-name {
             font-size: 16px;
             font-weight: bold;
@@ -116,7 +120,7 @@
         .modal {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: none;
             align-items: center;
             justify-content: center;
@@ -126,7 +130,7 @@
         .modal-content {
             background: #1a1a2e;
             width: 90%;
-            max-width: 450px;
+            max-width: 500px;
             border-radius: 20px;
             padding: 20px;
             max-height: 90vh;
@@ -172,130 +176,145 @@
             cursor: pointer;
             font-size: 11px;
         }
+        .pdf-btn {
+            background: #e74c3c;
+            padding: 8px;
+            margin-top: 8px;
+        }
+        .flex-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .flex-buttons button {
+            margin: 0;
+            padding: 6px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="logo"><i class="fas fa-users"></i> نظام العملاء والطلبيات</div>
+    <div class="logo"><i class="fas fa-users"></i> Gestion Crédit Clients</div>
 </div>
 
 <div class="container" id="app">
-    <!-- تبويب العملاء -->
+    <!-- Tab Clients -->
     <div id="customersTab">
         <div class="card">
-            <div class="card-title"><i class="fas fa-user-plus"></i> إضافة عميل جديد</div>
+            <div class="card-title"><i class="fas fa-user-plus"></i> Ajouter un client</div>
             <div class="form-group">
-                <label>📛 اسم العميل *</label>
-                <input type="text" id="newCustomerName" placeholder="مثال: أحمد محمد">
+                <label>📛 Nom complet *</label>
+                <input type="text" id="newCustomerName" placeholder="Ex: Ahmed Mohamed">
             </div>
             <div class="form-group">
-                <label>📞 رقم الهاتف</label>
-                <input type="text" id="newCustomerPhone" placeholder="اختياري">
+                <label>📞 Téléphone</label>
+                <input type="text" id="newCustomerPhone" placeholder="Optionnel">
             </div>
             <div class="form-group">
-                <label>📍 العنوان</label>
-                <input type="text" id="newCustomerAddress" placeholder="اختياري">
+                <label>📍 Adresse</label>
+                <input type="text" id="newCustomerAddress" placeholder="Optionnel">
             </div>
-            <button id="saveCustomerBtn" class="success">💾 إضافة عميل</button>
+            <button id="saveCustomerBtn" class="success">💾 Ajouter client</button>
         </div>
 
         <div class="card">
-            <div class="card-title"><i class="fas fa-list"></i> قائمة العملاء</div>
+            <div class="card-title"><i class="fas fa-list"></i> Liste des clients</div>
             <div class="search-box">
-                <input type="text" id="searchCustomersList" placeholder="🔍 بحث باسم العميل" oninput="renderCustomersList()">
+                <input type="text" id="searchCustomersList" placeholder="🔍 Rechercher un client..." oninput="renderCustomersList()">
             </div>
             <div id="customersList"></div>
         </div>
     </div>
 
-    <!-- تبويب الطلبيات -->
+    <!-- Tab Commandes -->
     <div id="ordersTab" class="hidden">
         <div class="card">
-            <div class="card-title"><i class="fas fa-plus-circle"></i> طلبية جديدة</div>
+            <div class="card-title"><i class="fas fa-plus-circle"></i> Nouvelle commande</div>
             <div class="form-group">
-                <label>👤 اختيار العميل *</label>
+                <label>👤 Choisir le client *</label>
                 <select id="orderCustomerSelect">
-                    <option value="">-- اختر عميل --</option>
+                    <option value="">-- Sélectionner un client --</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>🔢 رقم الطلبية *</label>
-                <input type="text" id="orderNumber" placeholder="رقم الطلبية">
+                <label>🔢 Numéro de commande *</label>
+                <input type="text" id="orderNumber" placeholder="Numéro unique">
             </div>
             <div class="form-group">
-                <label>💰 المبلغ الإجمالي (MAD) *</label>
+                <label>💰 Montant total (MAD) *</label>
                 <input type="number" id="orderAmount" placeholder="0.00" step="0.01">
             </div>
             <div class="form-group">
-                <label>📅 تاريخ الاستحقاق</label>
+                <label>📅 Date d'échéance</label>
                 <input type="date" id="orderDueDate">
             </div>
             <div class="form-group">
-                <label>📝 ملاحظات</label>
-                <input type="text" id="orderNotes" placeholder="اختياري">
+                <label>📝 Notes</label>
+                <input type="text" id="orderNotes" placeholder="Optionnel">
             </div>
-            <button id="saveOrderBtn" class="success">💾 إضافة طلبية</button>
+            <button id="saveOrderBtn" class="success">💾 Enregistrer la commande</button>
         </div>
 
         <div class="card">
-            <div class="card-title"><i class="fas fa-file-invoice"></i> قائمة الطلبيات</div>
+            <div class="card-title"><i class="fas fa-file-invoice"></i> Liste des commandes</div>
             <div class="search-box">
-                <input type="text" id="searchOrders" placeholder="🔍 بحث باسم العميل أو رقم الطلبية" oninput="renderOrdersList()">
+                <input type="text" id="searchOrders" placeholder="🔍 Rechercher client ou commande..." oninput="renderOrdersList()">
             </div>
             <div id="ordersList"></div>
         </div>
     </div>
 
-    <!-- تبويب المدفوعات -->
+    <!-- Tab Paiements -->
     <div id="paymentsTab" class="hidden">
         <div class="card">
-            <div class="card-title"><i class="fas fa-hand-holding-usd"></i> تسجيل دفعة</div>
+            <div class="card-title"><i class="fas fa-hand-holding-usd"></i> Enregistrer un paiement</div>
             <div class="form-group">
-                <label>🔍 اختيار العميل</label>
+                <label>🔍 Choisir le client</label>
                 <select id="paymentCustomerSelect" onchange="loadCustomerOrdersForPayment()">
-                    <option value="">-- اختر عميل --</option>
+                    <option value="">-- Sélectionner un client --</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>📄 اختيار الطلبية</label>
+                <label>📄 Choisir la commande</label>
                 <select id="paymentOrderSelect" onchange="updatePaymentInfo()">
-                    <option value="">-- اختر طلبية --</option>
+                    <option value="">-- Sélectionner une commande --</option>
                 </select>
             </div>
             <div id="paymentOrderInfo" style="background:#0f0f1a; padding:10px; border-radius:10px; margin-bottom:12px;"></div>
             <div class="form-group">
-                <label>💰 المبلغ المدفوع (MAD)</label>
+                <label>💰 Montant payé (MAD)</label>
                 <input type="number" id="paymentAmount" placeholder="0.00" step="0.01">
             </div>
             <div class="form-group">
-                <label>📅 تاريخ الدفعة</label>
+                <label>📅 Date du paiement</label>
                 <input type="date" id="paymentDate">
             </div>
             <div class="form-group">
-                <label>💳 طريقة الدفع</label>
+                <label>💳 Mode de paiement</label>
                 <select id="paymentMethod">
-                    <option value="نقدي">💰 نقدي</option>
-                    <option value="تحويل بنكي">🏦 تحويل بنكي</option>
-                    <option value="بطاقة">💳 بطاقة</option>
-                    <option value="شيك">📝 شيك</option>
+                    <option value="Espèces">💰 Espèces</option>
+                    <option value="Virement bancaire">🏦 Virement bancaire</option>
+                    <option value="Carte bancaire">💳 Carte bancaire</option>
+                    <option value="Chèque">📝 Chèque</option>
                 </select>
             </div>
-            <button id="savePaymentBtn" class="success">✅ تسجيل الدفعة</button>
+            <button id="savePaymentBtn" class="success">✅ Enregistrer le paiement</button>
         </div>
 
         <div class="card">
-            <div class="card-title"><i class="fas fa-history"></i> آخر المدفوعات</div>
+            <div class="card-title"><i class="fas fa-history"></i> Derniers paiements</div>
             <div id="recentPaymentsList"></div>
         </div>
     </div>
 
-    <!-- تبويب حالة العملاء -->
+    <!-- Tab Situation Clients -->
     <div id="statusTab" class="hidden">
         <div class="card">
-            <div class="card-title"><i class="fas fa-chart-line"></i> ملخص حالة العملاء</div>
+            <div class="card-title"><i class="fas fa-chart-line"></i> Situation des clients</div>
             <div class="search-box">
-                <input type="text" id="searchCustomersStatus" placeholder="🔍 بحث باسم العميل" oninput="renderCustomersStatus()">
+                <input type="text" id="searchCustomersStatus" placeholder="🔍 Rechercher un client..." oninput="renderCustomersStatus()">
             </div>
             <div id="customersStatusList"></div>
         </div>
@@ -305,36 +324,54 @@
 <div class="tab-bar">
     <div class="tab active" onclick="showTab('customers')">
         <i class="fas fa-users"></i>
-        <span>العملاء</span>
+        <span>Clients</span>
     </div>
     <div class="tab" onclick="showTab('orders')">
         <i class="fas fa-file-alt"></i>
-        <span>الطلبيات</span>
+        <span>Commandes</span>
     </div>
     <div class="tab" onclick="showTab('payments')">
         <i class="fas fa-money-bill-wave"></i>
-        <span>المدفوعات</span>
+        <span>Paiements</span>
     </div>
     <div class="tab" onclick="showTab('status')">
         <i class="fas fa-chart-simple"></i>
-        <span>الحالة</span>
+        <span>Situation</span>
     </div>
 </div>
 
-<!-- مودال لعرض تفاصيل الطلبية والدفعات -->
+<!-- Modal Détails Commande -->
 <div id="orderDetailModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <span>📋 تفاصيل الطلبية</span>
+            <span>📋 Détails de la commande</span>
             <button onclick="closeModal('orderDetailModal')" style="background:none; color:white; font-size:20px;">✕</button>
         </div>
         <div id="orderDetailContent"></div>
-        <button id="printOrderBtn" style="margin-top:10px; background:#3498db;">🖨️ طباعة</button>
+        <div class="flex-buttons" style="margin-top:10px;">
+            <button id="printOrderBtn" style="background:#3498db;">🖨️ Imprimer</button>
+            <button id="pdfOrderBtn" style="background:#e74c3c;">📄 PDF</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Situation Client Complet -->
+<div id="clientSituationModal" class="modal">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header">
+            <span id="clientSituationTitle">📊 Situation complète du client</span>
+            <button onclick="closeModal('clientSituationModal')" style="background:none; color:white; font-size:20px;">✕</button>
+        </div>
+        <div id="clientSituationContent"></div>
+        <div class="flex-buttons" style="margin-top:10px;">
+            <button id="printClientSituationBtn" style="background:#3498db;">🖨️ Imprimer</button>
+            <button id="pdfClientSituationBtn" style="background:#e74c3c;">📄 Télécharger PDF</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // ========== Firebase Configuration ==========
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyB-TBjgISvKwJnYc7hNRoUcNLhxRnJvVE0",
         authDomain: "stock-c1643.firebaseapp.com",
@@ -349,11 +386,11 @@
     const auth = firebase.auth();
 
     let currentUser = null;
-    let customers = [];     // العملاء
-    let orders = [];        // الطلبيات
-    let payments = [];      // المدفوعات
+    let customers = [];
+    let orders = [];
+    let payments = [];
 
-    // ========== Auth ==========
+    // Auth
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
@@ -367,10 +404,10 @@
         const html = `
             <div id="loginModal" class="modal active">
                 <div class="modal-content">
-                    <div class="modal-header" style="justify-content:center;">🔐 تسجيل الدخول</div>
-                    <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" style="width:100%; margin-bottom:10px;">
-                    <input type="password" id="loginPass" placeholder="كلمة المرور" style="width:100%; margin-bottom:15px;">
-                    <button onclick="doLogin()">دخول</button>
+                    <div class="modal-header" style="justify-content:center;">🔐 Connexion</div>
+                    <input type="email" id="loginEmail" placeholder="Email" style="width:100%; margin-bottom:10px;">
+                    <input type="password" id="loginPass" placeholder="Mot de passe" style="width:100%; margin-bottom:15px;">
+                    <button onclick="doLogin()">Se connecter</button>
                     <div id="loginError" style="color:red; margin-top:8px; font-size:12px; text-align:center;"></div>
                 </div>
             </div>
@@ -389,7 +426,6 @@
         }
     };
 
-    // ========== Load Data ==========
     async function loadData() {
         const uid = currentUser.uid;
         
@@ -414,29 +450,30 @@
         });
     }
 
-    // ========== Customers Functions ==========
+    // Clients Functions
     function renderCustomersList() {
         const container = document.getElementById('customersList');
         const search = document.getElementById('searchCustomersList')?.value.toLowerCase() || '';
         
         let filtered = customers;
-        if (search) {
-            filtered = customers.filter(c => c.name.toLowerCase().includes(search));
-        }
+        if (search) filtered = customers.filter(c => c.name.toLowerCase().includes(search));
         
         if (filtered.length === 0) {
-            container.innerHTML = '<div class="empty">📭 لا يوجد عملاء</div>';
+            container.innerHTML = '<div class="empty">📭 Aucun client</div>';
             return;
         }
         
         container.innerHTML = filtered.map(customer => `
-            <div class="list-item" onclick="showCustomerOrders('${customer.id}')">
+            <div class="list-item" onclick="showClientFullSituation('${customer.id}')">
                 <div class="flex-between">
                     <span class="customer-name">👤 ${customer.name}</span>
-                    <button class="small-icon-btn" onclick="event.stopPropagation(); editCustomer('${customer.id}')">✏️ تعديل</button>
+                    <button class="small-icon-btn" onclick="event.stopPropagation(); editCustomer('${customer.id}')">✏️ Modifier</button>
                 </div>
                 ${customer.phone ? `<div class="small-text">📞 ${customer.phone}</div>` : ''}
                 ${customer.address ? `<div class="small-text">📍 ${customer.address}</div>` : ''}
+                <div class="flex-buttons" style="margin-top:8px;">
+                    <button onclick="event.stopPropagation(); showClientFullSituation('${customer.id}')" style="background:#9b59b6; padding:5px; font-size:11px;">📊 Situation complète</button>
+                </div>
             </div>
         `).join('');
     }
@@ -445,10 +482,10 @@
         const customer = customers.find(c => c.id === customerId);
         if (!customer) return;
         
-        const newName = prompt('اسم العميل:', customer.name);
+        const newName = prompt('Nom du client:', customer.name);
         if (newName && newName.trim()) {
-            const newPhone = prompt('رقم الهاتف:', customer.phone || '');
-            const newAddress = prompt('العنوان:', customer.address || '');
+            const newPhone = prompt('Téléphone:', customer.phone || '');
+            const newAddress = prompt('Adresse:', customer.address || '');
             
             const updated = {
                 ...customer,
@@ -457,7 +494,7 @@
                 address: newAddress || ''
             };
             db.ref(`users/${currentUser.uid}/customers/${customerId}`).set(updated);
-            showFlash('تم تحديث العميل', 'success');
+            showFlash('Client modifié avec succès', 'success');
         }
     };
     
@@ -466,7 +503,7 @@
         const phone = document.getElementById('newCustomerPhone').value.trim();
         const address = document.getElementById('newCustomerAddress').value.trim();
         
-        if (!name) { showFlash('اسم العميل مطلوب', 'warning'); return; }
+        if (!name) { showFlash('Nom du client requis', 'warning'); return; }
         
         const customer = {
             id: Date.now().toString(),
@@ -482,7 +519,7 @@
         document.getElementById('newCustomerPhone').value = '';
         document.getElementById('newCustomerAddress').value = '';
         
-        showFlash('تم إضافة العميل بنجاح', 'success');
+        showFlash('Client ajouté avec succès', 'success');
     };
     
     function updateCustomerSelects() {
@@ -490,68 +527,234 @@
         const paymentSelect = document.getElementById('paymentCustomerSelect');
         
         if (orderSelect) {
-            orderSelect.innerHTML = '<option value="">-- اختر عميل --</option>';
+            orderSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
             customers.forEach(c => {
                 orderSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
             });
         }
         
         if (paymentSelect) {
-            paymentSelect.innerHTML = '<option value="">-- اختر عميل --</option>';
+            paymentSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
             customers.forEach(c => {
                 paymentSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
             });
         }
     }
     
-    // عرض طلبيات عميل معين
-    window.showCustomerOrders = (customerId) => {
+    // Situation complète d'un client (PDF)
+    window.showClientFullSituation = (customerId) => {
         const customer = customers.find(c => c.id === customerId);
         if (!customer) return;
         
         const customerOrders = orders.filter(o => o.customerId === customerId);
+        const customerPayments = payments.filter(p => customerOrders.some(o => o.id === p.orderId));
         
-        if (customerOrders.length === 0) {
-            showFlash('لا توجد طلبيات لهذا العميل', 'warning');
-            return;
-        }
+        const totalAmount = customerOrders.reduce((s,o) => s + o.amount, 0);
+        const totalPaid = customerPayments.reduce((s,p) => s + p.amount, 0);
+        const totalRemaining = totalAmount - totalPaid;
+        const percent = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
         
-        let html = `<div style="margin-bottom:15px;"><strong>👤 ${customer.name}</strong></div>`;
-        
+        let ordersHtml = '';
         customerOrders.forEach(order => {
-            const orderPayments = payments.filter(p => p.orderId === order.id);
-            const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
-            const remaining = order.amount - totalPaid;
-            const percent = (totalPaid / order.amount) * 100;
+            const orderPayments = customerPayments.filter(p => p.orderId === order.id);
+            const orderPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            const orderRemaining = order.amount - orderPaid;
+            const orderPercent = (orderPaid / order.amount) * 100;
             
-            html += `
+            let paymentsHtml = '';
+            if (orderPayments.length > 0) {
+                paymentsHtml = orderPayments.map(p => `
+                    <div style="background:#0f0f1a; padding:6px; border-radius:8px; margin-top:5px;">
+                        <div class="flex-between small-text">
+                            <span>💰 ${formatMoney(p.amount)}</span>
+                            <span>${p.method}</span>
+                            <span>📅 ${formatDate(p.date)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                paymentsHtml = '<div class="small-text" style="color:#a0a0b0;">Aucun paiement</div>';
+            }
+            
+            ordersHtml += `
                 <div class="list-item" style="margin-bottom:10px;">
                     <div class="flex-between">
-                        <span>🔢 ${order.orderNumber}</span>
-                        <span>${formatMoney(order.amount)}</span>
+                        <span><strong>🔢 ${order.orderNumber}</strong></span>
+                        <span>💰 ${formatMoney(order.amount)}</span>
                     </div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${orderPercent}%"></div></div>
                     <div class="flex-between small-text">
-                        <span>مدفوع: ${formatMoney(totalPaid)}</span>
-                        <span>متبقي: ${formatMoney(remaining)}</span>
+                        <span>✅ Payé: ${formatMoney(orderPaid)}</span>
+                        <span>⚠️ Reste: ${formatMoney(orderRemaining)}</span>
                     </div>
-                    <div class="flex-between small-text" style="margin-top:8px;">
-                        <span>📅 ${formatDate(order.date)}</span>
-                        ${remaining > 0 ? `<button onclick="quickPayment('${order.id}')" style="background:#2ecc71; padding:5px 10px; font-size:11px; width:auto;">+ دفعة</button>` : ''}
-                        <button onclick="showOrderDetail('${order.id}')" style="background:#3498db; padding:5px 10px; font-size:11px; width:auto;">تفاصيل</button>
-                    </div>
+                    <div class="small-text">📅 ${formatDate(order.date)}</div>
+                    <div style="margin-top:8px;"><strong>Paiements:</strong></div>
+                    ${paymentsHtml}
                 </div>
             `;
         });
         
-        const modal = document.createElement('div');
-        modal.className = 'modal active';
-        modal.id = 'tempModal';
-        modal.innerHTML = `<div class="modal-content"><div class="modal-header"><span>📋 طلبيات ${customer.name}</span><button onclick="closeModal('tempModal')" style="background:none; font-size:20px;">✕</button></div>${html}</div>`;
-        document.body.appendChild(modal);
+        let statusBadge = '';
+        if (totalPaid >= totalAmount) statusBadge = '<span class="badge badge-paid">✅ Entièrement payé</span>';
+        else if (totalPaid > 0) statusBadge = '<span class="badge badge-partial">🟡 Partiellement payé</span>';
+        else statusBadge = '<span class="badge badge-unpaid">🔴 Non payé</span>';
+        
+        const html = `
+            <div style="text-align:center; margin-bottom:15px;">
+                <div style="font-size:18px; font-weight:bold; color:#9b59b6;">${customer.name}</div>
+                ${customer.phone ? `<div class="small-text">📞 ${customer.phone}</div>` : ''}
+                ${customer.address ? `<div class="small-text">📍 ${customer.address}</div>` : ''}
+                <div style="margin-top:8px;">${statusBadge}</div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:15px;">
+                <div style="background:#0f0f1a; padding:8px; border-radius:10px; text-align:center;">
+                    <div style="font-size:14px; font-weight:bold;">${formatMoney(totalAmount)}</div>
+                    <div class="small-text">Total commandes</div>
+                </div>
+                <div style="background:#0f0f1a; padding:8px; border-radius:10px; text-align:center;">
+                    <div style="font-size:14px; font-weight:bold; color:#2ecc71;">${formatMoney(totalPaid)}</div>
+                    <div class="small-text">Total payé</div>
+                </div>
+                <div style="background:#0f0f1a; padding:8px; border-radius:10px; text-align:center;">
+                    <div style="font-size:14px; font-weight:bold; color:#e74c3c;">${formatMoney(totalRemaining)}</div>
+                    <div class="small-text">Reste à payer</div>
+                </div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+            <div style="margin:15px 0 10px; font-weight:bold;">📋 Détail des commandes:</div>
+            ${ordersHtml || '<div class="empty">Aucune commande</div>'}
+            <div class="small-text" style="margin-top:10px;">📅 Dernière mise à jour: ${new Date().toLocaleString('fr-FR')}</div>
+        `;
+        
+        document.getElementById('clientSituationTitle').innerHTML = `📊 Situation - ${customer.name}`;
+        document.getElementById('clientSituationContent').innerHTML = html;
+        openModal('clientSituationModal');
+        
+        // Sauvegarder les données pour PDF
+        window.currentSituationData = { customer, customerOrders, customerPayments, totalAmount, totalPaid, totalRemaining, percent };
     };
     
-    // ========== Orders Functions ==========
+    // PDF Situation Client
+    document.getElementById('pdfClientSituationBtn').onclick = () => {
+        const data = window.currentSituationData;
+        if (!data) return;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        doc.setFont('helvetica');
+        doc.setFontSize(18);
+        doc.setTextColor(155, 89, 182);
+        doc.text('EL FATH SERVICE', 20, 20);
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Situation du client: ${data.customer.name}`, 20, 35);
+        
+        let y = 50;
+        doc.setFontSize(11);
+        if (data.customer.phone) doc.text(`Téléphone: ${data.customer.phone}`, 20, y); y += 8;
+        if (data.customer.address) doc.text(`Adresse: ${data.customer.address}`, 20, y); y += 8;
+        doc.text(`Total des commandes: ${formatMoney(data.totalAmount)}`, 20, y); y += 8;
+        doc.text(`Total payé: ${formatMoney(data.totalPaid)}`, 20, y); y += 8;
+        doc.text(`Reste à payer: ${formatMoney(data.totalRemaining)}`, 20, y); y += 8;
+        
+        const orderData = data.customerOrders.map(order => {
+            const orderPayments = data.customerPayments.filter(p => p.orderId === order.id);
+            const orderPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            return [order.orderNumber, formatMoney(order.amount), formatMoney(orderPaid), formatMoney(order.amount - orderPaid), formatDate(order.date)];
+        });
+        
+        doc.autoTable({
+            startY: y + 10,
+            head: [['N° Commande', 'Montant', 'Payé', 'Reste', 'Date']],
+            body: orderData,
+            theme: 'striped',
+            headStyles: { fillColor: [155, 89, 182], textColor: 255 },
+            styles: { fontSize: 9, textColor: [0,0,0] }
+        });
+        
+        let y2 = doc.lastAutoTable.finalY + 10;
+        
+        // Détail des paiements par commande
+        for (const order of data.customerOrders) {
+            const orderPayments = data.customerPayments.filter(p => p.orderId === order.id);
+            if (orderPayments.length > 0) {
+                doc.text(`Paiements - Commande ${order.orderNumber}:`, 20, y2); y2 += 8;
+                const paymentData = orderPayments.map(p => [formatDate(p.date), formatMoney(p.amount), p.method]);
+                doc.autoTable({
+                    startY: y2,
+                    head: [['Date', 'Montant', 'Mode']],
+                    body: paymentData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [52, 152, 219], textColor: 255 },
+                    styles: { fontSize: 8, textColor: [0,0,0] }
+                });
+                y2 = doc.lastAutoTable.finalY + 8;
+            }
+        }
+        
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(`Généré le ${new Date().toLocaleString('fr-FR')} - El Fath Service`, 20, 280);
+        doc.save(`Situation_${data.customer.name.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+        showFlash('PDF généré avec succès', 'success');
+    };
+    
+    document.getElementById('printClientSituationBtn').onclick = () => {
+        const data = window.currentSituationData;
+        if (!data) return;
+        
+        const printWindow = window.open('', '_blank');
+        let ordersPrint = '';
+        data.customerOrders.forEach(order => {
+            const orderPayments = data.customerPayments.filter(p => p.orderId === order.id);
+            const orderPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            let paymentsPrint = '';
+            orderPayments.forEach(p => {
+                paymentsPrint += `<tr><td>${formatDate(p.date)}</td><td>${formatMoney(p.amount)}</td><td>${p.method}</td></tr>`;
+            });
+            ordersPrint += `
+                <div style="border:1px solid #ddd; margin-bottom:15px; padding:10px; border-radius:8px;">
+                    <h4>Commande: ${order.orderNumber}</h4>
+                    <p>Montant: ${formatMoney(order.amount)} | Payé: ${formatMoney(orderPaid)} | Reste: ${formatMoney(order.amount - orderPaid)}</p>
+                    <p>Date: ${formatDate(order.date)}</p>
+                    ${orderPayments.length > 0 ? `<table border="1" cellpadding="5" style="width:100%; margin-top:10px;"><tr><th>Date</th><th>Montant</th><th>Mode</th></tr>${paymentsPrint}</table>` : '<p>Aucun paiement</p>'}
+                </div>
+            `;
+        });
+        
+        printWindow.document.write(`
+            <html>
+            <head><title>Situation - ${data.customer.name}</title><meta charset="UTF-8">
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h2 { color: #9b59b6; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .info { margin-bottom: 20px; }
+                table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background: #9b59b6; color: white; }
+                .footer { margin-top: 30px; font-size: 10px; color: #999; text-align: center; }
+            </style>
+            </head>
+            <body>
+                <div class="header"><h2>EL FATH SERVICE</h2><h3>Situation du client: ${data.customer.name}</h3></div>
+                <div class="info">
+                    <p><strong>Téléphone:</strong> ${data.customer.phone || '-'}</p>
+                    <p><strong>Adresse:</strong> ${data.customer.address || '-'}</p>
+                    <p><strong>Total commandes:</strong> ${formatMoney(data.totalAmount)}</p>
+                    <p><strong>Total payé:</strong> ${formatMoney(data.totalPaid)}</p>
+                    <p><strong>Reste à payer:</strong> ${formatMoney(data.totalRemaining)}</p>
+                </div>
+                <h3>Détail des commandes:</h3>
+                ${ordersPrint}
+                <div class="footer">Généré le ${new Date().toLocaleString('fr-FR')}</div>
+            </body>
+            </html>
+        `);
+    };
+    
+    // Orders Functions
     function renderOrdersList() {
         const container = document.getElementById('ordersList');
         const search = document.getElementById('searchOrders')?.value.toLowerCase() || '';
@@ -566,7 +769,7 @@
         }
         
         if (filtered.length === 0) {
-            container.innerHTML = '<div class="empty">📭 لا توجد طلبيات</div>';
+            container.innerHTML = '<div class="empty">📭 Aucune commande</div>';
             return;
         }
         
@@ -574,16 +777,16 @@
         
         container.innerHTML = filtered.map(order => {
             const customer = customers.find(c => c.id === order.customerId);
-            const customerName = customer ? customer.name : 'غير معروف';
+            const customerName = customer ? customer.name : 'Inconnu';
             const orderPayments = payments.filter(p => p.orderId === order.id);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
             const percent = (totalPaid / order.amount) * 100;
             
             let statusBadge = '';
-            if (totalPaid >= order.amount) statusBadge = '<span class="badge badge-paid">مدفوع</span>';
-            else if (totalPaid > 0) statusBadge = '<span class="badge badge-partial">مدفوع جزئياً</span>';
-            else statusBadge = '<span class="badge badge-unpaid">غير مدفوع</span>';
+            if (totalPaid >= order.amount) statusBadge = '<span class="badge badge-paid">Payé</span>';
+            else if (totalPaid > 0) statusBadge = '<span class="badge badge-partial">Partiel</span>';
+            else statusBadge = '<span class="badge badge-unpaid">Non payé</span>';
             
             return `
                 <div class="list-item" onclick="showOrderDetail('${order.id}')">
@@ -597,10 +800,10 @@
                     </div>
                     <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
                     <div class="flex-between small-text">
-                        <span>✅ مدفوع: ${formatMoney(totalPaid)}</span>
-                        <span>⚠️ متبقي: ${formatMoney(remaining)}</span>
+                        <span>✅ Payé: ${formatMoney(totalPaid)}</span>
+                        <span>⚠️ Reste: ${formatMoney(remaining)}</span>
                     </div>
-                    <div class="small-text" style="margin-top:5px;">📅 ${formatDate(order.date)}</div>
+                    <div class="small-text">📅 ${formatDate(order.date)}</div>
                 </div>
             `;
         }).join('');
@@ -613,13 +816,13 @@
         const dueDate = document.getElementById('orderDueDate').value;
         const notes = document.getElementById('orderNotes').value;
         
-        if (!customerId) { showFlash('اختر عميلاً أولاً', 'warning'); return; }
-        if (!amount || amount <= 0) { showFlash('المبلغ غير صالح', 'warning'); return; }
+        if (!customerId) { showFlash('Sélectionnez un client', 'warning'); return; }
+        if (!amount || amount <= 0) { showFlash('Montant invalide', 'warning'); return; }
         
         const order = {
             id: Date.now().toString(),
             customerId: customerId,
-            orderNumber: orderNumber || `ORD-${Date.now()}`,
+            orderNumber: orderNumber || `CMD-${Date.now()}`,
             amount: amount,
             dueDate: dueDate,
             notes: notes,
@@ -633,31 +836,31 @@
         document.getElementById('orderDueDate').value = '';
         document.getElementById('orderNotes').value = '';
         
-        showFlash('تم إضافة الطلبية بنجاح', 'success');
+        showFlash('Commande ajoutée avec succès', 'success');
     };
     
-    // ========== Payments Functions ==========
+    // Payments Functions
     window.loadCustomerOrdersForPayment = () => {
         const customerId = document.getElementById('paymentCustomerSelect').value;
         const orderSelect = document.getElementById('paymentOrderSelect');
         
         if (!customerId) {
-            orderSelect.innerHTML = '<option value="">-- اختر طلبية --</option>';
+            orderSelect.innerHTML = '<option value="">-- Sélectionner une commande --</option>';
             document.getElementById('paymentOrderInfo').innerHTML = '';
             return;
         }
         
         const customerOrders = orders.filter(o => o.customerId === customerId);
         
-        orderSelect.innerHTML = '<option value="">-- اختر طلبية --</option>';
+        orderSelect.innerHTML = '<option value="">-- Sélectionner une commande --</option>';
         customerOrders.forEach(order => {
             const orderPayments = payments.filter(p => p.orderId === order.id);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
             if (remaining > 0) {
-                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - متبقي: ${formatMoney(remaining)}</option>`;
+                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - Reste: ${formatMoney(remaining)}</option>`;
             } else {
-                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - ✅ مكتمل</option>`;
+                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - ✅ Payé</option>`;
             }
         });
     };
@@ -673,7 +876,7 @@
         if (!order) return;
         
         const customer = customers.find(c => c.id === order.customerId);
-        const customerName = customer ? customer.name : 'غير معروف';
+        const customerName = customer ? customer.name : 'Inconnu';
         
         const orderPayments = payments.filter(p => p.orderId === orderId);
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
@@ -681,10 +884,10 @@
         
         infoDiv.innerHTML = `
             <strong>${customerName}</strong><br>
-            رقم الطلبية: ${order.orderNumber}<br>
-            الإجمالي: ${formatMoney(order.amount)}<br>
-            المدفوع: ${formatMoney(totalPaid)}<br>
-            <span style="color: #f39c12;">المتبقي: ${formatMoney(remaining)}</span>
+            N° commande: ${order.orderNumber}<br>
+            Total: ${formatMoney(order.amount)}<br>
+            Payé: ${formatMoney(totalPaid)}<br>
+            <span style="color: #f39c12;">Reste: ${formatMoney(remaining)}</span>
         `;
         document.getElementById('paymentAmount').value = remaining > 0 ? remaining.toFixed(2) : 0;
         document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
@@ -696,8 +899,8 @@
         const paymentDate = document.getElementById('paymentDate').value;
         const method = document.getElementById('paymentMethod').value;
         
-        if (!orderId) { showFlash('اختر طلبية أولاً', 'warning'); return; }
-        if (!amount || amount <= 0) { showFlash('المبلغ غير صالح', 'warning'); return; }
+        if (!orderId) { showFlash('Sélectionnez une commande', 'warning'); return; }
+        if (!amount || amount <= 0) { showFlash('Montant invalide', 'warning'); return; }
         
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
@@ -707,7 +910,7 @@
         const remaining = order.amount - totalPaid;
         
         if (amount > remaining) {
-            showFlash(`المبلغ يتجاوز المتبقي (${formatMoney(remaining)})`, 'danger');
+            showFlash(`Le montant dépasse le reste à payer (${formatMoney(remaining)})`, 'danger');
             return;
         }
         
@@ -717,7 +920,7 @@
             id: Date.now().toString(),
             orderId: orderId,
             customerId: order.customerId,
-            customerName: customer ? customer.name : 'غير معروف',
+            customerName: customer ? customer.name : 'Inconnu',
             orderNumber: order.orderNumber,
             amount: amount,
             date: new Date(paymentDate).toISOString(),
@@ -728,7 +931,7 @@
         await db.ref(`users/${currentUser.uid}/payments/${payment.id}`).set(payment);
         
         document.getElementById('paymentAmount').value = '';
-        showFlash('تم تسجيل الدفعة بنجاح', 'success');
+        showFlash('Paiement enregistré avec succès', 'success');
         loadCustomerOrdersForPayment();
     };
     
@@ -739,7 +942,7 @@
         const recent = [...payments].sort((a,b) => b.timestamp - a.timestamp).slice(0, 10);
         
         if (recent.length === 0) {
-            container.innerHTML = '<div class="empty">لا توجد مدفوعات مسجلة</div>';
+            container.innerHTML = '<div class="empty">Aucun paiement enregistré</div>';
             return;
         }
         
@@ -755,18 +958,16 @@
         `).join('');
     }
     
-    // ========== Customers Status ==========
+    // Customers Status Summary
     function renderCustomersStatus() {
         const container = document.getElementById('customersStatusList');
         const search = document.getElementById('searchCustomersStatus')?.value.toLowerCase() || '';
         
         let filteredCustomers = customers;
-        if (search) {
-            filteredCustomers = customers.filter(c => c.name.toLowerCase().includes(search));
-        }
+        if (search) filteredCustomers = customers.filter(c => c.name.toLowerCase().includes(search));
         
         if (filteredCustomers.length === 0) {
-            container.innerHTML = '<div class="empty">لا يوجد عملاء</div>';
+            container.innerHTML = '<div class="empty">Aucun client</div>';
             return;
         }
         
@@ -781,30 +982,33 @@
             const percent = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
             
             html += `
-                <div class="list-item" onclick="showCustomerOrders('${customer.id}')">
+                <div class="list-item" onclick="showClientFullSituation('${customer.id}')">
                     <div class="flex-between">
                         <span class="customer-name">👤 ${customer.name}</span>
-                        <span>${customerOrders.length} طلبية</span>
+                        <span>${customerOrders.length} commande(s)</span>
                     </div>
                     <div class="flex-between small-text" style="margin-top:5px;">
-                        <span>💰 الإجمالي: ${formatMoney(totalAmount)}</span>
-                        <span>✅ مدفوع: ${formatMoney(totalPaid)}</span>
-                        <span>⚠️ متبقي: ${formatMoney(remaining)}</span>
+                        <span>💰 Total: ${formatMoney(totalAmount)}</span>
+                        <span>✅ Payé: ${formatMoney(totalPaid)}</span>
+                        <span>⚠️ Reste: ${formatMoney(remaining)}</span>
                     </div>
                     <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                    <div class="flex-buttons" style="margin-top:8px;">
+                        <button onclick="event.stopPropagation(); showClientFullSituation('${customer.id}')" style="background:#9b59b6; padding:5px;">📊 Situation PDF</button>
+                    </div>
                 </div>
             `;
         });
         container.innerHTML = html;
     }
     
-    // ========== Order Detail ==========
+    // Order Detail
     window.showOrderDetail = (orderId) => {
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
         
         const customer = customers.find(c => c.id === order.customerId);
-        const customerName = customer ? customer.name : 'غير معروف';
+        const customerName = customer ? customer.name : 'Inconnu';
         
         const orderPayments = payments.filter(p => p.orderId === orderId);
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
@@ -813,15 +1017,15 @@
         
         let paymentsHtml = '';
         if (orderPayments.length === 0) {
-            paymentsHtml = '<div class="empty">لا توجد دفعات مسجلة</div>';
+            paymentsHtml = '<div class="empty">Aucun paiement</div>';
         } else {
             paymentsHtml = orderPayments.map(p => `
                 <div class="list-item" style="margin-bottom:5px;">
                     <div class="flex-between">
                         <span>💰 ${formatMoney(p.amount)}</span>
                         <span>${p.method}</span>
+                        <span>📅 ${formatDate(p.date)}</span>
                     </div>
-                    <div class="small-text">📅 ${formatDate(p.date)}</div>
                 </div>
             `).join('');
         }
@@ -831,67 +1035,58 @@
                 <div style="font-size:16px; font-weight:bold;">${customerName}</div>
                 <div>🔢 ${order.orderNumber}</div>
             </div>
-            <div class="flex-between"><span>💰 الإجمالي:</span><span>${formatMoney(order.amount)}</span></div>
-            <div class="flex-between"><span>✅ المدفوع:</span><span style="color:#2ecc71;">${formatMoney(totalPaid)}</span></div>
-            <div class="flex-between"><span>⚠️ المتبقي:</span><span style="color:${remaining>0?'#e74c3c':'#2ecc71'};">${formatMoney(remaining)}</span></div>
+            <div class="flex-between"><span>💰 Total:</span><span>${formatMoney(order.amount)}</span></div>
+            <div class="flex-between"><span>✅ Payé:</span><span style="color:#2ecc71;">${formatMoney(totalPaid)}</span></div>
+            <div class="flex-between"><span>⚠️ Reste:</span><span style="color:${remaining>0?'#e74c3c':'#2ecc71'};">${formatMoney(remaining)}</span></div>
             <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-            ${order.dueDate ? `<div class="small-text" style="margin-top:10px;">📅 تاريخ الاستحقاق: ${formatDate(order.dueDate)}</div>` : ''}
+            ${order.dueDate ? `<div class="small-text" style="margin-top:10px;">📅 Échéance: ${formatDate(order.dueDate)}</div>` : ''}
             ${order.notes ? `<div class="small-text" style="margin-top:5px;">📝 ${order.notes}</div>` : ''}
-            <div style="margin:15px 0 10px; font-weight:bold;">📋 سجل الدفعات:</div>
-            <div id="paymentsListDetail">${paymentsHtml}</div>
-            ${remaining > 0 ? `<button onclick="quickPayment('${order.id}'); closeModal('orderDetailModal');" style="margin-top:10px; background:#9b59b6;">➕ إضافة دفعة</button>` : ''}
+            <div style="margin:15px 0 10px; font-weight:bold;">💰 Historique des paiements:</div>
+            <div>${paymentsHtml}</div>
+            ${remaining > 0 ? `<button onclick="quickPayment('${order.id}'); closeModal('orderDetailModal');" style="margin-top:10px; background:#9b59b6;">➕ Ajouter un paiement</button>` : ''}
         `;
         
         document.getElementById('orderDetailContent').innerHTML = html;
         openModal('orderDetailModal');
         
-        document.getElementById('printOrderBtn').onclick = () => printOrderReport(order, orderPayments, customerName);
+        window.currentOrder = { order, customerName, orderPayments, totalPaid, remaining };
     };
     
-    function printOrderReport(order, orderPayments, customerName) {
-        const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
-        const remaining = order.amount - totalPaid;
+    document.getElementById('printOrderBtn').onclick = () => {
+        const data = window.currentOrder;
+        if (!data) return;
         const printWindow = window.open('', '_blank');
-        
-        const paymentsTable = orderPayments.map(p => `
-            <tr>
-                <td style="border:1px solid #ddd; padding:6px;">${formatDate(p.date)}</td>
-                <td style="border:1px solid #ddd; padding:6px;">${formatMoney(p.amount)}</td>
-                <td style="border:1px solid #ddd; padding:6px;">${p.method}</td>
-            </tr>
-        `).join('');
-        
+        const paymentsTable = data.orderPayments.map(p => `<tr><td>${formatDate(p.date)}</td><td>${formatMoney(p.amount)}</td><td>${p.method}</td></tr>`).join('');
         printWindow.document.write(`
-            <html dir="rtl">
-            <head><title>تقرير الطلبية - ${order.orderNumber}</title><meta charset="UTF-8">
-            <style>
-                body { font-family: 'Cairo', Arial; margin: 20px; direction: rtl; }
-                h2 { color: #9b59b6; }
-                table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                th { background: #9b59b6; color: white; padding: 8px; border: 1px solid #ddd; }
-                .footer { margin-top: 30px; font-size: 10px; color: #999; text-align: center; }
-            </style>
-            </head>
-            <body>
-                <h2>EL FATH SERVICE</h2>
-                <h3>تقرير الطلبية</h3>
-                <p><strong>العميل:</strong> ${customerName}</p>
-                <p><strong>رقم الطلبية:</strong> ${order.orderNumber}</p>
-                <p><strong>التاريخ:</strong> ${formatDate(order.date)}</p>
-                <p><strong>الإجمالي:</strong> ${formatMoney(order.amount)}</p>
-                <p><strong>المدفوع:</strong> ${formatMoney(totalPaid)}</p>
-                <p><strong>المتبقي:</strong> ${formatMoney(remaining)}</p>
-                ${order.dueDate ? `<p><strong>تاريخ الاستحقاق:</strong> ${formatDate(order.dueDate)}</p>` : ''}
-                <h4>سجل الدفعات:</h4>
-                <table>
-                    <thead><tr><th>التاريخ</th><th>المبلغ</th><th>طريقة الدفع</th></tr></thead>
-                    <tbody>${paymentsTable || '<tr><td colspan="3">لا توجد دفعات</td></tr>'}</tbody>
-                </table>
-                <div class="footer">تم الإنشاء في ${new Date().toLocaleString('ar-EG')}</div>
-            </body>
-            </html>
+            <html><head><title>Commande ${data.order.orderNumber}</title><meta charset="UTF-8">
+            <style>body{font-family:Arial;margin:20px;}th{background:#9b59b6;color:white;padding:8px;}td{padding:6px;border:1px solid #ddd;}</style>
+            </head><body><h2>EL FATH SERVICE</h2><h3>Détails de la commande</h3>
+            <p><strong>Client:</strong> ${data.customerName}</p><p><strong>N° Commande:</strong> ${data.order.orderNumber}</p>
+            <p><strong>Total:</strong> ${formatMoney(data.order.amount)}</p><p><strong>Payé:</strong> ${formatMoney(data.totalPaid)}</p>
+            <p><strong>Reste:</strong> ${formatMoney(data.remaining)}</p>
+            <h4>Paiements:</h4><table border="1"><tr><th>Date</th><th>Montant</th><th>Mode</th></tr>${paymentsTable || '<tr><td colspan="3">Aucun paiement</td></tr>'}</table>
+            <div style="margin-top:30px; font-size:10px;">Généré le ${new Date().toLocaleString('fr-FR')}</div></body></html>
         `);
-    }
+    };
+    
+    document.getElementById('pdfOrderBtn').onclick = () => {
+        const data = window.currentOrder;
+        if (!data) return;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        doc.setFontSize(16); doc.setTextColor(155,89,182); doc.text('EL FATH SERVICE', 20, 20);
+        doc.setFontSize(12); doc.setTextColor(0,0,0); doc.text(`Commande: ${data.order.orderNumber}`, 20, 35);
+        doc.text(`Client: ${data.customerName}`, 20, 45);
+        doc.text(`Total: ${formatMoney(data.order.amount)}`, 20, 55);
+        doc.text(`Payé: ${formatMoney(data.totalPaid)}`, 20, 65);
+        doc.text(`Reste: ${formatMoney(data.remaining)}`, 20, 75);
+        if (data.orderPayments.length > 0) {
+            const paymentData = data.orderPayments.map(p => [formatDate(p.date), formatMoney(p.amount), p.method]);
+            doc.autoTable({ startY: 85, head: [['Date', 'Montant', 'Mode']], body: paymentData, theme: 'striped', headStyles: { fillColor: [155,89,182] } });
+        }
+        doc.save(`Commande_${data.order.orderNumber}.pdf`);
+        showFlash('PDF généré', 'success');
+    };
     
     window.quickPayment = (orderId) => {
         const order = orders.find(o => o.id === orderId);
@@ -901,10 +1096,7 @@
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
         
-        if (remaining <= 0) {
-            showFlash('هذه الطلبية مدفوعة بالكامل', 'warning');
-            return;
-        }
+        if (remaining <= 0) { showFlash('Cette commande est déjà payée', 'warning'); return; }
         
         const customer = customers.find(c => c.id === order.customerId);
         if (customer) {
@@ -916,17 +1108,17 @@
                 showTab('payments');
             }, 100);
         }
-        showFlash('أدخل المبلغ ثم اضغط تسجيل', 'success');
+        showFlash('Entrez le montant puis validez', 'success');
     };
     
-    // ========== Helper Functions ==========
+    // Helpers
     function formatMoney(amount) {
         return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'MAD' }).format(amount || 0);
     }
     
     function formatDate(dateStr) {
         if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('ar-EG');
+        return new Date(dateStr).toLocaleDateString('fr-FR');
     }
     
     function showFlash(msg, type = 'success') {
@@ -939,14 +1131,10 @@
         setTimeout(() => flash.remove(), 2500);
     }
     
-    function openModal(id) {
-        document.getElementById(id).classList.add('active');
-    }
-    
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
     function closeModal(id) {
         const modal = document.getElementById(id);
         if (modal) modal.classList.remove('active');
-        if (id === 'tempModal') modal?.remove();
     }
     window.closeModal = closeModal;
     
@@ -961,26 +1149,24 @@
         else if (tab === 'payments') document.getElementById('paymentsTab').classList.remove('hidden');
         else if (tab === 'status') document.getElementById('statusTab').classList.remove('hidden');
         
+        const tabs = ['customers', 'orders', 'payments', 'status'];
         document.querySelectorAll('.tab').forEach((t, i) => {
-            const tabs = ['customers', 'orders', 'payments', 'status'];
             if (tabs[i] === tab) t.classList.add('active');
             else t.classList.remove('active');
         });
         
-        if (tab === 'payments') {
-            updateCustomerSelects();
-            loadCustomerOrdersForPayment();
-        }
+        if (tab === 'payments') { updateCustomerSelects(); loadCustomerOrdersForPayment(); }
         if (tab === 'status') renderCustomersStatus();
         if (tab === 'orders') updateCustomerSelects();
     }
     
     window.showTab = showTab;
-    window.showCustomerOrders = showCustomerOrders;
+    window.showClientFullSituation = showClientFullSituation;
     window.showOrderDetail = showOrderDetail;
     window.quickPayment = quickPayment;
     window.loadCustomerOrdersForPayment = loadCustomerOrdersForPayment;
     window.updatePaymentInfo = updatePaymentInfo;
+    window.editCustomer = editCustomer;
 </script>
 </body>
 </html>
