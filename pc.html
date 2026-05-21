@@ -219,15 +219,6 @@
         }
         .filter-bar button { width: auto; padding: 12px 20px; }
         .export-buttons { display: flex; gap: 12px; margin-top: 15px; }
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 12px 0;
-            padding: 10px;
-            background: #0f0f1a;
-            border-radius: 12px;
-        }
         .small-icon-btn {
             background: #2d2d44;
             border: none;
@@ -248,6 +239,122 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a2e; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #9b59b6; border-radius: 4px; }
+
+        /* Nouveau style pour le paiement multiple - style carte moderne */
+        .multi-payment-modern {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #9b59b6;
+            box-shadow: 0 8px 25px rgba(155, 89, 182, 0.15);
+        }
+        .multi-payment-modern .card-title {
+            color: #d4a5ff;
+            border-right-color: #d4a5ff;
+        }
+        .order-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .order-payment-card {
+            background: #0f0f1a;
+            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid #2d2d44;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .order-payment-card:hover {
+            border-color: #9b59b6;
+            transform: translateX(5px);
+        }
+        .order-payment-card.selected {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2a1a3e 100%);
+            border-color: #9b59b6;
+            box-shadow: 0 0 0 2px rgba(155, 89, 182, 0.3);
+        }
+        .order-payment-card .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .order-payment-card .order-number {
+            font-size: 16px;
+            font-weight: bold;
+            color: #9b59b6;
+        }
+        .order-payment-card .order-remaining {
+            font-size: 13px;
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .order-payment-card .order-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #a0a0b0;
+            margin-bottom: 12px;
+        }
+        .payment-amount-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #2d2d44;
+        }
+        .payment-amount-input label {
+            font-size: 12px;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        .payment-amount-input input {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 14px;
+            text-align: right;
+        }
+        .selected-badge {
+            display: inline-block;
+            background: #9b59b6;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            margin-right: 8px;
+        }
+        .total-payment-card {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .total-payment-card label {
+            color: white;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .total-payment-card input {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .total-payment-card input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .distribute-btn {
+            background: #f39c12;
+            margin-top: 10px;
+        }
+        .distribute-btn:hover {
+            background: #e67e22;
+        }
     </style>
 </head>
 <body>
@@ -324,17 +431,42 @@
             <div class="form-group"><label>📝 Notes</label><input type="text" id="paymentNotes" placeholder="Optionnel"></div>
             <button id="savePaymentBtn" class="success"><i class="fas fa-check"></i> Enregistrer le paiement</button>
         </div>
-        <div id="multiPaymentCard" class="card multi-payment-card hidden">
+        
+        <!-- Nouveau style moderne pour paiement multiple -->
+        <div id="multiPaymentCard" class="card multi-payment-modern hidden">
             <div class="card-title"><i class="fas fa-layer-group"></i> Paiement sur plusieurs commandes</div>
-            <div class="form-group"><label>🔍 Choisir le client</label><select id="multiClientSelect" onchange="loadMultiClientOrders()"><option value="">-- Sélectionner un client --</option></select></div>
-            <div id="multiOrdersList"></div>
-            <div class="divider" style="height:1px; background:#2d2d44; margin:15px 0;"></div>
-            <div class="form-group"><label>💰 Montant total à payer (MAD)</label><input type="number" id="totalPaymentAmount" placeholder="0.00" step="0.01" class="amount-input" oninput="distributePayment()"></div>
-            <div class="form-group"><label>📅 Date du paiement</label><input type="date" id="multiPaymentDate"></div>
-            <div class="form-group"><label>💳 Mode de paiement</label><select id="multiPaymentMethod"><option value="Espèces">💰 Espèces</option><option value="Virement bancaire">🏦 Virement bancaire</option><option value="Carte bancaire">💳 Carte bancaire</option><option value="Chèque">📝 Chèque</option></select></div>
-            <div class="form-group"><label>📝 Notes</label><input type="text" id="multiPaymentNotes" placeholder="Optionnel"></div>
+            <div class="form-group">
+                <label>🔍 Choisir le client</label>
+                <select id="multiClientSelect" onchange="loadMultiClientOrdersModern()">
+                    <option value="">-- Sélectionner un client --</option>
+                </select>
+            </div>
+            <div id="multiOrdersListModern" class="order-cards-container"></div>
+            <div class="total-payment-card">
+                <label>💰 Montant total à payer (MAD)</label>
+                <input type="number" id="totalPaymentAmount" placeholder="0.00" step="0.01" class="amount-input">
+                <button id="distributeBtn" class="distribute-btn" onclick="distributePaymentModern()"><i class="fas fa-random"></i> Répartir automatiquement</button>
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <label>📅 Date du paiement</label>
+                <input type="date" id="multiPaymentDate">
+            </div>
+            <div class="form-group">
+                <label>💳 Mode de paiement</label>
+                <select id="multiPaymentMethod">
+                    <option value="Espèces">💰 Espèces</option>
+                    <option value="Virement bancaire">🏦 Virement bancaire</option>
+                    <option value="Carte bancaire">💳 Carte bancaire</option>
+                    <option value="Chèque">📝 Chèque</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>📝 Notes</label>
+                <input type="text" id="multiPaymentNotes" placeholder="Optionnel">
+            </div>
             <button id="saveMultiPaymentBtn" class="success"><i class="fas fa-check"></i> Enregistrer les paiements</button>
         </div>
+
         <div class="card">
             <div class="card-title"><i class="fas fa-history"></i> Derniers paiements</div>
             <div class="list-container" id="recentPaymentsList"></div>
@@ -480,21 +612,195 @@
     }
     document.getElementById('saveOrderBtn').onclick = async () => { const clientId = document.getElementById('orderClientSelect').value; const amount = parseFloat(document.getElementById('orderAmount').value); if (!clientId || !amount) { showFlash('Client et montant requis', 'warning'); return; } await db.ref(`users/${currentUser.uid}/orders/${Date.now()}`).set({ id: Date.now().toString(), clientId, orderNumber: document.getElementById('orderNumber').value.trim() || `CMD-${Date.now()}`, amount, dueDate: document.getElementById('orderDueDate').value, notes: document.getElementById('orderNotes').value, date: new Date().toISOString() }); document.getElementById('orderNumber').value = ''; document.getElementById('orderAmount').value = ''; document.getElementById('orderDueDate').value = ''; document.getElementById('orderNotes').value = ''; showFlash('Commande ajoutée'); };
 
-    // Payments
+    // Single Payment
     window.setPaymentMode = (mode) => { currentPaymentMode = mode; document.getElementById('singlePaymentCard').classList.toggle('hidden', mode !== 'single'); document.getElementById('multiPaymentCard').classList.toggle('hidden', mode !== 'multi'); document.getElementById('singleModeBtn').style.background = mode === 'single' ? '#9b59b6' : '#2d2d44'; document.getElementById('multiModeBtn').style.background = mode === 'multi' ? '#9b59b6' : '#2d2d44'; };
     window.loadClientOrdersForPayment = () => { const clientId = document.getElementById('paymentClientSelect').value; const orderSelect = document.getElementById('paymentOrderSelect'); if (!clientId) { orderSelect.innerHTML = '<option value="">-- Choisir --</option>'; return; } const clientOrders = orders.filter(o => o.clientId === clientId); orderSelect.innerHTML = '<option value="">-- Choisir --</option>'; clientOrders.forEach(o => { const paid = payments.filter(p => p.orderId === o.id).reduce((s,p) => s + p.amount, 0); const remaining = o.amount - paid; orderSelect.innerHTML += `<option value="${o.id}">${o.orderNumber} - Reste: ${formatMoney(remaining)}</option>`; }); };
     window.updatePaymentInfo = () => { const orderId = document.getElementById('paymentOrderSelect').value; if (!orderId) { document.getElementById('paymentOrderInfo').innerHTML = ''; return; } const o = orders.find(o => o.id === orderId); const c = clients.find(c => c.id === o.clientId); const paid = payments.filter(p => p.orderId === orderId).reduce((s,p) => s + p.amount, 0); const remaining = o.amount - paid; document.getElementById('paymentOrderInfo').innerHTML = `<strong>${c?.name}</strong><br>N°: ${o.orderNumber}<br>Total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br><span style="color:#f39c12;">Reste: ${formatMoney(remaining)}</span>`; document.getElementById('paymentAmount').value = remaining; document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0]; };
     document.getElementById('savePaymentBtn').onclick = async () => { const orderId = document.getElementById('paymentOrderSelect').value; const amount = parseFloat(document.getElementById('paymentAmount').value); if (!orderId || !amount) { showFlash('Commande et montant requis', 'warning'); return; } const o = orders.find(o => o.id === orderId); const paid = payments.filter(p => p.orderId === orderId).reduce((s,p) => s + p.amount, 0); if (amount > o.amount - paid) { showFlash('Montant dépasse le reste dû', 'danger'); return; } const c = clients.find(c => c.id === o.clientId); await db.ref(`users/${currentUser.uid}/payments/${Date.now()}`).set({ id: Date.now().toString(), orderId, clientId: o.clientId, clientName: c?.name || 'Inconnu', orderNumber: o.orderNumber, amount, date: new Date(document.getElementById('paymentDate').value).toISOString(), method: document.getElementById('paymentMethod').value, notes: document.getElementById('paymentNotes').value, timestamp: Date.now() }); document.getElementById('paymentAmount').value = ''; document.getElementById('paymentNotes').value = ''; showFlash('Paiement enregistré'); loadClientOrdersForPayment(); };
 
-    // Multi payment
-    window.loadMultiClientOrders = () => { const clientId = document.getElementById('multiClientSelect').value; const container = document.getElementById('multiOrdersList'); if (!clientId) { container.innerHTML = ''; return; } const clientOrders = orders.filter(o => o.clientId === clientId); multiOrdersSelected = {}; if (!clientOrders.length) { container.innerHTML = '<div class="empty">Aucune commande</div>'; return; } let html = '<div class="form-group"><label>📋 Commandes:</label></div>'; clientOrders.forEach(o => { const paid = payments.filter(p => p.orderId === o.id).reduce((s,p) => s + p.amount, 0); const remaining = o.amount - paid; if (remaining > 0) html += `<div class="checkbox-group"><input type="checkbox" id="multiOrder_${o.id}" onchange="updateMultiOrderSelection('${o.id}', this.checked, ${remaining})"><label for="multiOrder_${o.id}" style="flex:1;"><strong>${o.orderNumber}</strong><br><span class="small-text">Total: ${formatMoney(o.amount)} | Reste: ${formatMoney(remaining)}</span></label><input type="number" id="amount_${o.id}" placeholder="Montant" step="0.01" style="width:130px;" disabled onchange="updateIndividualAmount('${o.id}', this.value)"></div>`; }); container.innerHTML = html; document.getElementById('totalPaymentAmount').value = ''; document.getElementById('multiPaymentDate').value = new Date().toISOString().split('T')[0]; };
-    window.updateMultiOrderSelection = (orderId, checked, remaining) => { const input = document.getElementById(`amount_${orderId}`); if (checked) { input.disabled = false; input.value = remaining; multiOrdersSelected[orderId] = remaining; } else { input.disabled = true; input.value = ''; delete multiOrdersSelected[orderId]; } updateTotalPaymentAmount(); };
-    window.updateIndividualAmount = (orderId, value) => { const amount = parseFloat(value); const o = orders.find(o => o.id === orderId); if (o) { const paid = payments.filter(p => p.orderId === orderId).reduce((s,p) => s + p.amount, 0); const remaining = o.amount - paid; if (isNaN(amount) || amount <= 0) delete multiOrdersSelected[orderId]; else if (amount > remaining) { showFlash('Montant dépasse le reste', 'warning'); document.getElementById(`amount_${orderId}`).value = remaining; multiOrdersSelected[orderId] = remaining; } else multiOrdersSelected[orderId] = amount; } updateTotalPaymentAmount(); };
-    window.updateTotalPaymentAmount = () => { let total = 0; for (let a of Object.values(multiOrdersSelected)) total += a; document.getElementById('totalPaymentAmount').value = total.toFixed(2); };
-    window.distributePayment = () => { const total = parseFloat(document.getElementById('totalPaymentAmount').value); if (isNaN(total) || total <= 0) return; const selected = Object.keys(multiOrdersSelected); if (!selected.length) return; let totalRemaining = 0, remMap = {}; selected.forEach(id => { const o = orders.find(o => o.id === id); if (o) { const paid = payments.filter(p => p.orderId === id).reduce((s,p) => s + p.amount, 0); const rem = o.amount - paid; remMap[id] = rem; totalRemaining += rem; } }); if (total > totalRemaining) { showFlash('Montant total dépasse le total restant', 'warning'); return; } let distTotal = 0; for (let id of selected) { const allocated = (total * remMap[id]) / totalRemaining; const rounded = Math.round(allocated * 100) / 100; document.getElementById(`amount_${id}`).value = rounded.toFixed(2); multiOrdersSelected[id] = rounded; distTotal += rounded; } const diff = total - distTotal; if (Math.abs(diff) > 0.01 && selected.length) { const first = selected[0]; const newVal = (multiOrdersSelected[first] + diff).toFixed(2); document.getElementById(`amount_${first}`).value = newVal; multiOrdersSelected[first] = parseFloat(newVal); } };
-    document.getElementById('saveMultiPaymentBtn').onclick = async () => { const clientId = document.getElementById('multiClientSelect').value; if (!clientId) { showFlash('Choisissez un client', 'warning'); return; } const selected = Object.keys(multiOrdersSelected); if (!selected.length) { showFlash('Sélectionnez au moins une commande', 'warning'); return; } const c = clients.find(c => c.id === clientId); const date = new Date(document.getElementById('multiPaymentDate').value).toISOString(); const method = document.getElementById('multiPaymentMethod').value; const notes = document.getElementById('multiPaymentNotes').value; for (let orderId of selected) { const amount = multiOrdersSelected[orderId]; if (amount > 0) { const o = orders.find(o => o.id === orderId); await db.ref(`users/${currentUser.uid}/payments/${Date.now()}_${orderId}`).set({ id: Date.now().toString() + '_' + orderId, orderId, clientId, clientName: c?.name || 'Inconnu', orderNumber: o?.orderNumber, amount, date, method, notes, timestamp: Date.now() }); } } multiOrdersSelected = {}; document.getElementById('multiPaymentNotes').value = ''; showFlash('Paiements enregistrés'); loadMultiClientOrders(); };
+    // Multi Payment Modern Style
+    let modernOrdersList = [];
+    
+    window.loadMultiClientOrdersModern = () => {
+        const clientId = document.getElementById('multiClientSelect').value;
+        const container = document.getElementById('multiOrdersListModern');
+        if (!clientId) { container.innerHTML = '<div style="text-align:center; padding:30px; color:#a0a0b0;">Sélectionnez un client</div>'; return; }
+        
+        const clientOrders = orders.filter(o => o.clientId === clientId);
+        modernOrdersList = [];
+        multiOrdersSelected = {};
+        
+        if (!clientOrders.length) { container.innerHTML = '<div style="text-align:center; padding:30px; color:#a0a0b0;">Aucune commande pour ce client</div>'; return; }
+        
+        let html = '';
+        clientOrders.forEach(order => {
+            const paid = payments.filter(p => p.orderId === order.id).reduce((s,p) => s + p.amount, 0);
+            const remaining = order.amount - paid;
+            if (remaining > 0) {
+                modernOrdersList.push({ id: order.id, remaining: remaining, orderNumber: order.orderNumber, amount: order.amount });
+                html += `
+                    <div class="order-payment-card" id="orderCard_${order.id}" onclick="toggleOrderSelection('${order.id}')">
+                        <div class="order-header">
+                            <span class="order-number"><i class="fas fa-receipt"></i> ${order.orderNumber}</span>
+                            <span class="order-remaining">Reste: ${formatMoney(remaining)}</span>
+                        </div>
+                        <div class="order-details">
+                            <span>💰 Total: ${formatMoney(order.amount)}</span>
+                            <span>✅ Payé: ${formatMoney(paid)}</span>
+                        </div>
+                        <div class="payment-amount-input" onclick="event.stopPropagation()">
+                            <label>💵 Montant à payer:</label>
+                            <input type="number" id="amount_${order.id}" placeholder="0.00" step="0.01" value="${remaining}" onchange="updateOrderAmount('${order.id}', this.value)">
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        if (html === '') {
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:#2ecc71;">✅ Toutes les commandes sont soldées</div>';
+        } else {
+            container.innerHTML = html;
+            // Sélectionner toutes les commandes par défaut
+            modernOrdersList.forEach(order => {
+                multiOrdersSelected[order.id] = order.remaining;
+                document.getElementById(`orderCard_${order.id}`)?.classList.add('selected');
+            });
+        }
+        updateTotalPaymentAmountModern();
+        document.getElementById('multiPaymentDate').value = new Date().toISOString().split('T')[0];
+    };
+    
+    window.toggleOrderSelection = (orderId) => {
+        const card = document.getElementById(`orderCard_${orderId}`);
+        const amountInput = document.getElementById(`amount_${orderId}`);
+        if (multiOrdersSelected[orderId]) {
+            delete multiOrdersSelected[orderId];
+            card.classList.remove('selected');
+            amountInput.disabled = true;
+            amountInput.style.opacity = '0.5';
+        } else {
+            const order = modernOrdersList.find(o => o.id === orderId);
+            if (order) {
+                multiOrdersSelected[orderId] = order.remaining;
+                card.classList.add('selected');
+                amountInput.disabled = false;
+                amountInput.style.opacity = '1';
+            }
+        }
+        updateTotalPaymentAmountModern();
+    };
+    
+    window.updateOrderAmount = (orderId, value) => {
+        const amount = parseFloat(value);
+        const order = modernOrdersList.find(o => o.id === orderId);
+        if (order && !isNaN(amount) && amount > 0) {
+            if (amount > order.remaining) {
+                showFlash(`Montant dépasse le reste dû (${formatMoney(order.remaining)})`, 'warning');
+                document.getElementById(`amount_${orderId}`).value = order.remaining;
+                multiOrdersSelected[orderId] = order.remaining;
+            } else {
+                multiOrdersSelected[orderId] = amount;
+            }
+        } else if (amount <= 0) {
+            delete multiOrdersSelected[orderId];
+        }
+        updateTotalPaymentAmountModern();
+    };
+    
+    function updateTotalPaymentAmountModern() {
+        let total = 0;
+        for (let amount of Object.values(multiOrdersSelected)) {
+            total += amount;
+        }
+        document.getElementById('totalPaymentAmount').value = total.toFixed(2);
+    }
+    
+    window.distributePaymentModern = () => {
+        const totalAmount = parseFloat(document.getElementById('totalPaymentAmount').value);
+        if (isNaN(totalAmount) || totalAmount <= 0) { showFlash('Entrez un montant total valide', 'warning'); return; }
+        
+        const selectedOrders = Object.keys(multiOrdersSelected);
+        if (selectedOrders.length === 0) { showFlash('Sélectionnez au moins une commande', 'warning'); return; }
+        
+        let totalRemaining = 0;
+        const remainingMap = {};
+        selectedOrders.forEach(orderId => {
+            const order = modernOrdersList.find(o => o.id === orderId);
+            if (order) {
+                remainingMap[orderId] = order.remaining;
+                totalRemaining += order.remaining;
+            }
+        });
+        
+        if (totalAmount > totalRemaining) {
+            showFlash(`Le montant total (${formatMoney(totalAmount)}) dépasse le total restant dû (${formatMoney(totalRemaining)})`, 'warning');
+            return;
+        }
+        
+        let distributedTotal = 0;
+        for (let orderId of selectedOrders) {
+            const remaining = remainingMap[orderId];
+            let allocated = (totalAmount * remaining) / totalRemaining;
+            allocated = Math.round(allocated * 100) / 100;
+            document.getElementById(`amount_${orderId}`).value = allocated.toFixed(2);
+            multiOrdersSelected[orderId] = allocated;
+            distributedTotal += allocated;
+        }
+        
+        const diff = totalAmount - distributedTotal;
+        if (Math.abs(diff) > 0.01 && selectedOrders.length > 0) {
+            const firstOrder = selectedOrders[0];
+            const newAmount = (multiOrdersSelected[firstOrder] + diff).toFixed(2);
+            document.getElementById(`amount_${firstOrder}`).value = newAmount;
+            multiOrdersSelected[firstOrder] = parseFloat(newAmount);
+        }
+        updateTotalPaymentAmountModern();
+        showFlash('Montants répartis automatiquement', 'success');
+    };
+    
+    document.getElementById('saveMultiPaymentBtn').onclick = async () => {
+        const clientId = document.getElementById('multiClientSelect').value;
+        if (!clientId) { showFlash('Choisissez un client', 'warning'); return; }
+        
+        const selectedOrders = Object.keys(multiOrdersSelected);
+        if (selectedOrders.length === 0) { showFlash('Sélectionnez au moins une commande', 'warning'); return; }
+        
+        const c = clients.find(c => c.id === clientId);
+        const date = new Date(document.getElementById('multiPaymentDate').value).toISOString();
+        const method = document.getElementById('multiPaymentMethod').value;
+        const notes = document.getElementById('multiPaymentNotes').value;
+        
+        let savedCount = 0;
+        for (let orderId of selectedOrders) {
+            const amount = multiOrdersSelected[orderId];
+            if (amount > 0) {
+                const o = orders.find(o => o.id === orderId);
+                if (o) {
+                    await db.ref(`users/${currentUser.uid}/payments/${Date.now()}_${orderId}`).set({
+                        id: Date.now().toString() + '_' + orderId,
+                        orderId: orderId,
+                        clientId: clientId,
+                        clientName: c?.name || 'Inconnu',
+                        orderNumber: o.orderNumber,
+                        amount: amount,
+                        date: date,
+                        method: method,
+                        notes: notes,
+                        timestamp: Date.now()
+                    });
+                    savedCount++;
+                }
+            }
+        }
+        
+        multiOrdersSelected = {};
+        document.getElementById('multiPaymentNotes').value = '';
+        showFlash(`${savedCount} paiement(s) enregistré(s) avec succès`, 'success');
+        loadMultiClientOrdersModern();
+    };
 
-    // Situation
+    // Situation functions
     function renderSituationClients() {
         const container = document.getElementById('situationList');
         const search = document.getElementById('searchSituation')?.value.toLowerCase() || '';
@@ -503,8 +809,9 @@
         container.innerHTML = filtered.map(c => { let clientOrders = orders.filter(o => o.clientId === c.id).filter(o => isDateInFilter(o.date)); const total = clientOrders.reduce((s,o) => s + o.amount, 0); const paid = payments.filter(p => clientOrders.some(o => o.id === p.orderId)).reduce((s,p) => s + p.amount, 0); const remaining = total - paid; const percent = total > 0 ? (paid / total) * 100 : 0; let status = remaining <= 0 && total > 0 ? '✅ À jour' : (paid > 0 ? '⚠️ Partiel' : (total > 0 ? '❌ Impayé' : '📭 Aucune commande')); let statusClass = remaining <= 0 && total > 0 ? 'badge-paid' : (paid > 0 ? 'badge-partial' : (total > 0 ? 'badge-unpaid' : 'badge-paid')); return `<div class="list-item status-card animate" onclick="showClientOrders('${c.id}')"><div class="flex-between"><span class="client-name">👤 ${c.name}</span><span class="badge ${statusClass}">${status}</span></div><div class="flex-between small-text"><span>📦 ${clientOrders.length} commande(s)</span><span>💰 Total: ${formatMoney(total)}</span></div><div class="flex-between small-text"><span>✅ Payé: ${formatMoney(paid)}</span><span>⚠️ Reste: ${formatMoney(remaining)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="small-text">📅 Dernière: ${clientOrders.length ? formatDate(Math.max(...clientOrders.map(o => new Date(o.date)))) : '-'}</div></div>`; }).join('');
     }
     function updateReportClientSelect() { const s = document.getElementById('reportClientSelect'); if (s) { s.innerHTML = '<option value="">-- Choisir --</option>'; clients.forEach(c => s.innerHTML += `<option value="${c.id}">${c.name}</option>`); } }
+    function updateAllSelects() { ['orderClientSelect', 'paymentClientSelect', 'multiClientSelect'].forEach(id => { const s = document.getElementById(id); if (s) { s.innerHTML = '<option value="">-- Choisir --</option>'; clients.forEach(c => s.innerHTML += `<option value="${c.id}">${c.name}</option>`); } }); }
 
-    // PDF Versements client (Paiements + Solde restant)
+    // PDF functions
     window.exportClientPaymentsPDF = () => {
         const clientId = document.getElementById('reportClientSelect').value;
         if (!clientId) { showFlash('Choisissez un client', 'warning'); return; }
@@ -522,7 +829,6 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         
-        // En-tête
         doc.setFillColor(155, 89, 182);
         doc.rect(0, 0, 210, 45, 'F');
         doc.setTextColor(255, 255, 255);
@@ -533,7 +839,6 @@
         doc.setFont('helvetica', 'normal');
         doc.text('Historique des versements', 105, 34, { align: 'center' });
         
-        // Infos client
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
@@ -551,33 +856,15 @@
         doc.text(periodText, 14, 79);
         doc.text(`Date d'édition: ${new Date().toLocaleString('fr-FR')}`, 14, 87);
         
-        // Tableau des versements
         if (clientPayments.length > 0) {
-            const paymentData = clientPayments.map(p => [
-                formatDate(p.date),
-                p.orderNumber,
-                formatNumber(p.amount),
-                p.method,
-                p.notes || '-'
-            ]);
-            
-            doc.autoTable({
-                startY: 100,
-                head: [['Date', 'N° Commande', 'Montant (MAD)', 'Mode', 'Notes']],
-                body: paymentData,
-                theme: 'striped',
-                headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 10, fontStyle: 'bold', halign: 'center' },
-                bodyStyles: { fontSize: 9, textColor: [0, 0, 0], halign: 'center' },
-                columnStyles: { 2: { halign: 'right' } },
-                margin: { left: 14, right: 14 }
-            });
+            const paymentData = clientPayments.map(p => [formatDate(p.date), p.orderNumber, formatNumber(p.amount), p.method, p.notes || '-']);
+            doc.autoTable({ startY: 100, head: [['Date', 'N° Commande', 'Montant (MAD)', 'Mode', 'Notes']], body: paymentData, theme: 'striped', headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 10, fontStyle: 'bold', halign: 'center' }, bodyStyles: { fontSize: 9, textColor: [0, 0, 0], halign: 'center' }, columnStyles: { 2: { halign: 'right' } }, margin: { left: 14, right: 14 } });
         } else {
             doc.setFontSize(11);
             doc.setTextColor(150, 150, 150);
             doc.text('Aucun versement enregistré pour ce client', 14, 100);
         }
         
-        // Récapitulatif avec solde restant
         let y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : 120;
         doc.setFillColor(240, 240, 245);
         doc.rect(14, y, 182, 45, 'F');
@@ -594,30 +881,24 @@
         doc.setTextColor(soldeRestant > 0 ? 231 : 46, soldeRestant > 0 ? 76 : 204, soldeRestant > 0 ? 60 : 113);
         doc.text(`💵 SOLDE RESTANT: ${formatNumber(soldeRestant)} MAD`, 20, y + 52);
         
-        // Pied de page
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.setFont('helvetica', 'normal');
         doc.text('EL FATH SERVICE - Système de gestion des crédits', 105, 280, { align: 'center' });
-        
         doc.save(`Versements_${c.name.replace(/\s/g, '_')}.pdf`);
         showFlash('PDF des versements généré avec succès', 'success');
     };
 
-    // PDF Commandes client
     window.exportClientOrdersPDF = () => {
         const clientId = document.getElementById('reportClientSelect').value;
         if (!clientId) { showFlash('Choisissez un client', 'warning'); return; }
         const c = clients.find(c => c.id === clientId);
         if (!c) return;
-        
         let clientOrders = orders.filter(o => o.clientId === clientId).filter(o => isDateInFilter(o.date));
         if (!clientOrders.length) { showFlash('Aucune commande', 'warning'); return; }
         clientOrders.sort((a,b) => new Date(a.date) - new Date(b.date));
-        
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        
         doc.setFillColor(155, 89, 182);
         doc.rect(0, 0, 210, 45, 'F');
         doc.setTextColor(255, 255, 255);
@@ -625,7 +906,6 @@
         doc.text('EL FATH SERVICE', 105, 22, { align: 'center' });
         doc.setFontSize(11);
         doc.text('Liste des commandes', 105, 34, { align: 'center' });
-        
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
@@ -633,7 +913,6 @@
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         if (c.phone) doc.text(`Téléphone: ${c.phone}`, 14, 63);
-        
         let periodText = '';
         if (dateFilterStart && dateFilterEnd) periodText = `Période: du ${formatDate(dateFilterStart)} au ${formatDate(dateFilterEnd)}`;
         else if (dateFilterStart) periodText = `Période: à partir du ${formatDate(dateFilterStart)}`;
@@ -641,26 +920,10 @@
         else periodText = 'Toutes les périodes';
         doc.text(periodText, 14, 71);
         doc.text(`Date: ${new Date().toLocaleString('fr-FR')}`, 14, 79);
-        
         const data = [];
         let totalG = 0, totalP = 0;
-        clientOrders.forEach(o => {
-            const paid = payments.filter(p => p.orderId === o.id).reduce((s,p) => s + p.amount, 0);
-            totalG += o.amount;
-            totalP += paid;
-            data.push([o.orderNumber, formatDate(o.date), o.dueDate ? formatDate(o.dueDate) : '-', formatNumber(o.amount), formatNumber(paid), formatNumber(o.amount - paid), paid >= o.amount ? 'Payée' : (paid > 0 ? 'Partielle' : 'Impayée'), o.notes || '-']);
-        });
-        
-        doc.autoTable({
-            startY: 95,
-            head: [['N°', 'Date', 'Échéance', 'Total', 'Payé', 'Reste', 'Statut', 'Notes']],
-            body: data,
-            theme: 'striped',
-            headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 9 },
-            bodyStyles: { fontSize: 8, textColor: [0, 0, 0] },
-            columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } }
-        });
-        
+        clientOrders.forEach(o => { const paid = payments.filter(p => p.orderId === o.id).reduce((s,p) => s + p.amount, 0); totalG += o.amount; totalP += paid; data.push([o.orderNumber, formatDate(o.date), o.dueDate ? formatDate(o.dueDate) : '-', formatNumber(o.amount), formatNumber(paid), formatNumber(o.amount - paid), paid >= o.amount ? 'Payée' : (paid > 0 ? 'Partielle' : 'Impayée'), o.notes || '-']); });
+        doc.autoTable({ startY: 95, head: [['N°', 'Date', 'Échéance', 'Total', 'Payé', 'Reste', 'Statut', 'Notes']], body: data, theme: 'striped', headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 9 }, bodyStyles: { fontSize: 8, textColor: [0, 0, 0] }, columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } } });
         let y = doc.lastAutoTable.finalY + 10;
         doc.setFillColor(240, 240, 245);
         doc.rect(14, y, 182, 35, 'F');
@@ -671,7 +934,6 @@
         doc.text(`Total général: ${formatNumber(totalG)} MAD`, 20, y + 26);
         doc.text(`Total payé: ${formatNumber(totalP)} MAD`, 20, y + 34);
         doc.text(`Total restant: ${formatNumber(totalG - totalP)} MAD`, 20, y + 42);
-        
         doc.setFontSize(8);
         doc.text('EL FATH SERVICE', 105, 280, { align: 'center' });
         doc.save(`Commandes_${c.name.replace(/\s/g, '_')}.pdf`);
@@ -693,7 +955,6 @@
     window.showClientOrders = (clientId) => { const c = clients.find(c => c.id === clientId); if (!c) return; let clientOrders = orders.filter(o => o.clientId === clientId).filter(o => isDateInFilter(o.date)); if (!clientOrders.length) { showFlash('Aucune commande', 'warning'); return; } let html = `<div style="margin-bottom:15px;"><strong>👤 ${c.name}</strong></div>`; clientOrders.forEach(o => { const paid = payments.filter(p => p.orderId === o.id).reduce((s,p) => s + p.amount, 0); const percent = (paid / o.amount) * 100; html += `<div class="list-item"><div class="flex-between"><span>🔢 ${o.orderNumber}</span><span>${formatMoney(o.amount)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="flex-between small-text"><span>Payé: ${formatMoney(paid)}</span><span>Reste: ${formatMoney(o.amount - paid)}</span></div><div class="flex-between" style="margin-top:8px;"><span>📅 ${formatDate(o.date)}</span><div>${(o.amount - paid) > 0 ? `<button onclick="quickPayment('${o.id}')" class="small-icon-btn" style="background:#2ecc71;">+ Paiement</button>` : ''}<button onclick="showOrderDetail('${o.id}')" class="small-icon-btn" style="background:#3498db;">Détails</button></div></div></div>`; }); const modal = document.createElement('div'); modal.className = 'modal active'; modal.id = 'tempModal'; modal.innerHTML = `<div class="modal-content"><div class="modal-header"><span>Commandes de ${c.name}</span><button onclick="closeModal('tempModal')">✕</button></div>${html}</div>`; document.body.appendChild(modal); };
     window.quickPayment = (orderId) => { const o = orders.find(o => o.id === orderId); if (!o) return; const paid = payments.filter(p => p.orderId === orderId).reduce((s,p) => s + p.amount, 0); if (o.amount - paid <= 0) { showFlash('Commande déjà payée', 'warning'); return; } setPaymentMode('single'); const c = clients.find(c => c.id === o.clientId); if (c) { document.getElementById('paymentClientSelect').value = c.id; loadClientOrdersForPayment(); setTimeout(() => { document.getElementById('paymentOrderSelect').value = orderId; updatePaymentInfo(); showTab('payments'); }, 100); } };
     function renderRecentPayments() { const container = document.getElementById('recentPaymentsList'); if (!container) return; const recent = [...payments].sort((a,b) => b.timestamp - a.timestamp).slice(0, 10); if (!recent.length) { container.innerHTML = '<div class="empty">Aucun paiement</div>'; return; } container.innerHTML = recent.map(p => `<div class="list-item"><div class="flex-between"><span><strong>${p.clientName}</strong></span><span class="badge badge-paid">${formatMoney(p.amount)}</span></div><div class="small-text">🔢 ${p.orderNumber} | 💳 ${p.method}</div><div class="small-text">📅 ${formatDate(p.date)}</div>${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}<button class="small-icon-btn" onclick="openEditPayment('${p.id}')" style="margin-top:5px; background:#f39c12;"><i class="fas fa-edit"></i> Modifier</button></div>`).join(''); }
-    function updateAllSelects() { ['orderClientSelect', 'paymentClientSelect', 'multiClientSelect'].forEach(id => { const s = document.getElementById(id); if (s) { s.innerHTML = '<option value="">-- Choisir --</option>'; clients.forEach(c => s.innerHTML += `<option value="${c.id}">${c.name}</option>`); } }); }
     window.showDeleteAllModal = (type) => { pendingDeleteType = type; const msg = { clients: '⚠️ Supprimer TOUS les clients et leurs données ?', orders: '⚠️ Supprimer TOUTES les commandes et paiements ?', payments: '⚠️ Supprimer TOUS les paiements ?', all: '⚠️ Supprimer TOUTES les données ?' }[type]; document.getElementById('deleteConfirmMessage').innerHTML = msg; openModal('deleteConfirmModal'); };
     document.getElementById('confirmDeleteBtn').onclick = async () => { const uid = currentUser.uid; if (pendingDeleteType === 'clients') { await db.ref(`users/${uid}/clients`).remove(); await db.ref(`users/${uid}/orders`).remove(); await db.ref(`users/${uid}/payments`).remove(); } else if (pendingDeleteType === 'orders') { await db.ref(`users/${uid}/orders`).remove(); await db.ref(`users/${uid}/payments`).remove(); } else if (pendingDeleteType === 'payments') { await db.ref(`users/${uid}/payments`).remove(); } else if (pendingDeleteType === 'all') { await db.ref(`users/${uid}/clients`).remove(); await db.ref(`users/${uid}/orders`).remove(); await db.ref(`users/${uid}/payments`).remove(); } closeModal('deleteConfirmModal'); showFlash('Données supprimées'); };
 
