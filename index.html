@@ -2,8 +2,8 @@
 <html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Système de Gestion des Clients et Paiements Échelonnés</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Système de Gestion des Crédits Clients</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -11,10 +11,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', 'Segoe UI', sans-serif;
             background: #0f0f1a;
             color: #fff;
             padding-bottom: 70px;
@@ -26,6 +27,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         .logo { font-size: 20px; font-weight: bold; }
         .logo i { color: #9b59b6; margin-left: 8px; }
@@ -36,18 +38,23 @@
             padding: 15px;
             margin-bottom: 15px;
             border: 1px solid #2d2d44;
+            transition: transform 0.2s;
         }
+        .card:hover { transform: translateY(-2px); }
         .card-title {
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 12px;
             color: #9b59b6;
-            border-left: 3px solid #9b59b6;
-            padding-left: 10px;
+            border-right: 3px solid #9b59b6;
+            padding-right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 13px; margin-bottom: 5px; color: #a0a0b0; }
-        input, select {
+        input, select, textarea {
             width: 100%;
             padding: 10px;
             background: #0f0f1a;
@@ -55,6 +62,11 @@
             border-radius: 10px;
             color: white;
             font-size: 14px;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #9b59b6;
         }
         button {
             background: #9b59b6;
@@ -66,11 +78,14 @@
             cursor: pointer;
             width: 100%;
             font-size: 14px;
+            transition: all 0.3s;
         }
+        button:hover { opacity: 0.9; transform: scale(1.01); }
         button.success { background: #2ecc71; }
         button.danger { background: #e74c3c; }
         button.info { background: #3498db; }
         button.warning { background: #f39c12; }
+        button.purple { background: #9b59b6; }
         .row { display: flex; gap: 10px; margin-bottom: 15px; }
         .row button { margin: 0; }
         .list-item {
@@ -80,10 +95,10 @@
             margin-bottom: 10px;
             border: 1px solid #2d2d44;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
         }
-        .list-item:hover { transform: scale(1.01); }
-        .customer-name {
+        .list-item:hover { background: #1a1a2e; border-color: #9b59b6; }
+        .client-name {
             font-size: 16px;
             font-weight: bold;
             color: #9b59b6;
@@ -130,7 +145,7 @@
         .modal-content {
             background: #1a1a2e;
             width: 90%;
-            max-width: 500px;
+            max-width: 550px;
             border-radius: 20px;
             padding: 20px;
             max-height: 90vh;
@@ -161,6 +176,7 @@
             padding: 8px;
             color: #a0a0b0;
             cursor: pointer;
+            transition: all 0.3s;
         }
         .tab.active { color: #9b59b6; }
         .tab i { font-size: 22px; display: block; margin-bottom: 4px; }
@@ -176,71 +192,122 @@
             cursor: pointer;
             font-size: 11px;
         }
-        .pdf-btn {
+        .delete-icon-btn {
             background: #e74c3c;
-            padding: 8px;
-            margin-top: 8px;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 11px;
         }
-        .flex-buttons {
+        .multi-payment-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid #9b59b6;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 8px;
+            background: #0f0f1a;
+            border-radius: 10px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            transform: scale(1.2);
+        }
+        .amount-input {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .divider {
+            height: 1px;
+            background: #2d2d44;
+            margin: 15px 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate { animation: fadeIn 0.3s ease; }
+        .export-buttons {
             display: flex;
             gap: 8px;
-            margin-top: 8px;
+            margin-top: 10px;
         }
-        .flex-buttons button {
-            margin: 0;
-            padding: 6px;
+        .export-buttons button {
+            flex: 1;
             font-size: 12px;
+            padding: 8px;
+        }
+        .status-card {
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+            border-left: 4px solid #9b59b6;
+        }
+        .danger-card {
+            border: 1px solid #e74c3c;
+            background: linear-gradient(135deg, #1a1a2e, #2a0f0f);
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="logo"><i class="fas fa-users"></i> Gestion Crédit Clients</div>
+    <div class="logo"><i class="fas fa-hand-holding-usd"></i> Gestion des Crédits Clients</div>
 </div>
 
 <div class="container" id="app">
     <!-- Tab Clients -->
-    <div id="customersTab">
+    <div id="clientsTab">
         <div class="card">
-            <div class="card-title"><i class="fas fa-user-plus"></i> Ajouter un client</div>
+            <div class="card-title">
+                <span><i class="fas fa-user-plus"></i> Nouveau Client</span>
+                <button class="small-icon-btn" onclick="showDeleteAllModal('clients')" style="background:#e74c3c;"><i class="fas fa-trash"></i> Tout supprimer</button>
+            </div>
             <div class="form-group">
                 <label>📛 Nom complet *</label>
-                <input type="text" id="newCustomerName" placeholder="Ex: Ahmed Mohamed">
+                <input type="text" id="newClientName" placeholder="Ex: Ahmed Benali">
             </div>
             <div class="form-group">
                 <label>📞 Téléphone</label>
-                <input type="text" id="newCustomerPhone" placeholder="Optionnel">
+                <input type="tel" id="newClientPhone" placeholder="Optionnel">
             </div>
             <div class="form-group">
                 <label>📍 Adresse</label>
-                <input type="text" id="newCustomerAddress" placeholder="Optionnel">
+                <input type="text" id="newClientAddress" placeholder="Optionnel">
             </div>
-            <button id="saveCustomerBtn" class="success">💾 Ajouter client</button>
+            <button id="saveClientBtn" class="success"><i class="fas fa-save"></i> Ajouter Client</button>
         </div>
 
         <div class="card">
-            <div class="card-title"><i class="fas fa-list"></i> Liste des clients</div>
+            <div class="card-title"><i class="fas fa-list"></i> Liste des Clients</div>
             <div class="search-box">
-                <input type="text" id="searchCustomersList" placeholder="🔍 Rechercher un client..." oninput="renderCustomersList()">
+                <input type="text" id="searchClientsList" placeholder="🔍 Rechercher un client..." oninput="renderClientsList()">
             </div>
-            <div id="customersList"></div>
+            <div id="clientsList"></div>
         </div>
     </div>
 
     <!-- Tab Commandes -->
     <div id="ordersTab" class="hidden">
         <div class="card">
-            <div class="card-title"><i class="fas fa-plus-circle"></i> Nouvelle commande</div>
+            <div class="card-title">
+                <span><i class="fas fa-plus-circle"></i> Nouvelle Commande</span>
+                <button class="small-icon-btn" onclick="showDeleteAllModal('orders')" style="background:#e74c3c;"><i class="fas fa-trash"></i> Tout supprimer</button>
+            </div>
             <div class="form-group">
                 <label>👤 Choisir le client *</label>
-                <select id="orderCustomerSelect">
+                <select id="orderClientSelect">
                     <option value="">-- Sélectionner un client --</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>🔢 Numéro de commande *</label>
-                <input type="text" id="orderNumber" placeholder="Numéro unique">
+                <input type="text" id="orderNumber" placeholder="Numéro de commande">
             </div>
             <div class="form-group">
                 <label>💰 Montant total (MAD) *</label>
@@ -252,15 +319,15 @@
             </div>
             <div class="form-group">
                 <label>📝 Notes</label>
-                <input type="text" id="orderNotes" placeholder="Optionnel">
+                <textarea id="orderNotes" rows="2" placeholder="Optionnel"></textarea>
             </div>
-            <button id="saveOrderBtn" class="success">💾 Enregistrer la commande</button>
+            <button id="saveOrderBtn" class="success"><i class="fas fa-save"></i> Ajouter Commande</button>
         </div>
 
         <div class="card">
-            <div class="card-title"><i class="fas fa-file-invoice"></i> Liste des commandes</div>
+            <div class="card-title"><i class="fas fa-file-invoice"></i> Liste des Commandes</div>
             <div class="search-box">
-                <input type="text" id="searchOrders" placeholder="🔍 Rechercher client ou commande..." oninput="renderOrdersList()">
+                <input type="text" id="searchOrders" placeholder="🔍 Rechercher par client ou n° commande..." oninput="renderOrdersList()">
             </div>
             <div id="ordersList"></div>
         </div>
@@ -269,10 +336,22 @@
     <!-- Tab Paiements -->
     <div id="paymentsTab" class="hidden">
         <div class="card">
-            <div class="card-title"><i class="fas fa-hand-holding-usd"></i> Enregistrer un paiement</div>
+            <div class="card-title">
+                <span><i class="fas fa-hand-holding-usd"></i> Mode de Paiement</span>
+                <button class="small-icon-btn" onclick="showDeleteAllModal('payments')" style="background:#e74c3c;"><i class="fas fa-trash"></i> Tout supprimer</button>
+            </div>
+            <div class="row">
+                <button onclick="setPaymentMode('single')" id="singleModeBtn" class="success" style="background:#9b59b6;">💰 Paiement unique</button>
+                <button onclick="setPaymentMode('multi')" id="multiModeBtn" class="info" style="background:#2d2d44;">📦 Paiement multiple</button>
+            </div>
+        </div>
+
+        <!-- Paiement unique -->
+        <div id="singlePaymentCard" class="card">
+            <div class="card-title"><i class="fas fa-receipt"></i> Paiement sur une commande</div>
             <div class="form-group">
                 <label>🔍 Choisir le client</label>
-                <select id="paymentCustomerSelect" onchange="loadCustomerOrdersForPayment()">
+                <select id="paymentClientSelect" onchange="loadClientOrdersForPayment()">
                     <option value="">-- Sélectionner un client --</option>
                 </select>
             </div>
@@ -285,7 +364,7 @@
             <div id="paymentOrderInfo" style="background:#0f0f1a; padding:10px; border-radius:10px; margin-bottom:12px;"></div>
             <div class="form-group">
                 <label>💰 Montant payé (MAD)</label>
-                <input type="number" id="paymentAmount" placeholder="0.00" step="0.01">
+                <input type="number" id="paymentAmount" placeholder="0.00" step="0.01" class="amount-input">
             </div>
             <div class="form-group">
                 <label>📅 Date du paiement</label>
@@ -300,7 +379,46 @@
                     <option value="Chèque">📝 Chèque</option>
                 </select>
             </div>
-            <button id="savePaymentBtn" class="success">✅ Enregistrer le paiement</button>
+            <div class="form-group">
+                <label>📝 Notes</label>
+                <input type="text" id="paymentNotes" placeholder="Optionnel">
+            </div>
+            <button id="savePaymentBtn" class="success"><i class="fas fa-check"></i> Enregistrer le paiement</button>
+        </div>
+
+        <!-- Paiement multiple -->
+        <div id="multiPaymentCard" class="card multi-payment-card hidden">
+            <div class="card-title"><i class="fas fa-layer-group"></i> Paiement sur plusieurs commandes</div>
+            <div class="form-group">
+                <label>🔍 Choisir le client</label>
+                <select id="multiClientSelect" onchange="loadMultiClientOrders()">
+                    <option value="">-- Sélectionner un client --</option>
+                </select>
+            </div>
+            <div id="multiOrdersList"></div>
+            <div class="divider"></div>
+            <div class="form-group">
+                <label>💰 Montant total à payer (MAD)</label>
+                <input type="number" id="totalPaymentAmount" placeholder="0.00" step="0.01" class="amount-input" oninput="distributePayment()">
+            </div>
+            <div class="form-group">
+                <label>📅 Date du paiement</label>
+                <input type="date" id="multiPaymentDate">
+            </div>
+            <div class="form-group">
+                <label>💳 Mode de paiement</label>
+                <select id="multiPaymentMethod">
+                    <option value="Espèces">💰 Espèces</option>
+                    <option value="Virement bancaire">🏦 Virement bancaire</option>
+                    <option value="Carte bancaire">💳 Carte bancaire</option>
+                    <option value="Chèque">📝 Chèque</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>📝 Notes</label>
+                <input type="text" id="multiPaymentNotes" placeholder="Optionnel">
+            </div>
+            <button id="saveMultiPaymentBtn" class="success"><i class="fas fa-check"></i> Enregistrer les paiements</button>
         </div>
 
         <div class="card">
@@ -310,19 +428,26 @@
     </div>
 
     <!-- Tab Situation Clients -->
-    <div id="statusTab" class="hidden">
+    <div id="situationTab" class="hidden">
         <div class="card">
-            <div class="card-title"><i class="fas fa-chart-line"></i> Situation des clients</div>
-            <div class="search-box">
-                <input type="text" id="searchCustomersStatus" placeholder="🔍 Rechercher un client..." oninput="renderCustomersStatus()">
+            <div class="card-title">
+                <span><i class="fas fa-chart-line"></i> Situation des Clients</span>
+                <button class="small-icon-btn" onclick="showDeleteAllModal('all')" style="background:#e74c3c;"><i class="fas fa-trash"></i> Tout supprimer</button>
             </div>
-            <div id="customersStatusList"></div>
+            <div class="search-box">
+                <input type="text" id="searchSituation" placeholder="🔍 Rechercher un client..." oninput="renderSituationClients()">
+            </div>
+            <div class="export-buttons">
+                <button onclick="exportSituationPDF()" class="danger"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button onclick="exportSituationExcel()" class="success"><i class="fas fa-file-excel"></i> Excel</button>
+            </div>
+            <div id="situationList"></div>
         </div>
     </div>
 </div>
 
 <div class="tab-bar">
-    <div class="tab active" onclick="showTab('customers')">
+    <div class="tab active" onclick="showTab('clients')">
         <i class="fas fa-users"></i>
         <span>Clients</span>
     </div>
@@ -334,9 +459,26 @@
         <i class="fas fa-money-bill-wave"></i>
         <span>Paiements</span>
     </div>
-    <div class="tab" onclick="showTab('status')">
+    <div class="tab" onclick="showTab('situation')">
         <i class="fas fa-chart-simple"></i>
         <span>Situation</span>
+    </div>
+</div>
+
+<!-- Modal Confirmation Suppression -->
+<div id="deleteConfirmModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>⚠️ Confirmation de suppression</span>
+            <button onclick="closeModal('deleteConfirmModal')" style="background:none; color:white; font-size:20px;">✕</button>
+        </div>
+        <div id="deleteConfirmMessage" style="text-align:center; margin:20px 0;">
+            Êtes-vous sûr de vouloir supprimer tous les éléments ?
+        </div>
+        <div class="row">
+            <button onclick="closeModal('deleteConfirmModal')" style="background:#2d2d44;">Annuler</button>
+            <button id="confirmDeleteBtn" class="danger">🗑️ Confirmer la suppression</button>
+        </div>
     </div>
 </div>
 
@@ -348,30 +490,15 @@
             <button onclick="closeModal('orderDetailModal')" style="background:none; color:white; font-size:20px;">✕</button>
         </div>
         <div id="orderDetailContent"></div>
-        <div class="flex-buttons" style="margin-top:10px;">
-            <button id="printOrderBtn" style="background:#3498db;">🖨️ Imprimer</button>
-            <button id="pdfOrderBtn" style="background:#e74c3c;">📄 PDF</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Situation Client Complet -->
-<div id="clientSituationModal" class="modal">
-    <div class="modal-content" style="max-width: 550px;">
-        <div class="modal-header">
-            <span id="clientSituationTitle">📊 Situation complète du client</span>
-            <button onclick="closeModal('clientSituationModal')" style="background:none; color:white; font-size:20px;">✕</button>
-        </div>
-        <div id="clientSituationContent"></div>
-        <div class="flex-buttons" style="margin-top:10px;">
-            <button id="printClientSituationBtn" style="background:#3498db;">🖨️ Imprimer</button>
-            <button id="pdfClientSituationBtn" style="background:#e74c3c;">📄 Télécharger PDF</button>
+        <div class="row" style="margin-top:10px;">
+            <button id="printOrderBtn" style="background:#3498db;"><i class="fas fa-print"></i> Imprimer</button>
+            <button id="deleteOrderBtn" class="danger"><i class="fas fa-trash"></i> Supprimer</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Firebase Configuration
+    // ========== Firebase Configuration ==========
     const firebaseConfig = {
         apiKey: "AIzaSyB-TBjgISvKwJnYc7hNRoUcNLhxRnJvVE0",
         authDomain: "stock-c1643.firebaseapp.com",
@@ -386,11 +513,15 @@
     const auth = firebase.auth();
 
     let currentUser = null;
-    let customers = [];
+    let clients = [];
     let orders = [];
     let payments = [];
+    let currentPaymentMode = 'single';
+    let multiOrdersSelected = {};
+    let pendingDeleteType = null;
+    let currentOrderId = null;
 
-    // Auth
+    // ========== Auth ==========
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
@@ -426,86 +557,161 @@
         }
     };
 
+    // ========== Load Data ==========
     async function loadData() {
         const uid = currentUser.uid;
         
-        db.ref(`users/${uid}/customers`).on('value', snap => {
-            customers = snap.exists() ? Object.values(snap.val()) : [];
-            renderCustomersList();
-            updateCustomerSelects();
-            renderCustomersStatus();
+        db.ref(`users/${uid}/clients`).on('value', snap => {
+            clients = snap.exists() ? Object.values(snap.val()) : [];
+            renderClientsList();
+            updateAllSelects();
+            renderSituationClients();
         });
         
         db.ref(`users/${uid}/orders`).on('value', snap => {
             orders = snap.exists() ? Object.values(snap.val()) : [];
             renderOrdersList();
-            renderCustomersStatus();
+            renderSituationClients();
         });
         
         db.ref(`users/${uid}/payments`).on('value', snap => {
             payments = snap.exists() ? Object.values(snap.val()) : [];
             renderRecentPayments();
             renderOrdersList();
-            renderCustomersStatus();
+            renderSituationClients();
         });
     }
 
-    // Clients Functions
-    function renderCustomersList() {
-        const container = document.getElementById('customersList');
-        const search = document.getElementById('searchCustomersList')?.value.toLowerCase() || '';
+    // ========== Delete Functions ==========
+    window.showDeleteAllModal = (type) => {
+        pendingDeleteType = type;
+        const messageDiv = document.getElementById('deleteConfirmMessage');
+        if (type === 'clients') {
+            messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUS les clients ?<br><small>Toutes les commandes et paiements liés seront également supprimés !</small>';
+        } else if (type === 'orders') {
+            messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUTES les commandes ?<br><small>Tous les paiements liés seront également supprimés !</small>';
+        } else if (type === 'payments') {
+            messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUS les paiements ?';
+        } else if (type === 'all') {
+            messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUTES les données ?<br><small>Clients, commandes et paiements seront définitivement supprimés !</small>';
+        }
+        openModal('deleteConfirmModal');
+    };
+
+    document.getElementById('confirmDeleteBtn').onclick = async () => {
+        const uid = currentUser.uid;
         
-        let filtered = customers;
-        if (search) filtered = customers.filter(c => c.name.toLowerCase().includes(search));
+        if (pendingDeleteType === 'clients') {
+            await db.ref(`users/${uid}/clients`).remove();
+            await db.ref(`users/${uid}/orders`).remove();
+            await db.ref(`users/${uid}/payments`).remove();
+            showFlash('Tous les clients et leurs données ont été supprimés', 'success');
+        } 
+        else if (pendingDeleteType === 'orders') {
+            await db.ref(`users/${uid}/orders`).remove();
+            await db.ref(`users/${uid}/payments`).remove();
+            showFlash('Toutes les commandes et paiements ont été supprimés', 'success');
+        }
+        else if (pendingDeleteType === 'payments') {
+            await db.ref(`users/${uid}/payments`).remove();
+            showFlash('Tous les paiements ont été supprimés', 'success');
+        }
+        else if (pendingDeleteType === 'all') {
+            await db.ref(`users/${uid}/clients`).remove();
+            await db.ref(`users/${uid}/orders`).remove();
+            await db.ref(`users/${uid}/payments`).remove();
+            showFlash('Toutes les données ont été supprimées', 'success');
+        }
+        
+        closeModal('deleteConfirmModal');
+        pendingDeleteType = null;
+    };
+
+    window.deleteOrder = async (orderId) => {
+        if (!confirm('⚠️ Supprimer cette commande et tous ses paiements ?')) return;
+        
+        const uid = currentUser.uid;
+        const orderPayments = payments.filter(p => p.orderId === orderId);
+        
+        for (let payment of orderPayments) {
+            await db.ref(`users/${uid}/payments/${payment.id}`).remove();
+        }
+        await db.ref(`users/${uid}/orders/${orderId}`).remove();
+        
+        closeModal('orderDetailModal');
+        showFlash('Commande et paiements supprimés', 'success');
+    };
+
+    // ========== Clients Functions ==========
+    function renderClientsList() {
+        const container = document.getElementById('clientsList');
+        const search = document.getElementById('searchClientsList')?.value.toLowerCase() || '';
+        
+        let filtered = clients;
+        if (search) filtered = clients.filter(c => c.name.toLowerCase().includes(search));
         
         if (filtered.length === 0) {
             container.innerHTML = '<div class="empty">📭 Aucun client</div>';
             return;
         }
         
-        container.innerHTML = filtered.map(customer => `
-            <div class="list-item" onclick="showClientFullSituation('${customer.id}')">
+        container.innerHTML = filtered.map(client => `
+            <div class="list-item animate" onclick="showClientOrders('${client.id}')">
                 <div class="flex-between">
-                    <span class="customer-name">👤 ${customer.name}</span>
-                    <button class="small-icon-btn" onclick="event.stopPropagation(); editCustomer('${customer.id}')">✏️ Modifier</button>
+                    <span class="client-name">👤 ${client.name}</span>
+                    <div>
+                        <button class="small-icon-btn" onclick="event.stopPropagation(); editClient('${client.id}')">✏️</button>
+                        <button class="delete-icon-btn" onclick="event.stopPropagation(); deleteSingleClient('${client.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>
-                ${customer.phone ? `<div class="small-text">📞 ${customer.phone}</div>` : ''}
-                ${customer.address ? `<div class="small-text">📍 ${customer.address}</div>` : ''}
-                <div class="flex-buttons" style="margin-top:8px;">
-                    <button onclick="event.stopPropagation(); showClientFullSituation('${customer.id}')" style="background:#9b59b6; padding:5px; font-size:11px;">📊 Situation complète</button>
-                </div>
+                ${client.phone ? `<div class="small-text">📞 ${client.phone}</div>` : ''}
+                ${client.address ? `<div class="small-text">📍 ${client.address}</div>` : ''}
+                <div class="small-text" style="margin-top:5px;">📅 ${formatDate(client.date)}</div>
             </div>
         `).join('');
     }
     
-    window.editCustomer = (customerId) => {
-        const customer = customers.find(c => c.id === customerId);
-        if (!customer) return;
+    window.deleteSingleClient = async (clientId) => {
+        if (!confirm('⚠️ Supprimer ce client et toutes ses commandes/paiements ?')) return;
         
-        const newName = prompt('Nom du client:', customer.name);
+        const uid = currentUser.uid;
+        const clientOrders = orders.filter(o => o.clientId === clientId);
+        
+        for (let order of clientOrders) {
+            const orderPayments = payments.filter(p => p.orderId === order.id);
+            for (let payment of orderPayments) {
+                await db.ref(`users/${uid}/payments/${payment.id}`).remove();
+            }
+            await db.ref(`users/${uid}/orders/${order.id}`).remove();
+        }
+        await db.ref(`users/${uid}/clients/${clientId}`).remove();
+        
+        showFlash('Client et ses données supprimés', 'success');
+    };
+    
+    window.editClient = (clientId) => {
+        const client = clients.find(c => c.id === clientId);
+        if (!client) return;
+        
+        const newName = prompt('Nom du client:', client.name);
         if (newName && newName.trim()) {
-            const newPhone = prompt('Téléphone:', customer.phone || '');
-            const newAddress = prompt('Adresse:', customer.address || '');
+            const newPhone = prompt('Téléphone:', client.phone || '');
+            const newAddress = prompt('Adresse:', client.address || '');
             
-            const updated = {
-                ...customer,
-                name: newName.trim(),
-                phone: newPhone || '',
-                address: newAddress || ''
-            };
-            db.ref(`users/${currentUser.uid}/customers/${customerId}`).set(updated);
+            const updated = { ...client, name: newName.trim(), phone: newPhone || '', address: newAddress || '' };
+            db.ref(`users/${currentUser.uid}/clients/${clientId}`).set(updated);
             showFlash('Client modifié avec succès', 'success');
         }
     };
     
-    document.getElementById('saveCustomerBtn').onclick = async () => {
-        const name = document.getElementById('newCustomerName').value.trim();
-        const phone = document.getElementById('newCustomerPhone').value.trim();
-        const address = document.getElementById('newCustomerAddress').value.trim();
+    document.getElementById('saveClientBtn').onclick = async () => {
+        const name = document.getElementById('newClientName').value.trim();
+        const phone = document.getElementById('newClientPhone').value.trim();
+        const address = document.getElementById('newClientAddress').value.trim();
         
-        if (!name) { showFlash('Nom du client requis', 'warning'); return; }
+        if (!name) { showFlash('Le nom du client est requis', 'warning'); return; }
         
-        const customer = {
+        const client = {
             id: Date.now().toString(),
             name: name,
             phone: phone,
@@ -513,248 +719,76 @@
             date: new Date().toISOString()
         };
         
-        await db.ref(`users/${currentUser.uid}/customers/${customer.id}`).set(customer);
+        await db.ref(`users/${currentUser.uid}/clients/${client.id}`).set(client);
         
-        document.getElementById('newCustomerName').value = '';
-        document.getElementById('newCustomerPhone').value = '';
-        document.getElementById('newCustomerAddress').value = '';
+        document.getElementById('newClientName').value = '';
+        document.getElementById('newClientPhone').value = '';
+        document.getElementById('newClientAddress').value = '';
         
         showFlash('Client ajouté avec succès', 'success');
     };
     
-    function updateCustomerSelects() {
-        const orderSelect = document.getElementById('orderCustomerSelect');
-        const paymentSelect = document.getElementById('paymentCustomerSelect');
-        
-        if (orderSelect) {
-            orderSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
-            customers.forEach(c => {
-                orderSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-            });
-        }
-        
-        if (paymentSelect) {
-            paymentSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
-            customers.forEach(c => {
-                paymentSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-            });
-        }
+    function updateAllSelects() {
+        const selects = ['orderClientSelect', 'paymentClientSelect', 'multiClientSelect'];
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) {
+                select.innerHTML = '<option value="">-- Sélectionner un client --</option>';
+                clients.forEach(c => {
+                    select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            }
+        });
     }
     
-    // Situation complète d'un client (PDF)
-    window.showClientFullSituation = (customerId) => {
-        const customer = customers.find(c => c.id === customerId);
-        if (!customer) return;
+    // Afficher les commandes d'un client
+    window.showClientOrders = (clientId) => {
+        const client = clients.find(c => c.id === clientId);
+        if (!client) return;
         
-        const customerOrders = orders.filter(o => o.customerId === customerId);
-        const customerPayments = payments.filter(p => customerOrders.some(o => o.id === p.orderId));
+        const clientOrders = orders.filter(o => o.clientId === clientId);
         
-        const totalAmount = customerOrders.reduce((s,o) => s + o.amount, 0);
-        const totalPaid = customerPayments.reduce((s,p) => s + p.amount, 0);
-        const totalRemaining = totalAmount - totalPaid;
-        const percent = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
-        
-        let ordersHtml = '';
-        customerOrders.forEach(order => {
-            const orderPayments = customerPayments.filter(p => p.orderId === order.id);
-            const orderPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
-            const orderRemaining = order.amount - orderPaid;
-            const orderPercent = (orderPaid / order.amount) * 100;
-            
-            let paymentsHtml = '';
-            if (orderPayments.length > 0) {
-                paymentsHtml = orderPayments.map(p => `
-                    <div style="background:#0f0f1a; padding:6px; border-radius:8px; margin-top:5px;">
-                        <div class="flex-between small-text">
-                            <span>💰 ${formatMoney(p.amount)}</span>
-                            <span>${p.method}</span>
-                            <span>📅 ${formatDate(p.date)}</span>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                paymentsHtml = '<div class="small-text" style="color:#a0a0b0;">Aucun paiement</div>';
-            }
-            
-            ordersHtml += `
-                <div class="list-item" style="margin-bottom:10px;">
-                    <div class="flex-between">
-                        <span><strong>🔢 ${order.orderNumber}</strong></span>
-                        <span>💰 ${formatMoney(order.amount)}</span>
-                    </div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${orderPercent}%"></div></div>
-                    <div class="flex-between small-text">
-                        <span>✅ Payé: ${formatMoney(orderPaid)}</span>
-                        <span>⚠️ Reste: ${formatMoney(orderRemaining)}</span>
-                    </div>
-                    <div class="small-text">📅 ${formatDate(order.date)}</div>
-                    <div style="margin-top:8px;"><strong>Paiements:</strong></div>
-                    ${paymentsHtml}
-                </div>
-            `;
-        });
-        
-        let statusBadge = '';
-        if (totalPaid >= totalAmount) statusBadge = '<span class="badge badge-paid">✅ Entièrement payé</span>';
-        else if (totalPaid > 0) statusBadge = '<span class="badge badge-partial">🟡 Partiellement payé</span>';
-        else statusBadge = '<span class="badge badge-unpaid">🔴 Non payé</span>';
-        
-        const html = `
-            <div style="text-align:center; margin-bottom:15px;">
-                <div style="font-size:18px; font-weight:bold; color:#9b59b6;">${customer.name}</div>
-                ${customer.phone ? `<div class="small-text">📞 ${customer.phone}</div>` : ''}
-                ${customer.address ? `<div class="small-text">📍 ${customer.address}</div>` : ''}
-                <div style="margin-top:8px;">${statusBadge}</div>
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:15px;">
-                <div style="background:#0f0f1a; padding:8px; border-radius:10px; text-align:center;">
-                    <div style="font-size:14px; font-weight:bold;">${formatMoney(totalAmount)}</div>
-                    <div class="small-text">Total commandes</div>
-                </div>
-                <div style="background:#0f0f1a; padding:8px; border-radius:10px; text-align:center;">
-                    <div style="font-size:14px; font-weight:bold; color:#2ecc71;">${formatMoney(totalPaid)}</div>
-                    <div class="small-text">Total payé</div>
-                </div>
-                <div style="background:#0f0f1a; padding:8px; border-radius:10px; text-align:center;">
-                    <div style="font-size:14px; font-weight:bold; color:#e74c3c;">${formatMoney(totalRemaining)}</div>
-                    <div class="small-text">Reste à payer</div>
-                </div>
-            </div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-            <div style="margin:15px 0 10px; font-weight:bold;">📋 Détail des commandes:</div>
-            ${ordersHtml || '<div class="empty">Aucune commande</div>'}
-            <div class="small-text" style="margin-top:10px;">📅 Dernière mise à jour: ${new Date().toLocaleString('fr-FR')}</div>
-        `;
-        
-        document.getElementById('clientSituationTitle').innerHTML = `📊 Situation - ${customer.name}`;
-        document.getElementById('clientSituationContent').innerHTML = html;
-        openModal('clientSituationModal');
-        
-        // Sauvegarder les données pour PDF
-        window.currentSituationData = { customer, customerOrders, customerPayments, totalAmount, totalPaid, totalRemaining, percent };
-    };
-    
-    // PDF Situation Client
-    document.getElementById('pdfClientSituationBtn').onclick = () => {
-        const data = window.currentSituationData;
-        if (!data) return;
-        
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        
-        doc.setFont('helvetica');
-        doc.setFontSize(18);
-        doc.setTextColor(155, 89, 182);
-        doc.text('EL FATH SERVICE', 20, 20);
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Situation du client: ${data.customer.name}`, 20, 35);
-        
-        let y = 50;
-        doc.setFontSize(11);
-        if (data.customer.phone) doc.text(`Téléphone: ${data.customer.phone}`, 20, y); y += 8;
-        if (data.customer.address) doc.text(`Adresse: ${data.customer.address}`, 20, y); y += 8;
-        doc.text(`Total des commandes: ${formatMoney(data.totalAmount)}`, 20, y); y += 8;
-        doc.text(`Total payé: ${formatMoney(data.totalPaid)}`, 20, y); y += 8;
-        doc.text(`Reste à payer: ${formatMoney(data.totalRemaining)}`, 20, y); y += 8;
-        
-        const orderData = data.customerOrders.map(order => {
-            const orderPayments = data.customerPayments.filter(p => p.orderId === order.id);
-            const orderPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
-            return [order.orderNumber, formatMoney(order.amount), formatMoney(orderPaid), formatMoney(order.amount - orderPaid), formatDate(order.date)];
-        });
-        
-        doc.autoTable({
-            startY: y + 10,
-            head: [['N° Commande', 'Montant', 'Payé', 'Reste', 'Date']],
-            body: orderData,
-            theme: 'striped',
-            headStyles: { fillColor: [155, 89, 182], textColor: 255 },
-            styles: { fontSize: 9, textColor: [0,0,0] }
-        });
-        
-        let y2 = doc.lastAutoTable.finalY + 10;
-        
-        // Détail des paiements par commande
-        for (const order of data.customerOrders) {
-            const orderPayments = data.customerPayments.filter(p => p.orderId === order.id);
-            if (orderPayments.length > 0) {
-                doc.text(`Paiements - Commande ${order.orderNumber}:`, 20, y2); y2 += 8;
-                const paymentData = orderPayments.map(p => [formatDate(p.date), formatMoney(p.amount), p.method]);
-                doc.autoTable({
-                    startY: y2,
-                    head: [['Date', 'Montant', 'Mode']],
-                    body: paymentData,
-                    theme: 'striped',
-                    headStyles: { fillColor: [52, 152, 219], textColor: 255 },
-                    styles: { fontSize: 8, textColor: [0,0,0] }
-                });
-                y2 = doc.lastAutoTable.finalY + 8;
-            }
+        if (clientOrders.length === 0) {
+            showFlash('Aucune commande pour ce client', 'warning');
+            return;
         }
         
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(`Généré le ${new Date().toLocaleString('fr-FR')} - El Fath Service`, 20, 280);
-        doc.save(`Situation_${data.customer.name.replace(/[^a-z0-9]/gi, '_')}.pdf`);
-        showFlash('PDF généré avec succès', 'success');
-    };
-    
-    document.getElementById('printClientSituationBtn').onclick = () => {
-        const data = window.currentSituationData;
-        if (!data) return;
+        let html = `<div style="margin-bottom:15px;"><strong>👤 ${client.name}</strong></div>`;
         
-        const printWindow = window.open('', '_blank');
-        let ordersPrint = '';
-        data.customerOrders.forEach(order => {
-            const orderPayments = data.customerPayments.filter(p => p.orderId === order.id);
-            const orderPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
-            let paymentsPrint = '';
-            orderPayments.forEach(p => {
-                paymentsPrint += `<tr><td>${formatDate(p.date)}</td><td>${formatMoney(p.amount)}</td><td>${p.method}</td></tr>`;
-            });
-            ordersPrint += `
-                <div style="border:1px solid #ddd; margin-bottom:15px; padding:10px; border-radius:8px;">
-                    <h4>Commande: ${order.orderNumber}</h4>
-                    <p>Montant: ${formatMoney(order.amount)} | Payé: ${formatMoney(orderPaid)} | Reste: ${formatMoney(order.amount - orderPaid)}</p>
-                    <p>Date: ${formatDate(order.date)}</p>
-                    ${orderPayments.length > 0 ? `<table border="1" cellpadding="5" style="width:100%; margin-top:10px;"><tr><th>Date</th><th>Montant</th><th>Mode</th></tr>${paymentsPrint}</table>` : '<p>Aucun paiement</p>'}
+        clientOrders.forEach(order => {
+            const orderPayments = payments.filter(p => p.orderId === order.id);
+            const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = order.amount - totalPaid;
+            const percent = (totalPaid / order.amount) * 100;
+            
+            html += `
+                <div class="list-item" style="margin-bottom:10px;">
+                    <div class="flex-between">
+                        <span>🔢 ${order.orderNumber}</span>
+                        <span>${formatMoney(order.amount)}</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                    <div class="flex-between small-text">
+                        <span>Payé: ${formatMoney(totalPaid)}</span>
+                        <span>Reste: ${formatMoney(remaining)}</span>
+                    </div>
+                    <div class="flex-between small-text" style="margin-top:8px;">
+                        <span>📅 ${formatDate(order.date)}</span>
+                        ${remaining > 0 ? `<button onclick="quickPayment('${order.id}')" style="background:#2ecc71; padding:5px 10px; font-size:11px; width:auto;">+ Paiement</button>` : ''}
+                        <button onclick="showOrderDetail('${order.id}')" style="background:#3498db; padding:5px 10px; font-size:11px; width:auto;">Détails</button>
+                    </div>
                 </div>
             `;
         });
         
-        printWindow.document.write(`
-            <html>
-            <head><title>Situation - ${data.customer.name}</title><meta charset="UTF-8">
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                h2 { color: #9b59b6; }
-                .header { text-align: center; margin-bottom: 20px; }
-                .info { margin-bottom: 20px; }
-                table { border-collapse: collapse; width: 100%; margin: 10px 0; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background: #9b59b6; color: white; }
-                .footer { margin-top: 30px; font-size: 10px; color: #999; text-align: center; }
-            </style>
-            </head>
-            <body>
-                <div class="header"><h2>EL FATH SERVICE</h2><h3>Situation du client: ${data.customer.name}</h3></div>
-                <div class="info">
-                    <p><strong>Téléphone:</strong> ${data.customer.phone || '-'}</p>
-                    <p><strong>Adresse:</strong> ${data.customer.address || '-'}</p>
-                    <p><strong>Total commandes:</strong> ${formatMoney(data.totalAmount)}</p>
-                    <p><strong>Total payé:</strong> ${formatMoney(data.totalPaid)}</p>
-                    <p><strong>Reste à payer:</strong> ${formatMoney(data.totalRemaining)}</p>
-                </div>
-                <h3>Détail des commandes:</h3>
-                ${ordersPrint}
-                <div class="footer">Généré le ${new Date().toLocaleString('fr-FR')}</div>
-            </body>
-            </html>
-        `);
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'tempModal';
+        modal.innerHTML = `<div class="modal-content"><div class="modal-header"><span>📋 Commandes de ${client.name}</span><button onclick="closeModal('tempModal')" style="background:none; font-size:20px;">✕</button></div>${html}</div>`;
+        document.body.appendChild(modal);
     };
     
-    // Orders Functions
+    // ========== Orders Functions ==========
     function renderOrdersList() {
         const container = document.getElementById('ordersList');
         const search = document.getElementById('searchOrders')?.value.toLowerCase() || '';
@@ -762,9 +796,9 @@
         let filtered = orders;
         if (search) {
             filtered = orders.filter(o => {
-                const customer = customers.find(c => c.id === o.customerId);
-                const customerName = customer ? customer.name : '';
-                return customerName.toLowerCase().includes(search) || (o.orderNumber || '').toLowerCase().includes(search);
+                const client = clients.find(c => c.id === o.clientId);
+                const clientName = client ? client.name : '';
+                return clientName.toLowerCase().includes(search) || (o.orderNumber || '').toLowerCase().includes(search);
             });
         }
         
@@ -776,8 +810,8 @@
         filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
         
         container.innerHTML = filtered.map(order => {
-            const customer = customers.find(c => c.id === order.customerId);
-            const customerName = customer ? customer.name : 'Inconnu';
+            const client = clients.find(c => c.id === order.clientId);
+            const clientName = client ? client.name : 'Inconnu';
             const orderPayments = payments.filter(p => p.orderId === order.id);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
@@ -786,12 +820,12 @@
             let statusBadge = '';
             if (totalPaid >= order.amount) statusBadge = '<span class="badge badge-paid">Payé</span>';
             else if (totalPaid > 0) statusBadge = '<span class="badge badge-partial">Partiel</span>';
-            else statusBadge = '<span class="badge badge-unpaid">Non payé</span>';
+            else statusBadge = '<span class="badge badge-unpaid">Impayé</span>';
             
             return `
-                <div class="list-item" onclick="showOrderDetail('${order.id}')">
+                <div class="list-item animate" onclick="showOrderDetail('${order.id}')">
                     <div class="flex-between">
-                        <span class="customer-name">${customerName}</span>
+                        <span class="client-name">${clientName}</span>
                         ${statusBadge}
                     </div>
                     <div class="flex-between" style="margin-top:5px;">
@@ -803,25 +837,25 @@
                         <span>✅ Payé: ${formatMoney(totalPaid)}</span>
                         <span>⚠️ Reste: ${formatMoney(remaining)}</span>
                     </div>
-                    <div class="small-text">📅 ${formatDate(order.date)}</div>
+                    <div class="small-text" style="margin-top:5px;">📅 ${formatDate(order.date)}</div>
                 </div>
             `;
         }).join('');
     }
     
     document.getElementById('saveOrderBtn').onclick = async () => {
-        const customerId = document.getElementById('orderCustomerSelect').value;
+        const clientId = document.getElementById('orderClientSelect').value;
         const orderNumber = document.getElementById('orderNumber').value.trim();
         const amount = parseFloat(document.getElementById('orderAmount').value);
         const dueDate = document.getElementById('orderDueDate').value;
         const notes = document.getElementById('orderNotes').value;
         
-        if (!customerId) { showFlash('Sélectionnez un client', 'warning'); return; }
+        if (!clientId) { showFlash('Sélectionnez un client', 'warning'); return; }
         if (!amount || amount <= 0) { showFlash('Montant invalide', 'warning'); return; }
         
         const order = {
             id: Date.now().toString(),
-            customerId: customerId,
+            clientId: clientId,
             orderNumber: orderNumber || `CMD-${Date.now()}`,
             amount: amount,
             dueDate: dueDate,
@@ -839,28 +873,49 @@
         showFlash('Commande ajoutée avec succès', 'success');
     };
     
-    // Payments Functions
-    window.loadCustomerOrdersForPayment = () => {
-        const customerId = document.getElementById('paymentCustomerSelect').value;
+    // ========== Payment Mode ==========
+    window.setPaymentMode = (mode) => {
+        currentPaymentMode = mode;
+        const singleCard = document.getElementById('singlePaymentCard');
+        const multiCard = document.getElementById('multiPaymentCard');
+        const singleBtn = document.getElementById('singleModeBtn');
+        const multiBtn = document.getElementById('multiModeBtn');
+        
+        if (mode === 'single') {
+            singleCard.classList.remove('hidden');
+            multiCard.classList.add('hidden');
+            singleBtn.style.background = '#9b59b6';
+            multiBtn.style.background = '#2d2d44';
+        } else {
+            singleCard.classList.add('hidden');
+            multiCard.classList.remove('hidden');
+            singleBtn.style.background = '#2d2d44';
+            multiBtn.style.background = '#9b59b6';
+        }
+    };
+    
+    // ========== Single Payment Functions ==========
+    window.loadClientOrdersForPayment = () => {
+        const clientId = document.getElementById('paymentClientSelect').value;
         const orderSelect = document.getElementById('paymentOrderSelect');
         
-        if (!customerId) {
+        if (!clientId) {
             orderSelect.innerHTML = '<option value="">-- Sélectionner une commande --</option>';
             document.getElementById('paymentOrderInfo').innerHTML = '';
             return;
         }
         
-        const customerOrders = orders.filter(o => o.customerId === customerId);
+        const clientOrders = orders.filter(o => o.clientId === clientId);
         
         orderSelect.innerHTML = '<option value="">-- Sélectionner une commande --</option>';
-        customerOrders.forEach(order => {
+        clientOrders.forEach(order => {
             const orderPayments = payments.filter(p => p.orderId === order.id);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
             if (remaining > 0) {
                 orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - Reste: ${formatMoney(remaining)}</option>`;
             } else {
-                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - ✅ Payé</option>`;
+                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - ✅ Soldée</option>`;
             }
         });
     };
@@ -875,15 +930,15 @@
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
         
-        const customer = customers.find(c => c.id === order.customerId);
-        const customerName = customer ? customer.name : 'Inconnu';
+        const client = clients.find(c => c.id === order.clientId);
+        const clientName = client ? client.name : 'Inconnu';
         
         const orderPayments = payments.filter(p => p.orderId === orderId);
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
         
         infoDiv.innerHTML = `
-            <strong>${customerName}</strong><br>
+            <strong>${clientName}</strong><br>
             N° commande: ${order.orderNumber}<br>
             Total: ${formatMoney(order.amount)}<br>
             Payé: ${formatMoney(totalPaid)}<br>
@@ -898,6 +953,7 @@
         const amount = parseFloat(document.getElementById('paymentAmount').value);
         const paymentDate = document.getElementById('paymentDate').value;
         const method = document.getElementById('paymentMethod').value;
+        const notes = document.getElementById('paymentNotes').value;
         
         if (!orderId) { showFlash('Sélectionnez une commande', 'warning'); return; }
         if (!amount || amount <= 0) { showFlash('Montant invalide', 'warning'); return; }
@@ -910,29 +966,208 @@
         const remaining = order.amount - totalPaid;
         
         if (amount > remaining) {
-            showFlash(`Le montant dépasse le reste à payer (${formatMoney(remaining)})`, 'danger');
+            showFlash(`Le montant dépasse le reste dû (${formatMoney(remaining)})`, 'danger');
             return;
         }
         
-        const customer = customers.find(c => c.id === order.customerId);
+        const client = clients.find(c => c.id === order.clientId);
         
         const payment = {
             id: Date.now().toString(),
             orderId: orderId,
-            customerId: order.customerId,
-            customerName: customer ? customer.name : 'Inconnu',
+            clientId: order.clientId,
+            clientName: client ? client.name : 'Inconnu',
             orderNumber: order.orderNumber,
             amount: amount,
             date: new Date(paymentDate).toISOString(),
             method: method,
+            notes: notes,
             timestamp: Date.now()
         };
         
         await db.ref(`users/${currentUser.uid}/payments/${payment.id}`).set(payment);
         
         document.getElementById('paymentAmount').value = '';
+        document.getElementById('paymentNotes').value = '';
         showFlash('Paiement enregistré avec succès', 'success');
-        loadCustomerOrdersForPayment();
+        loadClientOrdersForPayment();
+    };
+    
+    // ========== Multi Payment Functions ==========
+    window.loadMultiClientOrders = () => {
+        const clientId = document.getElementById('multiClientSelect').value;
+        const container = document.getElementById('multiOrdersList');
+        
+        if (!clientId) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        const clientOrders = orders.filter(o => o.clientId === clientId);
+        multiOrdersSelected = {};
+        
+        if (clientOrders.length === 0) {
+            container.innerHTML = '<div class="empty">Aucune commande pour ce client</div>';
+            return;
+        }
+        
+        let html = '<div class="form-group"><label>📋 Sélectionnez les commandes à payer:</label></div>';
+        
+        clientOrders.forEach(order => {
+            const orderPayments = payments.filter(p => p.orderId === order.id);
+            const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = order.amount - totalPaid;
+            
+            if (remaining > 0) {
+                html += `
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="multiOrder_${order.id}" value="${order.id}" data-remaining="${remaining}" onchange="updateMultiOrderSelection('${order.id}', this.checked, ${remaining})">
+                        <label for="multiOrder_${order.id}" style="flex:1; cursor:pointer;">
+                            <strong>${order.orderNumber}</strong><br>
+                            <span class="small-text">Total: ${formatMoney(order.amount)} | Reste: ${formatMoney(remaining)}</span>
+                        </label>
+                        <input type="number" id="amount_${order.id}" placeholder="Montant" step="0.01" style="width:120px;" disabled onchange="updateIndividualAmount('${order.id}', this.value)">
+                    </div>
+                `;
+            }
+        });
+        
+        container.innerHTML = html;
+        document.getElementById('totalPaymentAmount').value = '';
+        document.getElementById('multiPaymentDate').value = new Date().toISOString().split('T')[0];
+    };
+    
+    window.updateMultiOrderSelection = (orderId, checked, remaining) => {
+        const amountInput = document.getElementById(`amount_${orderId}`);
+        if (checked) {
+            amountInput.disabled = false;
+            amountInput.value = remaining;
+            multiOrdersSelected[orderId] = remaining;
+        } else {
+            amountInput.disabled = true;
+            amountInput.value = '';
+            delete multiOrdersSelected[orderId];
+        }
+        updateTotalPaymentAmount();
+    };
+    
+    window.updateIndividualAmount = (orderId, value) => {
+        const amount = parseFloat(value);
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            const orderPayments = payments.filter(p => p.orderId === orderId);
+            const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = order.amount - totalPaid;
+            
+            if (isNaN(amount) || amount <= 0) {
+                delete multiOrdersSelected[orderId];
+            } else if (amount > remaining) {
+                showFlash(`Montant dépasse le reste dû (${formatMoney(remaining)})`, 'warning');
+                document.getElementById(`amount_${orderId}`).value = remaining;
+                multiOrdersSelected[orderId] = remaining;
+            } else {
+                multiOrdersSelected[orderId] = amount;
+            }
+        }
+        updateTotalPaymentAmount();
+    };
+    
+    window.updateTotalPaymentAmount = () => {
+        let total = 0;
+        for (let amount of Object.values(multiOrdersSelected)) {
+            total += amount;
+        }
+        document.getElementById('totalPaymentAmount').value = total.toFixed(2);
+    };
+    
+    window.distributePayment = () => {
+        const totalAmount = parseFloat(document.getElementById('totalPaymentAmount').value);
+        if (isNaN(totalAmount) || totalAmount <= 0) return;
+        
+        const selectedOrders = Object.keys(multiOrdersSelected);
+        if (selectedOrders.length === 0) return;
+        
+        let totalRemaining = 0;
+        const remainingMap = {};
+        
+        selectedOrders.forEach(orderId => {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                const orderPayments = payments.filter(p => p.orderId === orderId);
+                const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+                const remaining = order.amount - totalPaid;
+                remainingMap[orderId] = remaining;
+                totalRemaining += remaining;
+            }
+        });
+        
+        if (totalAmount > totalRemaining) {
+            showFlash(`Le montant total (${formatMoney(totalAmount)}) dépasse le total restant dû (${formatMoney(totalRemaining)})`, 'warning');
+            return;
+        }
+        
+        let distributedTotal = 0;
+        for (let orderId of selectedOrders) {
+            const remaining = remainingMap[orderId];
+            let allocated = (totalAmount * remaining) / totalRemaining;
+            allocated = Math.round(allocated * 100) / 100;
+            document.getElementById(`amount_${orderId}`).value = allocated.toFixed(2);
+            multiOrdersSelected[orderId] = allocated;
+            distributedTotal += allocated;
+        }
+        
+        const diff = totalAmount - distributedTotal;
+        if (Math.abs(diff) > 0.01 && selectedOrders.length > 0) {
+            const firstOrder = selectedOrders[0];
+            const newAmount = (multiOrdersSelected[firstOrder] + diff).toFixed(2);
+            document.getElementById(`amount_${firstOrder}`).value = newAmount;
+            multiOrdersSelected[firstOrder] = parseFloat(newAmount);
+        }
+    };
+    
+    document.getElementById('saveMultiPaymentBtn').onclick = async () => {
+        const clientId = document.getElementById('multiClientSelect').value;
+        const paymentDate = document.getElementById('multiPaymentDate').value;
+        const method = document.getElementById('multiPaymentMethod').value;
+        const notes = document.getElementById('multiPaymentNotes').value;
+        
+        if (!clientId) { showFlash('Sélectionnez un client', 'warning'); return; }
+        
+        const selectedOrders = Object.keys(multiOrdersSelected);
+        if (selectedOrders.length === 0) { showFlash('Sélectionnez au moins une commande', 'warning'); return; }
+        
+        const client = clients.find(c => c.id === clientId);
+        let paymentsToSave = [];
+        
+        for (let orderId of selectedOrders) {
+            const amount = multiOrdersSelected[orderId];
+            if (amount > 0) {
+                const order = orders.find(o => o.id === orderId);
+                if (order) {
+                    paymentsToSave.push({
+                        id: Date.now().toString() + '_' + orderId,
+                        orderId: orderId,
+                        clientId: clientId,
+                        clientName: client ? client.name : 'Inconnu',
+                        orderNumber: order.orderNumber,
+                        amount: amount,
+                        date: new Date(paymentDate).toISOString(),
+                        method: method,
+                        notes: notes,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+        }
+        
+        for (let payment of paymentsToSave) {
+            await db.ref(`users/${currentUser.uid}/payments/${payment.id}`).set(payment);
+        }
+        
+        multiOrdersSelected = {};
+        document.getElementById('multiPaymentNotes').value = '';
+        showFlash(`${paymentsToSave.length} paiement(s) enregistré(s) avec succès`, 'success');
+        loadMultiClientOrders();
     };
     
     function renderRecentPayments() {
@@ -947,54 +1182,70 @@
         }
         
         container.innerHTML = recent.map(p => `
-            <div class="list-item">
+            <div class="list-item animate">
                 <div class="flex-between">
-                    <span><strong>${p.customerName}</strong></span>
+                    <span><strong>${p.clientName}</strong></span>
                     <span class="badge badge-paid">${formatMoney(p.amount)}</span>
                 </div>
                 <div class="small-text">🔢 ${p.orderNumber} | 💳 ${p.method}</div>
                 <div class="small-text">📅 ${formatDate(p.date)}</div>
+                ${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}
             </div>
         `).join('');
     }
     
-    // Customers Status Summary
-    function renderCustomersStatus() {
-        const container = document.getElementById('customersStatusList');
-        const search = document.getElementById('searchCustomersStatus')?.value.toLowerCase() || '';
+    // ========== Situation Clients ==========
+    function renderSituationClients() {
+        const container = document.getElementById('situationList');
+        const search = document.getElementById('searchSituation')?.value.toLowerCase() || '';
         
-        let filteredCustomers = customers;
-        if (search) filteredCustomers = customers.filter(c => c.name.toLowerCase().includes(search));
+        let filteredClients = clients;
+        if (search) filteredClients = clients.filter(c => c.name.toLowerCase().includes(search));
         
-        if (filteredCustomers.length === 0) {
+        if (filteredClients.length === 0) {
             container.innerHTML = '<div class="empty">Aucun client</div>';
             return;
         }
         
         let html = '';
-        filteredCustomers.forEach(customer => {
-            const customerOrders = orders.filter(o => o.customerId === customer.id);
-            const totalAmount = customerOrders.reduce((s,o) => s + o.amount, 0);
-            
-            const customerPayments = payments.filter(p => customerOrders.some(o => o.id === p.orderId));
-            const totalPaid = customerPayments.reduce((s,p) => s + p.amount, 0);
+        filteredClients.forEach(client => {
+            const clientOrders = orders.filter(o => o.clientId === client.id);
+            const totalAmount = clientOrders.reduce((s,o) => s + o.amount, 0);
+            const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
+            const totalPaid = clientPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = totalAmount - totalPaid;
             const percent = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
             
+            let statusClass = '';
+            let statusText = '';
+            if (remaining <= 0) {
+                statusClass = 'badge-paid';
+                statusText = '✅ À jour';
+            } else if (totalPaid > 0) {
+                statusClass = 'badge-partial';
+                statusText = '⚠️ Partiel';
+            } else {
+                statusClass = 'badge-unpaid';
+                statusText = '❌ Impayé';
+            }
+            
             html += `
-                <div class="list-item" onclick="showClientFullSituation('${customer.id}')">
+                <div class="list-item status-card animate" onclick="showClientOrders('${client.id}')">
                     <div class="flex-between">
-                        <span class="customer-name">👤 ${customer.name}</span>
-                        <span>${customerOrders.length} commande(s)</span>
+                        <span class="client-name">👤 ${client.name}</span>
+                        <span class="badge ${statusClass}">${statusText}</span>
                     </div>
                     <div class="flex-between small-text" style="margin-top:5px;">
+                        <span>📦 ${clientOrders.length} commande(s)</span>
                         <span>💰 Total: ${formatMoney(totalAmount)}</span>
+                    </div>
+                    <div class="flex-between small-text">
                         <span>✅ Payé: ${formatMoney(totalPaid)}</span>
                         <span>⚠️ Reste: ${formatMoney(remaining)}</span>
                     </div>
                     <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-                    <div class="flex-buttons" style="margin-top:8px;">
-                        <button onclick="event.stopPropagation(); showClientFullSituation('${customer.id}')" style="background:#9b59b6; padding:5px;">📊 Situation PDF</button>
+                    <div class="small-text" style="margin-top:5px;">
+                        <i class="fas fa-calendar-alt"></i> Dernière commande: ${clientOrders.length > 0 ? formatDate(Math.max(...clientOrders.map(o => new Date(o.date)))) : '-'}
                     </div>
                 </div>
             `;
@@ -1002,13 +1253,109 @@
         container.innerHTML = html;
     }
     
-    // Order Detail
+    // ========== Export Situation ==========
+    function exportSituationPDF() {
+        if (clients.length === 0) {
+            showFlash('Aucun client à exporter', 'warning');
+            return;
+        }
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        doc.setFillColor(155, 89, 182);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.text('EL FATH SERVICE', 105, 20, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text('Situation des Clients', 105, 32, { align: 'center' });
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Généré le: ${new Date().toLocaleString('fr-FR')}`, 14, 55);
+        
+        const situationData = [];
+        clients.forEach(client => {
+            const clientOrders = orders.filter(o => o.clientId === client.id);
+            const totalAmount = clientOrders.reduce((s,o) => s + o.amount, 0);
+            const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
+            const totalPaid = clientPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = totalAmount - totalPaid;
+            
+            situationData.push([
+                client.name,
+                client.phone || '-',
+                clientOrders.length,
+                formatMoney(totalAmount),
+                formatMoney(totalPaid),
+                formatMoney(remaining),
+                remaining <= 0 ? 'À jour' : (totalPaid > 0 ? 'Partiel' : 'Impayé')
+            ]);
+        });
+        
+        doc.autoTable({
+            startY: 65,
+            head: [['Client', 'Téléphone', 'Commandes', 'Total', 'Payé', 'Reste', 'Statut']],
+            body: situationData,
+            theme: 'striped',
+            headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 10 },
+            bodyStyles: { fontSize: 9, textColor: [0, 0, 0] },
+            margin: { left: 14, right: 14 }
+        });
+        
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text('EL FATH SERVICE - Système de gestion des crédits', 105, 280, { align: 'center' });
+        
+        doc.save(`Situation_Clients_${new Date().toISOString().split('T')[0]}.pdf`);
+        showFlash('PDF généré avec succès', 'success');
+    }
+    
+    function exportSituationExcel() {
+        if (clients.length === 0) {
+            showFlash('Aucun client à exporter', 'warning');
+            return;
+        }
+        
+        const wsData = [['Client', 'Téléphone', 'Adresse', 'Nb Commandes', 'Total (MAD)', 'Payé (MAD)', 'Reste (MAD)', 'Statut', 'Dernière commande']];
+        
+        clients.forEach(client => {
+            const clientOrders = orders.filter(o => o.clientId === client.id);
+            const totalAmount = clientOrders.reduce((s,o) => s + o.amount, 0);
+            const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
+            const totalPaid = clientPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = totalAmount - totalPaid;
+            const lastOrderDate = clientOrders.length > 0 ? formatDate(Math.max(...clientOrders.map(o => new Date(o.date)))) : '-';
+            
+            wsData.push([
+                client.name,
+                client.phone || '-',
+                client.address || '-',
+                clientOrders.length,
+                totalAmount.toFixed(2),
+                totalPaid.toFixed(2),
+                remaining.toFixed(2),
+                remaining <= 0 ? 'À jour' : (totalPaid > 0 ? 'Partiel' : 'Impayé'),
+                lastOrderDate
+            ]);
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Situation Clients');
+        XLSX.writeFile(wb, `Situation_Clients_${new Date().toISOString().split('T')[0]}.xlsx`);
+        showFlash('Excel généré avec succès', 'success');
+    }
+    
+    // ========== Order Detail ==========
     window.showOrderDetail = (orderId) => {
+        currentOrderId = orderId;
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
         
-        const customer = customers.find(c => c.id === order.customerId);
-        const customerName = customer ? customer.name : 'Inconnu';
+        const client = clients.find(c => c.id === order.clientId);
+        const clientName = client ? client.name : 'Inconnu';
         
         const orderPayments = payments.filter(p => p.orderId === orderId);
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
@@ -1017,23 +1364,25 @@
         
         let paymentsHtml = '';
         if (orderPayments.length === 0) {
-            paymentsHtml = '<div class="empty">Aucun paiement</div>';
+            paymentsHtml = '<div class="empty">Aucun paiement enregistré</div>';
         } else {
             paymentsHtml = orderPayments.map(p => `
                 <div class="list-item" style="margin-bottom:5px;">
                     <div class="flex-between">
                         <span>💰 ${formatMoney(p.amount)}</span>
                         <span>${p.method}</span>
-                        <span>📅 ${formatDate(p.date)}</span>
+                        <button class="small-icon-btn" onclick="deletePayment('${p.id}')" style="background:#e74c3c;"><i class="fas fa-trash"></i></button>
                     </div>
+                    <div class="small-text">📅 ${formatDate(p.date)}</div>
+                    ${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}
                 </div>
             `).join('');
         }
         
         const html = `
             <div style="text-align:center; margin-bottom:15px;">
-                <div style="font-size:16px; font-weight:bold;">${customerName}</div>
-                <div>🔢 ${order.orderNumber}</div>
+                <div style="font-size:18px; font-weight:bold; color:#9b59b6;">${clientName}</div>
+                <div style="font-size:14px;">🔢 ${order.orderNumber}</div>
             </div>
             <div class="flex-between"><span>💰 Total:</span><span>${formatMoney(order.amount)}</span></div>
             <div class="flex-between"><span>✅ Payé:</span><span style="color:#2ecc71;">${formatMoney(totalPaid)}</span></div>
@@ -1041,52 +1390,92 @@
             <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
             ${order.dueDate ? `<div class="small-text" style="margin-top:10px;">📅 Échéance: ${formatDate(order.dueDate)}</div>` : ''}
             ${order.notes ? `<div class="small-text" style="margin-top:5px;">📝 ${order.notes}</div>` : ''}
-            <div style="margin:15px 0 10px; font-weight:bold;">💰 Historique des paiements:</div>
-            <div>${paymentsHtml}</div>
-            ${remaining > 0 ? `<button onclick="quickPayment('${order.id}'); closeModal('orderDetailModal');" style="margin-top:10px; background:#9b59b6;">➕ Ajouter un paiement</button>` : ''}
+            <div class="divider"></div>
+            <div style="margin:10px 0; font-weight:bold;">📋 Historique des paiements (${orderPayments.length})</div>
+            <div id="paymentsListDetail">${paymentsHtml}</div>
+            ${remaining > 0 ? `<button onclick="quickPayment('${order.id}'); closeModal('orderDetailModal');" style="margin-top:10px; background:#9b59b6;"><i class="fas fa-plus"></i> Ajouter un paiement</button>` : ''}
         `;
         
         document.getElementById('orderDetailContent').innerHTML = html;
         openModal('orderDetailModal');
         
-        window.currentOrder = { order, customerName, orderPayments, totalPaid, remaining };
+        document.getElementById('printOrderBtn').onclick = () => printOrderPDF(order, orderPayments, clientName);
+        document.getElementById('deleteOrderBtn').onclick = () => deleteOrder(orderId);
     };
     
-    document.getElementById('printOrderBtn').onclick = () => {
-        const data = window.currentOrder;
-        if (!data) return;
-        const printWindow = window.open('', '_blank');
-        const paymentsTable = data.orderPayments.map(p => `<tr><td>${formatDate(p.date)}</td><td>${formatMoney(p.amount)}</td><td>${p.method}</td></tr>`).join('');
-        printWindow.document.write(`
-            <html><head><title>Commande ${data.order.orderNumber}</title><meta charset="UTF-8">
-            <style>body{font-family:Arial;margin:20px;}th{background:#9b59b6;color:white;padding:8px;}td{padding:6px;border:1px solid #ddd;}</style>
-            </head><body><h2>EL FATH SERVICE</h2><h3>Détails de la commande</h3>
-            <p><strong>Client:</strong> ${data.customerName}</p><p><strong>N° Commande:</strong> ${data.order.orderNumber}</p>
-            <p><strong>Total:</strong> ${formatMoney(data.order.amount)}</p><p><strong>Payé:</strong> ${formatMoney(data.totalPaid)}</p>
-            <p><strong>Reste:</strong> ${formatMoney(data.remaining)}</p>
-            <h4>Paiements:</h4><table border="1"><tr><th>Date</th><th>Montant</th><th>Mode</th></tr>${paymentsTable || '<tr><td colspan="3">Aucun paiement</td></tr>'}</table>
-            <div style="margin-top:30px; font-size:10px;">Généré le ${new Date().toLocaleString('fr-FR')}</div></body></html>
-        `);
+    window.deletePayment = async (paymentId) => {
+        if (!confirm('⚠️ Supprimer ce paiement ?')) return;
+        await db.ref(`users/${currentUser.uid}/payments/${paymentId}`).remove();
+        showFlash('Paiement supprimé', 'success');
+        if (currentOrderId) showOrderDetail(currentOrderId);
     };
     
-    document.getElementById('pdfOrderBtn').onclick = () => {
-        const data = window.currentOrder;
-        if (!data) return;
+    function printOrderPDF(order, orderPayments, clientName) {
+        const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+        const remaining = order.amount - totalPaid;
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        doc.setFontSize(16); doc.setTextColor(155,89,182); doc.text('EL FATH SERVICE', 20, 20);
-        doc.setFontSize(12); doc.setTextColor(0,0,0); doc.text(`Commande: ${data.order.orderNumber}`, 20, 35);
-        doc.text(`Client: ${data.customerName}`, 20, 45);
-        doc.text(`Total: ${formatMoney(data.order.amount)}`, 20, 55);
-        doc.text(`Payé: ${formatMoney(data.totalPaid)}`, 20, 65);
-        doc.text(`Reste: ${formatMoney(data.remaining)}`, 20, 75);
-        if (data.orderPayments.length > 0) {
-            const paymentData = data.orderPayments.map(p => [formatDate(p.date), formatMoney(p.amount), p.method]);
-            doc.autoTable({ startY: 85, head: [['Date', 'Montant', 'Mode']], body: paymentData, theme: 'striped', headStyles: { fillColor: [155,89,182] } });
+        
+        doc.setFillColor(155, 89, 182);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.text('EL FATH SERVICE', 105, 20, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text('Détail de la commande', 105, 32, { align: 'center' });
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(11);
+        let y = 60;
+        
+        doc.setFillColor(240, 240, 240);
+        doc.rect(14, y, 182, 35, 'F');
+        doc.text(`Client: ${clientName}`, 20, y + 8);
+        doc.text(`N° commande: ${order.orderNumber}`, 20, y + 16);
+        doc.text(`Date: ${formatDate(order.date)}`, 20, y + 24);
+        if (order.dueDate) doc.text(`Échéance: ${formatDate(order.dueDate)}`, 20, y + 32);
+        y += 50;
+        
+        doc.setFillColor(155, 89, 182, 0.1);
+        doc.rect(14, y, 182, 30, 'F');
+        doc.text(`💰 Total: ${formatMoney(order.amount)}`, 20, y + 8);
+        doc.text(`✅ Payé: ${formatMoney(totalPaid)}`, 20, y + 16);
+        doc.text(`⚠️ Reste: ${formatMoney(remaining)}`, 20, y + 24);
+        y += 45;
+        
+        if (orderPayments.length > 0) {
+            doc.setFontSize(12);
+            doc.setTextColor(155, 89, 182);
+            doc.text('Historique des paiements', 20, y);
+            y += 8;
+            
+            const paymentData = orderPayments.map(p => [
+                formatDate(p.date),
+                formatMoney(p.amount),
+                p.method,
+                p.notes || '-'
+            ]);
+            
+            doc.autoTable({
+                startY: y,
+                head: [['Date', 'Montant', 'Mode', 'Notes']],
+                body: paymentData,
+                theme: 'striped',
+                headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 10 },
+                bodyStyles: { fontSize: 9, textColor: [0, 0, 0] },
+                margin: { left: 14, right: 14 }
+            });
+        } else {
+            doc.text('Aucun paiement enregistré', 20, y);
         }
-        doc.save(`Commande_${data.order.orderNumber}.pdf`);
-        showFlash('PDF généré', 'success');
-    };
+        
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(`Généré le ${new Date().toLocaleString('fr-FR')} - EL FATH SERVICE`, 105, 280, { align: 'center' });
+        
+        doc.save(`Commande_${order.orderNumber}_${new Date().toISOString().split('T')[0]}.pdf`);
+        showFlash('PDF généré avec succès', 'success');
+    }
     
     window.quickPayment = (orderId) => {
         const order = orders.find(o => o.id === orderId);
@@ -1096,12 +1485,16 @@
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
         
-        if (remaining <= 0) { showFlash('Cette commande est déjà payée', 'warning'); return; }
+        if (remaining <= 0) {
+            showFlash('Cette commande est entièrement payée', 'warning');
+            return;
+        }
         
-        const customer = customers.find(c => c.id === order.customerId);
-        if (customer) {
-            document.getElementById('paymentCustomerSelect').value = customer.id;
-            loadCustomerOrdersForPayment();
+        setPaymentMode('single');
+        const client = clients.find(c => c.id === order.clientId);
+        if (client) {
+            document.getElementById('paymentClientSelect').value = client.id;
+            loadClientOrdersForPayment();
             setTimeout(() => {
                 document.getElementById('paymentOrderSelect').value = orderId;
                 updatePaymentInfo();
@@ -1111,7 +1504,7 @@
         showFlash('Entrez le montant puis validez', 'success');
     };
     
-    // Helpers
+    // ========== Helper Functions ==========
     function formatMoney(amount) {
         return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'MAD' }).format(amount || 0);
     }
@@ -1123,50 +1516,66 @@
     
     function showFlash(msg, type = 'success') {
         const flash = document.createElement('div');
-        flash.style.cssText = 'position:fixed; bottom:100px; left:16px; right:16px; background:#2ecc71; padding:10px; border-radius:50px; text-align:center; z-index:1000; font-size:13px;';
+        flash.style.cssText = 'position:fixed; bottom:100px; left:16px; right:16px; background:#2ecc71; padding:12px; border-radius:50px; text-align:center; z-index:1000; font-size:13px; animation:fadeIn 0.3s ease;';
         if (type === 'danger') flash.style.background = '#e74c3c';
         if (type === 'warning') flash.style.background = '#f39c12';
-        flash.innerText = msg;
+        flash.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
         document.body.appendChild(flash);
         setTimeout(() => flash.remove(), 2500);
     }
     
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function openModal(id) {
+        document.getElementById(id).classList.add('active');
+    }
+    
     function closeModal(id) {
         const modal = document.getElementById(id);
         if (modal) modal.classList.remove('active');
+        if (id === 'tempModal') modal?.remove();
     }
     window.closeModal = closeModal;
     
     function showTab(tab) {
-        document.getElementById('customersTab').classList.add('hidden');
-        document.getElementById('ordersTab').classList.add('hidden');
-        document.getElementById('paymentsTab').classList.add('hidden');
-        document.getElementById('statusTab').classList.add('hidden');
+        const tabs = ['clients', 'orders', 'payments', 'situation'];
+        tabs.forEach(t => {
+            document.getElementById(`${t}Tab`).classList.add('hidden');
+        });
+        document.getElementById(`${tab}Tab`).classList.remove('hidden');
         
-        if (tab === 'customers') document.getElementById('customersTab').classList.remove('hidden');
-        else if (tab === 'orders') document.getElementById('ordersTab').classList.remove('hidden');
-        else if (tab === 'payments') document.getElementById('paymentsTab').classList.remove('hidden');
-        else if (tab === 'status') document.getElementById('statusTab').classList.remove('hidden');
-        
-        const tabs = ['customers', 'orders', 'payments', 'status'];
         document.querySelectorAll('.tab').forEach((t, i) => {
             if (tabs[i] === tab) t.classList.add('active');
             else t.classList.remove('active');
         });
         
-        if (tab === 'payments') { updateCustomerSelects(); loadCustomerOrdersForPayment(); }
-        if (tab === 'status') renderCustomersStatus();
-        if (tab === 'orders') updateCustomerSelects();
+        if (tab === 'payments') {
+            updateAllSelects();
+            loadClientOrdersForPayment();
+        }
+        if (tab === 'situation') renderSituationClients();
+        if (tab === 'orders') updateAllSelects();
+        if (tab === 'clients') renderClientsList();
     }
     
+    // Expose global functions
     window.showTab = showTab;
-    window.showClientFullSituation = showClientFullSituation;
+    window.showClientOrders = showClientOrders;
     window.showOrderDetail = showOrderDetail;
     window.quickPayment = quickPayment;
-    window.loadCustomerOrdersForPayment = loadCustomerOrdersForPayment;
+    window.loadClientOrdersForPayment = loadClientOrdersForPayment;
     window.updatePaymentInfo = updatePaymentInfo;
-    window.editCustomer = editCustomer;
+    window.loadMultiClientOrders = loadMultiClientOrders;
+    window.updateMultiOrderSelection = updateMultiOrderSelection;
+    window.updateIndividualAmount = updateIndividualAmount;
+    window.updateTotalPaymentAmount = updateTotalPaymentAmount;
+    window.distributePayment = distributePayment;
+    window.exportSituationPDF = exportSituationPDF;
+    window.exportSituationExcel = exportSituationExcel;
+    window.setPaymentMode = setPaymentMode;
+    window.deletePayment = deletePayment;
+    
+    // Initialize
+    document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+    setPaymentMode('single');
 </script>
 </body>
 </html>
