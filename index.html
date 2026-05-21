@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>EL FATH SERVICE - Système de Gestion de Crédit</title>
+    <title>EL FATH SERVICE - Mouvements Clients</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -97,7 +97,7 @@
         .small-text { font-size: 0.7rem; color: var(--text-secondary); margin-top: 6px; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal.active { display: flex; }
-        .modal-content { background: var(--bg-card); border-radius: 20px; padding: 28px; max-width: 600px; width: 90%; max-height: 90vh; overflow: auto; border: 1px solid var(--border-light); }
+        .modal-content { background: var(--bg-card); border-radius: 20px; padding: 28px; max-width: 700px; width: 90%; max-height: 90vh; overflow: auto; border: 1px solid var(--border-light); }
         .modal-header { font-weight: 800; font-size: 1.3rem; margin-bottom: 20px; display: flex; justify-content: space-between; }
         .hidden { display: none; }
         .order-payment-card { background: var(--bg-body); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border-light); cursor: pointer; transition: 0.2s; }
@@ -107,6 +107,14 @@
         .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin: 15px 0; }
         .delete-btn-order { background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
         .delete-btn-order:hover { opacity: 0.9; transform: scale(1.02); }
+        .mouvement-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border-light); font-size: 0.85rem; }
+        .mouvement-date { width: 100px; font-weight: 600; }
+        .mouvement-type { width: 100px; }
+        .mouvement-montant { width: 120px; text-align: right; }
+        .mouvement-solde { width: 120px; text-align: right; font-weight: 700; }
+        .mouvement-desc { flex: 1; padding-left: 15px; }
+        .credit { color: var(--success); }
+        .debit { color: var(--danger); }
         @media (max-width:800px){ .two-columns{ grid-template-columns:1fr; } .app-container{ padding: 12px; } }
     </style>
 </head>
@@ -140,7 +148,7 @@
 
     <!-- Situation Tab -->
     <div id="situationTab" class="tab-content hidden"><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-chart-simple"></i> Situation financière des clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('all')"><i class="fas fa-trash"></i> Tout supprimer</button></div><div class="filter-bar"><input type="date" id="filterDateStart"><input type="date" id="filterDateEnd"><select id="filterPeriodPreset" onchange="applyPresetFilter()"><option value="">Période personnalisée</option><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option></select><button onclick="applyDateFilter()" class="info">Appliquer</button><button onclick="resetPeriodFilter()">Réinitialiser</button></div>
-        <div class="flex-between" style="margin:15px 0"><span><i class="fas fa-file-pdf"></i> Journal par client</span><select id="journalClientSelect" style="flex:1; margin-left:10px;"><option value="">-- Sélectionner un client --</option></select><button onclick="exportJournalClientPDF()" class="small-icon-btn" style="background:var(--accent);color:white;"><i class="fas fa-download"></i> PDF</button></div>
+        <div class="flex-between" style="margin:15px 0"><span><i class="fas fa-file-pdf"></i> Journal des mouvements</span><select id="movementClientSelect" style="flex:1; margin-left:10px;"><option value="">-- Sélectionner un client --</option></select><button onclick="exportMouvementsClientPDF()" class="small-icon-btn" style="background:var(--accent);color:white;"><i class="fas fa-download"></i> PDF Mouvements</button></div>
         <div class="flex-between" style="margin:10px 0"><span><i class="fas fa-file-pdf"></i> Rapports client</span><div><button onclick="exportClientPaymentsPDF()" class="small-icon-btn" style="background:var(--success);">PDF Paiements</button><button onclick="exportClientOrdersPDF()" class="small-icon-btn" style="background:var(--danger);">PDF Commandes</button></div></div>
         <select id="reportClientSelect"><option>-- Sélectionner un client --</option></select>
         <div class="row" style="margin:15px 0;"><button onclick="exportSituationPDF()" class="danger"><i class="fas fa-file-pdf"></i> PDF Synthèse</button><button onclick="exportSituationExcel()" class="success"><i class="fas fa-file-excel"></i> Excel Synthèse</button></div>
@@ -151,11 +159,12 @@
 <!-- Modals -->
 <div id="deleteConfirmModal" class="modal"><div class="modal-content"><div class="modal-header">⚠️ Confirmation <button onclick="closeModal('deleteConfirmModal')" style="background:none; width:auto; color:var(--text-primary);">✕</button></div><div id="deleteConfirmMessage" style="margin:20px 0; text-align:center;"></div><div class="row"><button onclick="closeModal('deleteConfirmModal')">Annuler</button><button id="confirmDeleteBtn" class="danger">Confirmer la suppression</button></div></div></div>
 <div id="orderDetailModal" class="modal"><div class="modal-content"><div class="modal-header">Détails de la commande <button onclick="closeModal('orderDetailModal')" style="background:none; width:auto;">✕</button></div><div id="orderDetailContent"></div><div class="row" style="margin-top:20px;"><button id="printOrderBtn" class="info"><i class="fas fa-print"></i> PDF Facture</button><button id="deleteOrderBtn" class="danger delete-btn-order"><i class="fas fa-trash"></i> Supprimer la commande</button></div></div></div>
+<div id="movementModal" class="modal"><div class="modal-content" style="max-width: 900px;"><div class="modal-header">Historique des mouvements <button onclick="closeModal('movementModal')" style="background:none; width:auto; color:var(--text-primary);">✕</button></div><div id="movementContent"></div><div class="row" style="margin-top:15px;"><button id="printMovementPDF" class="info"><i class="fas fa-file-pdf"></i> Télécharger PDF</button><button onclick="closeModal('movementModal')">Fermer</button></div></div></div>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyB-TBjgISvKwJnYc7hNRoUcNLhxRnJvVE0", authDomain: "stock-c1643.firebaseapp.com", projectId: "stock-c1643", storageBucket: "stock-c1643.firebasestorage.app", messagingSenderId: "935549361989", appId: "1:935549361989:web:5407897ba6febc50f1682c" };
     const app = firebase.initializeApp(firebaseConfig); const db = firebase.database(); const auth = firebase.auth();
-    let currentUser, clients=[], orders=[], payments=[], currentPaymentMode='single', multiOrdersSelected={}, modernOrdersList=[], dateFilterStart=null, dateFilterEnd=null;
+    let currentUser, clients=[], orders=[], payments=[], currentPaymentMode='single', multiOrdersSelected={}, modernOrdersList=[], dateFilterStart=null, dateFilterEnd=null, currentMovementClient = null;
 
     function formatNumber(amount) { if (amount === undefined || amount === null) return '0,00'; let parts = amount.toFixed(2).split('.'); let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' '); return integerPart + ',' + parts[1]; }
     function formatMoney(amount) { return formatNumber(amount) + ' MAD'; }
@@ -168,7 +177,7 @@
     window.logout=()=>auth.signOut(); document.getElementById('logoutBtn').onclick=()=>logout();
 
     async function loadData(){ const uid=currentUser.uid; 
-        db.ref(`users/${uid}/clients`).on('value',snap=>{ clients=snap.exists()?Object.values(snap.val()):[]; renderClientsList(); updateAllSelects(); renderSituationClients(); updateReportClientSelect(); updateJournalClientSelect(); }); 
+        db.ref(`users/${uid}/clients`).on('value',snap=>{ clients=snap.exists()?Object.values(snap.val()):[]; renderClientsList(); updateAllSelects(); renderSituationClients(); updateReportClientSelect(); updateMovementClientSelect(); }); 
         db.ref(`users/${uid}/orders`).on('value',snap=>{ orders=snap.exists()?Object.values(snap.val()):[]; renderOrdersList(); renderSituationClients(); }); 
         db.ref(`users/${uid}/payments`).on('value',snap=>{ payments=snap.exists()?Object.values(snap.val()):[]; renderRecentPayments(); renderOrdersList(); renderSituationClients(); }); 
     }
@@ -176,7 +185,7 @@
     function closeModal(id){ document.getElementById(id)?.classList.remove('active'); if(id==='tempModal') document.getElementById(id)?.remove(); }
     window.closeModal=closeModal;
 
-    function renderClientsList(){ const cont=document.getElementById('clientsList'); const search=document.getElementById('searchClientsList')?.value.toLowerCase()||''; let f=search?clients.filter(c=>c.name.toLowerCase().includes(search)):clients; if(!f.length){ cont.innerHTML='<div style="padding:30px;text-align:center;">📭 Aucun client</div>'; return; } cont.innerHTML=f.map(c=>`<div class="list-item" onclick="showClientOrders('${c.id}')"><div class="flex-between"><span class="client-name">👤 ${c.name}</span><div><button class="small-icon-btn" onclick="event.stopPropagation();editClient('${c.id}')"><i class="fas fa-edit"></i></button><button class="small-icon-btn" onclick="event.stopPropagation();deleteSingleClient('${c.id}')"><i class="fas fa-trash"></i></button></div></div>${c.phone?`<div class="small-text">📞 ${c.phone}</div>`:''}${c.address?`<div class="small-text">📍 ${c.address}</div>`:''}</div>`).join(''); }
+    function renderClientsList(){ const cont=document.getElementById('clientsList'); const search=document.getElementById('searchClientsList')?.value.toLowerCase()||''; let f=search?clients.filter(c=>c.name.toLowerCase().includes(search)):clients; if(!f.length){ cont.innerHTML='<div style="padding:30px;text-align:center;">📭 Aucun client</div>'; return; } cont.innerHTML=f.map(c=>`<div class="list-item" onclick="showMouvementsClient('${c.id}')"><div class="flex-between"><span class="client-name">👤 ${c.name}</span><div><button class="small-icon-btn" onclick="event.stopPropagation();editClient('${c.id}')"><i class="fas fa-edit"></i></button><button class="small-icon-btn" onclick="event.stopPropagation();deleteSingleClient('${c.id}')"><i class="fas fa-trash"></i></button></div></div>${c.phone?`<div class="small-text">📞 ${c.phone}</div>`:''}${c.address?`<div class="small-text">📍 ${c.address}</div>`:''}</div>`).join(''); }
     window.editClient=(id)=>{ let c=clients.find(c=>c.id===id); let name=prompt('Nouveau nom:',c.name); if(name) db.ref(`users/${currentUser.uid}/clients/${id}`).update({name:name.trim()}); };
     window.deleteSingleClient=async(id)=>{ if(!confirm('Supprimer ce client et toutes ses données ?'))return; for(let o of orders.filter(o=>o.clientId===id)){ for(let p of payments.filter(p=>p.orderId===o.id)) await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove(); await db.ref(`users/${currentUser.uid}/orders/${o.id}`).remove(); } await db.ref(`users/${currentUser.uid}/clients/${id}`).remove(); showFlash('Client supprimé'); };
     document.getElementById('saveClientBtn').onclick=async()=>{ let name=document.getElementById('newClientName').value.trim(); if(!name) return showFlash('Nom requis'); await db.ref(`users/${currentUser.uid}/clients/${Date.now()}`).set({id:Date.now().toString(),name,phone:document.getElementById('newClientPhone').value,address:document.getElementById('newClientAddress').value,date:new Date().toISOString()}); showFlash('Client ajouté'); document.getElementById('newClientName').value=''; };
@@ -186,7 +195,7 @@
 
     function updateAllSelects(){ ['orderClientSelect','paymentClientSelect','multiClientSelect'].forEach(id=>{ let s=document.getElementById(id); if(s){ s.innerHTML='<option value="">-- Sélectionner --</option>'; clients.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }); }
     function updateReportClientSelect(){ let sel=document.getElementById('reportClientSelect'); if(sel){ sel.innerHTML='<option value="">-- Sélectionner un client --</option>'; clients.forEach(c=>sel.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }
-    function updateJournalClientSelect(){ let sel=document.getElementById('journalClientSelect'); if(sel){ sel.innerHTML='<option value="">-- Sélectionner un client --</option>'; clients.forEach(c=>sel.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }
+    function updateMovementClientSelect(){ let sel=document.getElementById('movementClientSelect'); if(sel){ sel.innerHTML='<option value="">-- Sélectionner un client --</option>'; clients.forEach(c=>sel.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }
     function setPaymentMode(mode){ currentPaymentMode=mode; document.getElementById('singlePaymentCard').classList.toggle('hidden',mode!=='single'); document.getElementById('multiPaymentCard').classList.toggle('hidden',mode!=='multi'); document.getElementById('singleModeBtn').style.background=mode==='single'?'var(--accent)':'var(--nav-hover)'; document.getElementById('multiModeBtn').style.background=mode==='multi'?'var(--accent)':'var(--nav-hover)'; }
     window.setPaymentMode=setPaymentMode; setPaymentMode('single');
     window.loadClientOrdersForPayment=()=>{ let cid=document.getElementById('paymentClientSelect').value; let sel=document.getElementById('paymentOrderSelect'); if(!cid){ sel.innerHTML='<option>--</option>'; return; } let clientOrders=orders.filter(o=>o.clientId===cid); sel.innerHTML='<option value="">-- Choisir commande --</option>'; clientOrders.forEach(o=>{ let paid=payments.filter(p=>p.orderId===o.id).reduce((a,b)=>a+b.amount,0); sel.innerHTML+=`<option value="${o.id}">${o.orderNumber} - Restant: ${formatMoney(o.amount-paid)}</option>`; }); };
@@ -198,68 +207,179 @@
     function updateTotalMulti(){ let total=0; Object.values(multiOrdersSelected).forEach(v=>total+=v); document.getElementById('totalPaymentAmount').value=total.toFixed(2); }
     window.distributePaymentModern=()=>{ let total=parseFloat(document.getElementById('totalPaymentAmount').value); if(!total||total<=0) return; let totalRemaining=Object.keys(multiOrdersSelected).reduce((s,id)=>s+(modernOrdersList.find(o=>o.id===id)?.remaining||0),0); if(total>totalRemaining){ showFlash('Le montant total dépasse le total restant dû'); return; } let sum=0; let ids=Object.keys(multiOrdersSelected); ids.forEach((id,i)=>{ let alloc=(total*(modernOrdersList.find(o=>o.id===id)?.remaining||0))/totalRemaining; alloc=Math.round(alloc*100)/100; document.getElementById(`multiAmount_${id}`).value=alloc; multiOrdersSelected[id]=alloc; sum+=alloc; }); if(Math.abs(total-sum)>0.01 && ids.length){ let diff=total-sum; let first=ids[0]; let newVal=multiOrdersSelected[first]+diff; document.getElementById(`multiAmount_${first}`).value=newVal; multiOrdersSelected[first]=newVal; } updateTotalMulti(); showFlash('Montants répartis automatiquement'); };
     document.getElementById('saveMultiPaymentBtn').onclick=async()=>{ let clientId=document.getElementById('multiClientSelect').value; let c=clients.find(c=>c.id===clientId); let date=new Date(document.getElementById('multiPaymentDate').value).toISOString(); let method=document.getElementById('multiPaymentMethod').value; let notes=document.getElementById('multiPaymentNotes').value; for(let [orderId,amount] of Object.entries(multiOrdersSelected)){ if(amount>0){ let o=orders.find(o=>o.id===orderId); if(o) await db.ref(`users/${currentUser.uid}/payments/${Date.now()}_${orderId}`).set({id:Date.now().toString(),orderId,clientId,clientName:c?.name,orderNumber:o.orderNumber,amount,date,method,notes,timestamp:Date.now()}); } } showFlash('Paiements enregistrés avec succès'); loadMultiClientOrdersModern(); };
-    function renderSituationClients(){ let cont=document.getElementById('situationList'); let filtered=clients; cont.innerHTML=filtered.map(c=>{ let clientOrders=orders.filter(o=>o.clientId===c.id).filter(o=>{ if(!dateFilterStart&&!dateFilterEnd)return true; let d=new Date(o.date); if(dateFilterStart&&d<dateFilterStart)return false; if(dateFilterEnd&&d>dateFilterEnd)return false; return true; }); let total=clientOrders.reduce((s,o)=>s+o.amount,0); let paid=payments.filter(p=>clientOrders.some(o=>o.id===p.orderId)).reduce((s,p)=>s+p.amount,0); let perc=total? (paid/total)*100:0; return `<div class="list-item"><div class="flex-between"><span class="client-name">👤 ${c.name}</span><span class="badge ${paid>=total?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=total?'À jour':paid>0?'Partiel':'Impayé'}</span></div><div>💰 Total: ${formatMoney(total)} | ✅ Payé: ${formatMoney(paid)}</div><div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div></div>`; }).join(''); }
+    function renderSituationClients(){ let cont=document.getElementById('situationList'); let filtered=clients; cont.innerHTML=filtered.map(c=>{ let clientOrders=orders.filter(o=>o.clientId===c.id).filter(o=>{ if(!dateFilterStart&&!dateFilterEnd)return true; let d=new Date(o.date); if(dateFilterStart&&d<dateFilterStart)return false; if(dateFilterEnd&&d>dateFilterEnd)return false; return true; }); let total=clientOrders.reduce((s,o)=>s+o.amount,0); let paid=payments.filter(p=>clientOrders.some(o=>o.id===p.orderId)).reduce((s,p)=>s+p.amount,0); let perc=total? (paid/total)*100:0; return `<div class="list-item" onclick="showMouvementsClient('${c.id}')"><div class="flex-between"><span class="client-name">👤 ${c.name}</span><span class="badge ${paid>=total?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=total?'À jour':paid>0?'Partiel':'Impayé'}</span></div><div>💰 Total: ${formatMoney(total)} | ✅ Payé: ${formatMoney(paid)}</div><div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div></div>`; }).join(''); }
     function applyDateFilter(){ dateFilterStart=document.getElementById('filterDateStart').value?new Date(document.getElementById('filterDateStart').value):null; dateFilterEnd=document.getElementById('filterDateEnd').value?new Date(document.getElementById('filterDateEnd').value):null; renderSituationClients(); }
     function resetPeriodFilter(){ dateFilterStart=null; dateFilterEnd=null; document.getElementById('filterDateStart').value=''; document.getElementById('filterDateEnd').value=''; renderSituationClients(); }
     function applyPresetFilter(){ let p=document.getElementById('filterPeriodPreset').value; let d=new Date(); if(p==='today'){ document.getElementById('filterDateStart').value=d.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } else if(p==='week'){ let start=new Date(d); start.setDate(d.getDate()-7); document.getElementById('filterDateStart').value=start.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } else if(p==='month'){ let start=new Date(d); start.setDate(d.getDate()-30); document.getElementById('filterDateStart').value=start.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } }
     window.applyPresetFilter=applyPresetFilter; window.applyDateFilter=applyDateFilter; window.resetPeriodFilter=resetPeriodFilter;
 
-    // ========== JOURNAL PAR CLIENT PDF ==========
-    window.exportJournalClientPDF = () => {
-        const clientId = document.getElementById('journalClientSelect').value;
+    // ========== FONCTION POUR OBTENIR LES MOUVEMENTS D'UN CLIENT AVEC SOLDE CUMULÉ ==========
+    function getClientMouvements(clientId) {
+        const clientOrders = orders.filter(o => o.clientId === clientId);
+        const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
+        
+        let mouvements = [];
+        
+        // Ajouter les commandes (ventes) - augmentation du solde
+        clientOrders.forEach(order => {
+            mouvements.push({
+                date: order.date,
+                type: 'VENTE',
+                libelle: `Commande ${order.orderNumber}`,
+                montant: order.amount,
+                estVente: true
+            });
+        });
+        
+        // Ajouter les paiements - diminution du solde
+        clientPayments.forEach(payment => {
+            mouvements.push({
+                date: payment.date,
+                type: 'PAIEMENT',
+                libelle: `Paiement ${payment.orderNumber} - ${payment.method || ''}`,
+                montant: payment.amount,
+                estVente: false
+            });
+        });
+        
+        // Trier par date (du plus ancien au plus récent)
+        mouvements.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // Calculer le solde cumulé
+        let solde = 0;
+        mouvements.forEach(m => {
+            if (m.estVente) {
+                solde += m.montant;
+            } else {
+                solde -= m.montant;
+            }
+            m.solde = solde;
+        });
+        
+        return mouvements;
+    }
+    
+    // ========== AFFICHER LES MOUVEMENTS DANS UNE MODALE ==========
+    window.showMouvementsClient = (clientId) => {
+        const client = clients.find(c => c.id === clientId);
+        if (!client) return;
+        currentMovementClient = client;
+        const mouvements = getClientMouvements(clientId);
+        
+        let html = `<div style="margin-bottom:20px;"><strong style="font-size:1.2rem;">${client.name}</strong><br>`;
+        if (client.phone) html += `📞 ${client.phone}<br>`;
+        if (client.address) html += `📍 ${client.address}<br>`;
+        html += `📅 Édition: ${formatDateFr(new Date())}</div>`;
+        
+        if (mouvements.length === 0) {
+            html += '<div style="text-align:center; padding:30px;">📭 Aucun mouvement pour ce client</div>';
+        } else {
+            html += `<div style="border:1px solid var(--border-light); border-radius:12px; overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                            <thead>
+                                <tr style="background:var(--accent); color:white;">
+                                    <th style="padding:10px; text-align:left;">Date</th>
+                                    <th style="padding:10px; text-align:left;">Type</th>
+                                    <th style="padding:10px; text-align:left;">Libellé</th>
+                                    <th style="padding:10px; text-align:right;">Montant</th>
+                                    <th style="padding:10px; text-align:right;">Solde</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+            mouvements.forEach(m => {
+                let montantClass = m.estVente ? 'debit' : 'credit';
+                let montantSigne = m.estVente ? `+ ${formatMoney(m.montant)}` : `- ${formatMoney(m.montant)}`;
+                let soldeClass = m.solde > 0 ? 'debit' : (m.solde < 0 ? 'credit' : '');
+                html += `<tr style="border-bottom:1px solid var(--border-light);">
+                            <td style="padding:10px;">${formatDateFr(m.date)}</td>
+                            <td style="padding:10px;"><span class="badge ${m.estVente ? 'badge-unpaid' : 'badge-paid'}">${m.type}</span></td>
+                            <td style="padding:10px;">${m.libelle}</td>
+                            <td style="padding:10px; text-align:right; ${m.estVente ? 'color:var(--danger);' : 'color:var(--success);'}">${montantSigne}</td>
+                            <td style="padding:10px; text-align:right; font-weight:700; ${soldeClass === 'debit' ? 'color:var(--danger);' : (soldeClass === 'credit' ? 'color:var(--success);' : '')}">${formatMoney(m.solde)}</td>
+                        </tr>`;
+            });
+            let soldeFinal = mouvements.length > 0 ? mouvements[mouvements.length-1].solde : 0;
+            html += `<tr style="background:var(--accent-bg-light); font-weight:bold;">
+                        <td colspan="4" style="padding:12px; text-align:right;">SOLDE FINAL :</td>
+                        <td style="padding:12px; text-align:right; ${soldeFinal > 0 ? 'color:var(--danger);' : (soldeFinal < 0 ? 'color:var(--success);' : '')}">${formatMoney(soldeFinal)}</td>
+                    </tr>`;
+            html += `</tbody></table></div>`;
+        }
+        
+        document.getElementById('movementContent').innerHTML = html;
+        openModal('movementModal');
+        
+        document.getElementById('printMovementPDF').onclick = () => {
+            exportMouvementsClientPDFById(clientId);
+        };
+    };
+    
+    // ========== EXPORT PDF DES MOUVEMENTS POUR UN CLIENT ==========
+    window.exportMouvementsClientPDF = () => {
+        const clientId = document.getElementById('movementClientSelect').value;
         if (!clientId) { showFlash('Veuillez sélectionner un client'); return; }
-        const c = clients.find(cl => cl.id === clientId);
-        const clientOrders = orders.filter(o => o.clientId === clientId).sort((a,b) => new Date(b.date) - new Date(a.date));
-        if (clientOrders.length === 0) { showFlash('Aucune commande pour ce client', 'danger'); return; }
+        exportMouvementsClientPDFById(clientId);
+    };
+    
+    function exportMouvementsClientPDFById(clientId) {
+        const client = clients.find(c => c.id === clientId);
+        if (!client) return;
+        const mouvements = getClientMouvements(clientId);
+        if (mouvements.length === 0) { showFlash('Aucun mouvement pour ce client', 'danger'); return; }
+        
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        doc.setFillColor(13, 148, 136); doc.rect(0, 0, 210, 45, 'F');
-        doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.text('EL FATH SERVICE', 105, 22, { align: 'center' });
-        doc.setFontSize(11); doc.text('Journal des Commandes', 105, 34, { align: 'center' });
-        doc.setTextColor(0, 0, 0); doc.setFontSize(11);
-        doc.text(`Client: ${c.name}`, 14, 55);
-        if (c.phone) doc.text(`Téléphone: ${c.phone}`, 14, 63);
-        if (c.address) doc.text(`Adresse: ${c.address}`, 14, 71);
+        
+        doc.setFillColor(13, 148, 136);
+        doc.rect(0, 0, 210, 45, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.text('EL FATH SERVICE', 105, 22, { align: 'center' });
+        doc.setFontSize(11);
+        doc.text('Journal des mouvements', 105, 34, { align: 'center' });
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(11);
+        doc.text(`Client: ${client.name}`, 14, 55);
+        if (client.phone) doc.text(`Téléphone: ${client.phone}`, 14, 63);
+        if (client.address) doc.text(`Adresse: ${client.address}`, 14, 71);
         doc.text(`Date d'édition: ${formatDateFr(new Date())}`, 14, 79);
-        let totalGeneral = 0, totalPaye = 0;
-        const tableData = clientOrders.map(o => {
-            const paid = payments.filter(p => p.orderId === o.id).reduce((s, p) => s + p.amount, 0);
-            totalGeneral += o.amount; totalPaye += paid;
-            return [o.orderNumber, formatDateFr(o.date), o.dueDate ? formatDateFr(o.dueDate) : '-', formatNumber(o.amount), formatNumber(paid), formatNumber(o.amount-paid), paid >= o.amount ? 'Payée' : (paid > 0 ? 'Partielle' : 'Impayée')];
+        
+        const tableData = mouvements.map(m => [
+            formatDateFr(m.date),
+            m.type,
+            m.libelle,
+            m.estVente ? `+ ${formatNumber(m.montant)}` : `- ${formatNumber(m.montant)}`,
+            formatNumber(m.solde)
+        ]);
+        
+        doc.autoTable({
+            startY: 90,
+            head: [['Date', 'Type', 'Libellé', 'Montant (MAD)', 'Solde (MAD)']],
+            body: tableData,
+            headStyles: { fillColor: [13, 148, 136], textColor: 255, fontSize: 9 },
+            bodyStyles: { fontSize: 8 },
+            columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' } },
+            margin: { left: 10, right: 10 }
         });
-        doc.autoTable({ startY: 90, head: [['N° Commande', 'Date', 'Échéance', 'Total', 'Payé', 'Reste', 'Statut']], body: tableData, headStyles: { fillColor: [13, 148, 136], textColor: 255 }, styles: { fontSize: 8 }, margin: { left: 10, right: 10 } });
+        
         let y = doc.lastAutoTable.finalY + 10;
-        doc.setFillColor(240, 240, 245); doc.rect(14, y, 182, 45, 'F');
-        doc.setFontSize(10); doc.setTextColor(13, 148, 136); doc.text('RÉCAPITULATIF', 20, y+8);
-        doc.setFontSize(9); doc.setTextColor(0, 0, 0);
-        doc.text(`Nombre de commandes: ${clientOrders.length}`, 20, y+20);
-        doc.text(`Total des commandes: ${formatMoney(totalGeneral)}`, 20, y+30);
-        doc.text(`Total des paiements: ${formatMoney(totalPaye)}`, 20, y+40);
-        doc.setTextColor(totalGeneral - totalPaye > 0 ? 220 : 5, totalGeneral - totalPaye > 0 ? 38 : 150, 38);
-        doc.text(`Solde restant: ${formatMoney(totalGeneral - totalPaye)}`, 20, y+52);
-        const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId)).sort((a,b) => new Date(b.date) - new Date(a.date));
-        if (clientPayments.length > 0) {
-            let y2 = y + 60;
-            if (y2 > 250) { doc.addPage(); y2 = 30; }
-            doc.setFontSize(10); doc.setTextColor(13, 148, 136); doc.text('DÉTAIL DES PAIEMENTS', 14, y2);
-            const paymentsData = clientPayments.map(p => [formatDateFr(p.date), p.orderNumber, formatNumber(p.amount), p.method || '-', p.notes || '-']);
-            doc.autoTable({ startY: y2 + 5, head: [['Date', 'N° Commande', 'Montant', 'Mode', 'Notes']], body: paymentsData, headStyles: { fillColor: [13, 148, 136], textColor: 255 }, styles: { fontSize: 7 }, margin: { left: 14, right: 14 } });
-        }
-        doc.save(`Journal_${c.name.replace(/\s/g, '_')}.pdf`);
-        showFlash('Journal du client PDF généré avec succès');
-    };
-
-    // ========== FONCTION SUPPRIMER UNE COMMANDE ==========
-    window.deleteOrder = async (orderId) => {
-        if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette commande ainsi que tous ses paiements associés ? Cette action est irréversible.')) return;
-        const orderPayments = payments.filter(p => p.orderId === orderId);
-        for (let p of orderPayments) {
-            await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove();
-        }
-        await db.ref(`users/${currentUser.uid}/orders/${orderId}`).remove();
-        closeModal('orderDetailModal');
-        showFlash('Commande et ses paiements supprimés avec succès', 'success');
-    };
+        let soldeFinal = mouvements.length > 0 ? mouvements[mouvements.length-1].solde : 0;
+        doc.setFillColor(240, 240, 245);
+        doc.rect(14, y, 182, 25, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(13, 148, 136);
+        doc.text('RÉCAPITULATIF', 20, y+8);
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Nombre de mouvements: ${mouvements.length}`, 20, y+18);
+        doc.setTextColor(soldeFinal > 0 ? 220 : 5, soldeFinal > 0 ? 38 : 150, 38);
+        doc.text(`SOLDE FINAL: ${formatMoney(soldeFinal)}`, 20, y+28);
+        
+        doc.save(`Mouvements_${client.name.replace(/\s/g, '_')}.pdf`);
+        showFlash('PDF des mouvements généré avec succès');
+    }
 
     // ========== AUTRES EXPORTS ==========
     window.exportClientPaymentsPDF = () => { const clientId = document.getElementById('reportClientSelect').value; if(!clientId){ showFlash('Veuillez sélectionner un client'); return; } const c = clients.find(c=>c.id===clientId); const clientOrders = orders.filter(o=>o.clientId===clientId); const clientPayments = payments.filter(p=>clientOrders.some(o=>o.id===p.orderId)).sort((a,b)=>new Date(a.date)-new Date(b.date)); const totalGeneral = clientOrders.reduce((s,o)=>s+o.amount,0); const totalPaye = clientPayments.reduce((s,p)=>s+p.amount,0); const solde = totalGeneral - totalPaye; const { jsPDF } = window.jspdf; const doc = new jsPDF('p','mm','a4'); doc.setFillColor(13,148,136); doc.rect(0,0,210,45,'F'); doc.setTextColor(255,255,255); doc.setFontSize(22); doc.text('EL FATH SERVICE',105,22,{align:'center'}); doc.setFontSize(11); doc.text('Historique des versements',105,34,{align:'center'}); doc.setTextColor(0,0,0); doc.setFontSize(11); doc.text(`Client: ${c.name}`,14,55); if(c.phone) doc.text(`Téléphone: ${c.phone}`,14,63); let periodTxt = dateFilterStart&&dateFilterEnd ? `Période: du ${formatDateFr(dateFilterStart)} au ${formatDateFr(dateFilterEnd)}` : 'Toutes les périodes'; doc.text(periodTxt,14,71); if(clientPayments.length){ let body = clientPayments.map(p=>[formatDateFr(p.date), p.orderNumber, formatNumber(p.amount), p.method||'-', p.notes||'-']); doc.autoTable({ startY:85, head:[['Date','N° Commande','Montant','Mode','Notes']], body, headStyles:{fillColor:[13,148,136],textColor:255}, styles:{fontSize:9}, margin:{left:14,right:14} }); } else { doc.text('Aucun versement enregistré',14,85); } let y = doc.lastAutoTable ? doc.lastAutoTable.finalY+15 : 110; doc.setFillColor(240,240,245); doc.rect(14,y,182,35,'F'); doc.text(`Total des commandes: ${formatMoney(totalGeneral)}`,20,y+8); doc.text(`Total versé: ${formatMoney(totalPaye)}`,20,y+18); doc.text(`Solde restant: ${formatMoney(solde)}`,20,y+28); doc.save(`Versements_${c.name.replace(/\s/g,'_')}.pdf`); showFlash('PDF généré avec succès'); };
@@ -269,99 +389,48 @@
     
     function renderRecentPayments(){ let container=document.getElementById('recentPaymentsList'); if(!container)return; let recent=[...payments].sort((a,b)=>b.timestamp-a.timestamp).slice(0,8); if(!recent.length){ container.innerHTML='<div style="padding:20px;text-align:center;">Aucun paiement récent</div>'; return; } container.innerHTML=recent.map(p=>`<div class="list-item"><div><strong>${p.clientName}</strong> - ${formatMoney(p.amount)}</div><div class="small-text">📄 ${p.orderNumber} | 📅 ${formatDateFr(p.date)}</div></div>`).join(''); }
     
-    // ========== CORRECTION DE LA NAVIGATION ==========
+    // ========== NAVIGATION CORRIGÉE ==========
     window.showTab = (tabName) => {
-        // Cacher tous les contenus
         document.getElementById('clientsTab').classList.add('hidden');
         document.getElementById('ordersTab').classList.add('hidden');
         document.getElementById('paymentsTab').classList.add('hidden');
         document.getElementById('situationTab').classList.add('hidden');
-        
-        // Afficher le contenu sélectionné
         document.getElementById(`${tabName}Tab`).classList.remove('hidden');
-        
-        // Mettre à jour la classe active sur les onglets
         document.querySelectorAll('.nav-tab').forEach(tab => {
-            if (tab.getAttribute('data-tab') === tabName) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
+            if (tab.getAttribute('data-tab') === tabName) tab.classList.add('active');
+            else tab.classList.remove('active');
         });
-        
-        // Rafraîchir les données si nécessaire
         if (tabName === 'situation') {
             renderSituationClients();
-            updateJournalClientSelect();
+            updateMovementClientSelect();
         }
-        if (tabName === 'payments') {
-            updateAllSelects();
-            loadClientOrdersForPayment();
-        }
+        if (tabName === 'payments') { updateAllSelects(); loadClientOrdersForPayment(); }
     };
     
-    // Initialiser les écouteurs d'événements pour la navigation
     document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabName = tab.getAttribute('data-tab');
-            showTab(tabName);
-        });
+        tab.addEventListener('click', () => showTab(tab.getAttribute('data-tab')));
     });
     
-    window.showDeleteAllModal=(type)=>{ pendingDeleteType=type; document.getElementById('deleteConfirmMessage').innerHTML='⚠️ Êtes-vous sûr de vouloir supprimer toutes les données ? Cette action est irréversible.'; openModal('deleteConfirmModal'); };
-    document.getElementById('confirmDeleteBtn').onclick=()=>{ closeModal('deleteConfirmModal'); showFlash('Toutes les données ont été supprimées'); };
+    window.showDeleteAllModal=(type)=>{ pendingDeleteType=type; document.getElementById('deleteConfirmMessage').innerHTML='⚠️ Êtes-vous sûr de vouloir supprimer toutes les données ?'; openModal('deleteConfirmModal'); };
+    document.getElementById('confirmDeleteBtn').onclick=()=>{ closeModal('deleteConfirmModal'); showFlash('Action simulée'); };
     function initTheme(){ let saved=localStorage.getItem('elfath_theme'); if(saved==='dark') document.body.classList.add('dark'); document.getElementById('themeToggleBtn').onclick=()=>{ document.body.classList.toggle('dark'); localStorage.setItem('elfath_theme', document.body.classList.contains('dark')?'dark':'light'); }; }
     
     window.showOrderDetail = (orderId) => { 
-        let o=orders.find(o=>o.id===orderId); 
-        if(!o) return; 
+        let o=orders.find(o=>o.id===orderId); if(!o) return; 
         let c=clients.find(c=>c.id===o.clientId); 
         let paid=payments.filter(p=>p.orderId===orderId).reduce((s,p)=>s+p.amount,0); 
-        document.getElementById('orderDetailContent').innerHTML=`<div style="line-height:2;"><strong>${c?.name}</strong><br>N° commande: ${o.orderNumber}<br>Date: ${formatDateFr(o.date)}<br>Montant total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br><span style="color:var(--warning); font-weight:bold;">Reste: ${formatMoney(o.amount-paid)}</span><br>${o.notes ? `<br>📝 Notes: ${o.notes}` : ''}</div>`; 
+        document.getElementById('orderDetailContent').innerHTML=`<div style="line-height:2;"><strong>${c?.name}</strong><br>N° commande: ${o.orderNumber}<br>Date: ${formatDateFr(o.date)}<br>Montant total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br><span style="color:var(--warning);">Reste: ${formatMoney(o.amount-paid)}</span></div>`; 
         openModal('orderDetailModal'); 
-        document.getElementById('printOrderBtn').onclick=()=>{ 
-            const {jsPDF}=window.jspdf; 
-            const doc=new jsPDF(); 
-            doc.setFillColor(13,148,136); 
-            doc.rect(0,0,210,20,'F'); 
-            doc.setTextColor(255,255,255); 
-            doc.setFontSize(16); 
-            doc.text('EL FATH SERVICE',105,14,{align:'center'}); 
-            doc.setTextColor(0,0,0); 
-            doc.setFontSize(12); 
-            doc.text(`Facture N°: ${o.orderNumber}`,10,35); 
-            doc.text(`Client: ${c?.name}`,10,45); 
-            doc.text(`Date: ${formatDateFr(o.date)}`,10,55); 
-            doc.text(`Montant total: ${formatMoney(o.amount)}`,10,65); 
-            doc.text(`Montant payé: ${formatMoney(paid)}`,10,75); 
-            doc.text(`Montant restant: ${formatMoney(o.amount-paid)}`,10,85); 
-            doc.save(`facture_${o.orderNumber}.pdf`); 
-            showFlash('PDF facture généré'); 
-        };
-        document.getElementById('deleteOrderBtn').onclick=()=>{ 
-            closeModal('orderDetailModal');
-            deleteOrder(orderId);
-        };
+        document.getElementById('printOrderBtn').onclick=()=>{ const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFillColor(13,148,136); doc.rect(0,0,210,20,'F'); doc.setTextColor(255,255,255); doc.setFontSize(16); doc.text('EL FATH SERVICE',105,14,{align:'center'}); doc.setTextColor(0,0,0); doc.text(`Facture N°: ${o.orderNumber}`,10,35); doc.text(`Client: ${c?.name}`,10,45); doc.text(`Date: ${formatDateFr(o.date)}`,10,55); doc.text(`Montant total: ${formatMoney(o.amount)}`,10,65); doc.text(`Montant payé: ${formatMoney(paid)}`,10,75); doc.text(`Montant restant: ${formatMoney(o.amount-paid)}`,10,85); doc.save(`facture_${o.orderNumber}.pdf`); showFlash('PDF facture généré'); };
+        document.getElementById('deleteOrderBtn').onclick=()=>{ closeModal('orderDetailModal'); deleteOrder(orderId); };
     };
     
-    window.showClientOrders = (clientId) => { 
-        let c=clients.find(c=>c.id===clientId); 
-        let clientOrders=orders.filter(o=>o.clientId===clientId); 
-        let html=`<div class="modal-content"><div class="modal-header">Commandes de ${c?.name} <button onclick="closeModal('tempModal')" style="background:none; width:auto;">✕</button></div>`; 
-        if(clientOrders.length === 0){
-            html+=`<div style="padding:20px; text-align:center;">Aucune commande pour ce client</div>`;
-        } else {
-            clientOrders.forEach(o=>{ 
-                let paid=payments.filter(p=>p.orderId===o.id).reduce((s,p)=>s+p.amount,0); 
-                html+=`<div class="list-item" style="cursor:default;"><div class="flex-between"><span><strong>${o.orderNumber}</strong></span><span class="badge ${paid>=o.amount?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=o.amount?'Payée':paid>0?'Partielle':'Impayée'}</span></div><div>${formatMoney(o.amount)} (Payé: ${formatMoney(paid)})</div><div class="small-text">📅 ${formatDateFr(o.date)}</div><button class="small-icon-btn" style="margin-top:8px; background:var(--info); color:white;" onclick="closeModal('tempModal'); showOrderDetail('${o.id}')">Voir détails</button></div>`; 
-            });
-        }
-        html+=`<button onclick="closeModal('tempModal')" style="margin-top:15px;">Fermer</button></div>`; 
-        let modal=document.createElement('div'); 
-        modal.id='tempModal'; 
-        modal.className='modal active'; 
-        modal.innerHTML=html; 
-        document.body.appendChild(modal); 
+    window.deleteOrder = async (orderId) => {
+        if (!confirm('Supprimer cette commande et ses paiements ?')) return;
+        const orderPayments = payments.filter(p => p.orderId === orderId);
+        for (let p of orderPayments) await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove();
+        await db.ref(`users/${currentUser.uid}/orders/${orderId}`).remove();
+        showFlash('Commande supprimée');
     };
 </script>
 </body>
