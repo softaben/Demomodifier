@@ -1,815 +1,986 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Softaben Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>نظام إدارة العملاء والطلبيات والدفعات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
-        :root {
-            --sidebar-width: 250px;
-            --header-height: 60px;
-            --primary: #2563eb;
-            --secondary: #1e40af;
-            --dark: #1e293b;
-            --light: #f8fafc;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            overflow-x: hidden;
+            font-family: 'Cairo', sans-serif;
+            background: #0f0f1a;
+            color: #fff;
+            padding-bottom: 70px;
         }
-        
-        #sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            background: var(--dark);
-            color: white;
-            transition: all 0.3s;
-            z-index: 1000;
-        }
-        
-        #main-content {
-            margin-left: var(--sidebar-width);
-            padding-top: var(--header-height);
-            min-height: 100vh;
-            background: var(--light);
-            transition: all 0.3s;
-        }
-        
-        #header {
-            height: var(--header-height);
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: var(--sidebar-width);
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            justify-content: space-between;
-        }
-        
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .sidebar-menu li a {
-            color: #cbd5e1;
-            display: block;
-            padding: 12px 20px;
-            text-decoration: none;
-            transition: all 0.3s;
-            border-left: 3px solid transparent;
-        }
-        
-        .sidebar-menu li a:hover, 
-        .sidebar-menu li a.active {
-            color: white;
-            background: rgba(255,255,255,0.1);
-            border-left: 3px solid var(--primary);
-        }
-        
-        .sidebar-menu li a i {
-            margin-right: 10px;
-            width: 20px;
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 15px;
             text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        
+        .logo { font-size: 20px; font-weight: bold; }
+        .logo i { color: #9b59b6; margin-left: 8px; }
+        .container { padding: 15px; max-width: 600px; margin: auto; }
         .card {
-            border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            border-radius: 10px;
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #2d2d44;
         }
-        
-        .card-header {
-            background: white;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            font-weight: 600;
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #9b59b6;
+            border-right: 3px solid #9b59b6;
+            padding-right: 10px;
+        }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 13px; margin-bottom: 5px; color: #a0a0b0; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background: #0f0f1a;
+            border: 1px solid #2d2d44;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+        }
+        button {
+            background: #9b59b6;
+            border: none;
+            padding: 10px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+        }
+        button.success { background: #2ecc71; }
+        button.danger { background: #e74c3c; }
+        button.info { background: #3498db; }
+        button.warning { background: #f39c12; }
+        .row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .row button { margin: 0; }
+        .list-item {
+            background: #0f0f1a;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #2d2d44;
+            cursor: pointer;
+        }
+        .customer-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #9b59b6;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-right: 5px;
+        }
+        .badge-paid { background: #2ecc71; }
+        .badge-partial { background: #f39c12; }
+        .badge-unpaid { background: #e74c3c; }
+        .progress-bar {
+            height: 6px;
+            background: #2d2d44;
+            border-radius: 3px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #9b59b6;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .flex-between {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
-        .logo {
-            padding: 20px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            display: flex;
+        .small-text { font-size: 12px; color: #a0a0b0; }
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            z-index: 200;
         }
-        
-        .table th {
-            font-weight: 600;
-            background: #f8fafc;
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #1a1a2e;
+            width: 90%;
+            max-width: 450px;
+            border-radius: 20px;
+            padding: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        
-        .nav-tabs .nav-link.active {
-            font-weight: 600;
-            border-bottom: 2px solid var(--primary);
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
         }
-        
-        @media (max-width: 768px) {
-            #sidebar {
-                left: -var(--sidebar-width);
-            }
-            
-            #main-content {
-                margin-left: 0;
-            }
-            
-            #header {
-                left: 0;
-            }
-            
-            #sidebar.active {
-                left: 0;
-            }
-            
-            #main-content.active {
-                margin-left: var(--sidebar-width);
-            }
+        .hidden { display: none; }
+        .tab-bar {
+            display: flex;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a2e;
+            border-top: 1px solid #2d2d44;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            color: #a0a0b0;
+            cursor: pointer;
+        }
+        .tab.active { color: #9b59b6; }
+        .tab i { font-size: 22px; display: block; margin-bottom: 4px; }
+        .tab span { font-size: 11px; }
+        .search-box { margin-bottom: 15px; }
+        .empty { text-align: center; padding: 30px; color: #a0a0b0; }
+        .small-icon-btn {
+            background: #2d2d44;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 11px;
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div id="sidebar">
-        <div class="logo">Softaben Admin</div>
-        <ul class="sidebar-menu">
-            <li><a href="#" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="#home-content"><i class="fas fa-home"></i> Home Content</a></li>
-            <li><a href="#services"><i class="fas fa-server"></i> Services</a></li>
-            <li><a href="#messages"><i class="fas fa-envelope"></i> Messages</a></li>
-            <li><a href="#team"><i class="fas fa-users"></i> Team</a></li>
-            <li><a href="#settings"><i class="fas fa-cog"></i> Settings</a></li>
-            <li><a href="#logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-        </ul>
-    </div>
-    
-    <!-- Header -->
-    <header id="header">
-        <button class="btn btn-sm d-md-none" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="d-flex align-items-center">
-            <div class="user-avatar me-2">AD</div>
-            <span class="d-none d-sm-inline">Admin User</span>
+
+<div class="header">
+    <div class="logo"><i class="fas fa-users"></i> نظام العملاء والطلبيات</div>
+</div>
+
+<div class="container" id="app">
+    <!-- تبويب العملاء -->
+    <div id="customersTab">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-user-plus"></i> إضافة عميل جديد</div>
+            <div class="form-group">
+                <label>📛 اسم العميل *</label>
+                <input type="text" id="newCustomerName" placeholder="مثال: أحمد محمد">
+            </div>
+            <div class="form-group">
+                <label>📞 رقم الهاتف</label>
+                <input type="text" id="newCustomerPhone" placeholder="اختياري">
+            </div>
+            <div class="form-group">
+                <label>📍 العنوان</label>
+                <input type="text" id="newCustomerAddress" placeholder="اختياري">
+            </div>
+            <button id="saveCustomerBtn" class="success">💾 إضافة عميل</button>
         </div>
-    </header>
-    
-    <!-- Main Content -->
-    <div id="main-content">
-        <div class="container-fluid p-4">
-            <!-- Dashboard Overview -->
-            <div class="row mb-4" id="dashboardOverview">
-                <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title text-muted">Total Services</h5>
-                            <h3 class="card-text" id="servicesCount">0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title text-muted">Unread Messages</h5>
-                            <h3 class="card-text" id="messagesCount">0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title text-muted">Team Members</h5>
-                            <h3 class="card-text" id="teamCount">0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title text-muted">Last Updated</h5>
-                            <h3 class="card-text" id="lastUpdated">-</h3>
-                        </div>
-                    </div>
-                </div>
+
+        <div class="card">
+            <div class="card-title"><i class="fas fa-list"></i> قائمة العملاء</div>
+            <div class="search-box">
+                <input type="text" id="searchCustomersList" placeholder="🔍 بحث باسم العميل" oninput="renderCustomersList()">
             </div>
-            
-            <!-- Home Content Management -->
-            <div class="card mb-4 d-none" id="homeContentSection">
-                <div class="card-header">
-                    <h5 class="mb-0">Home Page Content</h5>
-                </div>
-                <div class="card-body">
-                    <form id="homeContentForm">
-                        <ul class="nav nav-tabs mb-4" id="langTabs">
-                            <li class="nav-item">
-                                <a class="nav-link active" data-bs-toggle="tab" href="#englishTab">English</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#arabicTab">Arabic</a>
-                            </li>
-                        </ul>
-                        
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="englishTab">
-                                <div class="mb-3">
-                                    <label class="form-label">Hero Title</label>
-                                    <input type="text" class="form-control" id="heroTitleEn" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Hero Description</label>
-                                    <textarea class="form-control" id="heroDescriptionEn" rows="3" required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">About Title</label>
-                                    <input type="text" class="form-control" id="aboutTitleEn" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">About Content 1</label>
-                                    <textarea class="form-control" id="aboutContent1En" rows="3" required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">About Content 2</label>
-                                    <textarea class="form-control" id="aboutContent2En" rows="3" required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">About Content 3</label>
-                                    <textarea class="form-control" id="aboutContent3En" rows="3" required></textarea>
-                                </div>
-                            </div>
-                            
-                            <div class="tab-pane fade" id="arabicTab">
-                                <div class="mb-3">
-                                    <label class="form-label">Hero Title (Arabic)</label>
-                                    <input type="text" class="form-control" id="heroTitleAr" dir="rtl" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Hero Description (Arabic)</label>
-                                    <textarea class="form-control" id="heroDescriptionAr" rows="3" dir="rtl" required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">About Title (Arabic)</label>
-                                    <input type="text" class="form-control" id="aboutTitleAr" dir="rtl" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">About Content 1 (Arabic)</label>
-                                    <textarea class="form-control" id="aboutContent1Ar" rows="3" dir="rtl" required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">About Content 2 (Arabic)</label>
-                                    <textarea class="form-control" id="aboutContent2Ar" rows="3" dir="rtl" required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">About Content 3 (Arabic)</label>
-                                    <textarea class="form-control" id="aboutContent3Ar" rows="3" dir="rtl" required></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Services Management -->
-            <div class="card mb-4 d-none" id="servicesSection">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Manage Services</h5>
-                    <button class="btn btn-primary btn-sm" id="addServiceBtn">Add New Service</button>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table" id="servicesTable">
-                            <thead>
-                                <tr>
-                                    <th>English Title</th>
-                                    <th>Arabic Title</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Services will be loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Messages Management -->
-            <div class="card mb-4 d-none" id="messagesSection">
-                <div class="card-header">
-                    <h5 class="mb-0">Customer Messages</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table" id="messagesTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Service</th>
-                                    <th>Message</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Messages will be loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Service Modal -->
-    <div class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="serviceModalLabel">Add New Service</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="serviceForm">
-                        <input type="hidden" id="serviceId">
-                        <ul class="nav nav-tabs mb-4">
-                            <li class="nav-item">
-                                <a class="nav-link active" data-bs-toggle="tab" href="#serviceEnglishTab">English</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#serviceArabicTab">Arabic</a>
-                            </li>
-                        </ul>
-                        
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="serviceEnglishTab">
-                                <div class="mb-3">
-                                    <label class="form-label">Service Title</label>
-                                    <input type="text" class="form-control" id="serviceTitleEn" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Service Description</label>
-                                    <textarea class="form-control" id="serviceDescEn" rows="3" required></textarea>
-                                </div>
-                            </div>
-                            
-                            <div class="tab-pane fade" id="serviceArabicTab">
-                                <div class="mb-3">
-                                    <label class="form-label">Service Title (Arabic)</label>
-                                    <input type="text" class="form-control" id="serviceTitleAr" dir="rtl" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Service Description (Arabic)</label>
-                                    <textarea class="form-control" id="serviceDescAr" rows="3" dir="rtl" required></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Image URL</label>
-                            <input type="text" class="form-control" id="serviceImage" required>
-                        </div>
-                        
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Service</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            <div id="customersList"></div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyA5kLkh1AvGYz9CfHx3-NrNa4GOrs362zQ",
-            authDomain: "store-softaben.firebaseapp.com",
-            projectId: "store-softaben",
-            storageBucket: "store-softaben.appspot.com",
-            messagingSenderId: "970657944397",
-            appId: "1:970657944397:web:ecec3f41e8f3d0b324dd04",
-            measurementId: "G-5E0T25EYL9"
-        };
+    <!-- تبويب الطلبيات -->
+    <div id="ordersTab" class="hidden">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-plus-circle"></i> طلبية جديدة</div>
+            <div class="form-group">
+                <label>👤 اختيار العميل *</label>
+                <select id="orderCustomerSelect">
+                    <option value="">-- اختر عميل --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>🔢 رقم الطلبية *</label>
+                <input type="text" id="orderNumber" placeholder="رقم الطلبية">
+            </div>
+            <div class="form-group">
+                <label>💰 المبلغ الإجمالي (MAD) *</label>
+                <input type="number" id="orderAmount" placeholder="0.00" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>📅 تاريخ الاستحقاق</label>
+                <input type="date" id="orderDueDate">
+            </div>
+            <div class="form-group">
+                <label>📝 ملاحظات</label>
+                <input type="text" id="orderNotes" placeholder="اختياري">
+            </div>
+            <button id="saveOrderBtn" class="success">💾 إضافة طلبية</button>
+        </div>
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+        <div class="card">
+            <div class="card-title"><i class="fas fa-file-invoice"></i> قائمة الطلبيات</div>
+            <div class="search-box">
+                <input type="text" id="searchOrders" placeholder="🔍 بحث باسم العميل أو رقم الطلبية" oninput="renderOrdersList()">
+            </div>
+            <div id="ordersList"></div>
+        </div>
+    </div>
+
+    <!-- تبويب المدفوعات -->
+    <div id="paymentsTab" class="hidden">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-hand-holding-usd"></i> تسجيل دفعة</div>
+            <div class="form-group">
+                <label>🔍 اختيار العميل</label>
+                <select id="paymentCustomerSelect" onchange="loadCustomerOrdersForPayment()">
+                    <option value="">-- اختر عميل --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>📄 اختيار الطلبية</label>
+                <select id="paymentOrderSelect" onchange="updatePaymentInfo()">
+                    <option value="">-- اختر طلبية --</option>
+                </select>
+            </div>
+            <div id="paymentOrderInfo" style="background:#0f0f1a; padding:10px; border-radius:10px; margin-bottom:12px;"></div>
+            <div class="form-group">
+                <label>💰 المبلغ المدفوع (MAD)</label>
+                <input type="number" id="paymentAmount" placeholder="0.00" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>📅 تاريخ الدفعة</label>
+                <input type="date" id="paymentDate">
+            </div>
+            <div class="form-group">
+                <label>💳 طريقة الدفع</label>
+                <select id="paymentMethod">
+                    <option value="نقدي">💰 نقدي</option>
+                    <option value="تحويل بنكي">🏦 تحويل بنكي</option>
+                    <option value="بطاقة">💳 بطاقة</option>
+                    <option value="شيك">📝 شيك</option>
+                </select>
+            </div>
+            <button id="savePaymentBtn" class="success">✅ تسجيل الدفعة</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i class="fas fa-history"></i> آخر المدفوعات</div>
+            <div id="recentPaymentsList"></div>
+        </div>
+    </div>
+
+    <!-- تبويب حالة العملاء -->
+    <div id="statusTab" class="hidden">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-line"></i> ملخص حالة العملاء</div>
+            <div class="search-box">
+                <input type="text" id="searchCustomersStatus" placeholder="🔍 بحث باسم العميل" oninput="renderCustomersStatus()">
+            </div>
+            <div id="customersStatusList"></div>
+        </div>
+    </div>
+</div>
+
+<div class="tab-bar">
+    <div class="tab active" onclick="showTab('customers')">
+        <i class="fas fa-users"></i>
+        <span>العملاء</span>
+    </div>
+    <div class="tab" onclick="showTab('orders')">
+        <i class="fas fa-file-alt"></i>
+        <span>الطلبيات</span>
+    </div>
+    <div class="tab" onclick="showTab('payments')">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>المدفوعات</span>
+    </div>
+    <div class="tab" onclick="showTab('status')">
+        <i class="fas fa-chart-simple"></i>
+        <span>الحالة</span>
+    </div>
+</div>
+
+<!-- مودال لعرض تفاصيل الطلبية والدفعات -->
+<div id="orderDetailModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>📋 تفاصيل الطلبية</span>
+            <button onclick="closeModal('orderDetailModal')" style="background:none; color:white; font-size:20px;">✕</button>
+        </div>
+        <div id="orderDetailContent"></div>
+        <button id="printOrderBtn" style="margin-top:10px; background:#3498db;">🖨️ طباعة</button>
+    </div>
+</div>
+
+<script>
+    // ========== Firebase Configuration ==========
+    const firebaseConfig = {
+        apiKey: "AIzaSyB-TBjgISvKwJnYc7hNRoUcNLhxRnJvVE0",
+        authDomain: "stock-c1643.firebaseapp.com",
+        projectId: "stock-c1643",
+        storageBucket: "stock-c1643.firebasestorage.app",
+        messagingSenderId: "935549361989",
+        appId: "1:935549361989:web:5407897ba6febc50f1682c"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    let currentUser = null;
+    let customers = [];     // العملاء
+    let orders = [];        // الطلبيات
+    let payments = [];      // المدفوعات
+
+    // ========== Auth ==========
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            loadData();
+        } else {
+            showLogin();
+        }
+    });
+
+    function showLogin() {
+        const html = `
+            <div id="loginModal" class="modal active">
+                <div class="modal-content">
+                    <div class="modal-header" style="justify-content:center;">🔐 تسجيل الدخول</div>
+                    <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" style="width:100%; margin-bottom:10px;">
+                    <input type="password" id="loginPass" placeholder="كلمة المرور" style="width:100%; margin-bottom:15px;">
+                    <button onclick="doLogin()">دخول</button>
+                    <div id="loginError" style="color:red; margin-top:8px; font-size:12px; text-align:center;"></div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', html);
+    }
+
+    window.doLogin = async () => {
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPass').value;
+        try {
+            await auth.signInWithEmailAndPassword(email, pass);
+            document.getElementById('loginModal')?.remove();
+        } catch(e) {
+            document.getElementById('loginError').innerText = e.message;
+        }
+    };
+
+    // ========== Load Data ==========
+    async function loadData() {
+        const uid = currentUser.uid;
         
-        // DOM Elements
-        const sections = {
-            dashboard: document.getElementById('dashboardOverview'),
-            homeContent: document.getElementById('homeContentSection'),
-            services: document.getElementById('servicesSection'),
-            messages: document.getElementById('messagesSection')
-        };
-        
-        // Initialize the admin dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication state
-            auth.onAuthStateChanged(user => {
-                if (!user) {
-                    window.location.href = "login.html";
-                } else {
-                    initDashboard();
-                    loadHomeContent();
-                    loadServices();
-                    loadMessages();
-                }
-            });
-            
-            // Sidebar toggle for mobile
-            document.getElementById('sidebarToggle').addEventListener('click', function() {
-                document.getElementById('sidebar').classList.toggle('active');
-                document.getElementById('main-content').classList.toggle('active');
-            });
-            
-            // Sidebar navigation
-            document.querySelectorAll('.sidebar-menu a').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Handle logout
-                    if (this.getAttribute('href') === '#logout') {
-                        auth.signOut();
-                        return;
-                    }
-                    
-                    // Set active link
-                    document.querySelectorAll('.sidebar-menu a').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    // Show the corresponding section
-                    const sectionId = this.getAttribute('href').substring(1);
-                    showSection(sectionId);
-                });
-            });
-            
-            // Home content form submission
-            document.getElementById('homeContentForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                saveHomeContent();
-            });
-            
-            // Add service button
-            document.getElementById('addServiceBtn').addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
-                document.getElementById('serviceModalLabel').textContent = 'Add New Service';
-                document.getElementById('serviceForm').reset();
-                document.getElementById('serviceForm').dataset.mode = 'add';
-                modal.show();
-            });
-            
-            // Service form submission
-            document.getElementById('serviceForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                saveService();
-            });
+        db.ref(`users/${uid}/customers`).on('value', snap => {
+            customers = snap.exists() ? Object.values(snap.val()) : [];
+            renderCustomersList();
+            updateCustomerSelects();
+            renderCustomersStatus();
         });
         
-        // Show specific section
-        function showSection(sectionId) {
-            // Hide all sections first
-            Object.values(sections).forEach(section => {
-                section.classList.add('d-none');
-            });
+        db.ref(`users/${uid}/orders`).on('value', snap => {
+            orders = snap.exists() ? Object.values(snap.val()) : [];
+            renderOrdersList();
+            renderCustomersStatus();
+        });
+        
+        db.ref(`users/${uid}/payments`).on('value', snap => {
+            payments = snap.exists() ? Object.values(snap.val()) : [];
+            renderRecentPayments();
+            renderOrdersList();
+            renderCustomersStatus();
+        });
+    }
+
+    // ========== Customers Functions ==========
+    function renderCustomersList() {
+        const container = document.getElementById('customersList');
+        const search = document.getElementById('searchCustomersList')?.value.toLowerCase() || '';
+        
+        let filtered = customers;
+        if (search) {
+            filtered = customers.filter(c => c.name.toLowerCase().includes(search));
+        }
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="empty">📭 لا يوجد عملاء</div>';
+            return;
+        }
+        
+        container.innerHTML = filtered.map(customer => `
+            <div class="list-item" onclick="showCustomerOrders('${customer.id}')">
+                <div class="flex-between">
+                    <span class="customer-name">👤 ${customer.name}</span>
+                    <button class="small-icon-btn" onclick="event.stopPropagation(); editCustomer('${customer.id}')">✏️ تعديل</button>
+                </div>
+                ${customer.phone ? `<div class="small-text">📞 ${customer.phone}</div>` : ''}
+                ${customer.address ? `<div class="small-text">📍 ${customer.address}</div>` : ''}
+            </div>
+        `).join('');
+    }
+    
+    window.editCustomer = (customerId) => {
+        const customer = customers.find(c => c.id === customerId);
+        if (!customer) return;
+        
+        const newName = prompt('اسم العميل:', customer.name);
+        if (newName && newName.trim()) {
+            const newPhone = prompt('رقم الهاتف:', customer.phone || '');
+            const newAddress = prompt('العنوان:', customer.address || '');
             
-            // Show the selected section
-            if (sectionId === 'dashboard') {
-                sections.dashboard.classList.remove('d-none');
-            } else if (sectionId === 'home-content') {
-                sections.homeContent.classList.remove('d-none');
-            } else if (sectionId === 'services') {
-                sections.services.classList.remove('d-none');
-            } else if (sectionId === 'messages') {
-                sections.messages.classList.remove('d-none');
+            const updated = {
+                ...customer,
+                name: newName.trim(),
+                phone: newPhone || '',
+                address: newAddress || ''
+            };
+            db.ref(`users/${currentUser.uid}/customers/${customerId}`).set(updated);
+            showFlash('تم تحديث العميل', 'success');
+        }
+    };
+    
+    document.getElementById('saveCustomerBtn').onclick = async () => {
+        const name = document.getElementById('newCustomerName').value.trim();
+        const phone = document.getElementById('newCustomerPhone').value.trim();
+        const address = document.getElementById('newCustomerAddress').value.trim();
+        
+        if (!name) { showFlash('اسم العميل مطلوب', 'warning'); return; }
+        
+        const customer = {
+            id: Date.now().toString(),
+            name: name,
+            phone: phone,
+            address: address,
+            date: new Date().toISOString()
+        };
+        
+        await db.ref(`users/${currentUser.uid}/customers/${customer.id}`).set(customer);
+        
+        document.getElementById('newCustomerName').value = '';
+        document.getElementById('newCustomerPhone').value = '';
+        document.getElementById('newCustomerAddress').value = '';
+        
+        showFlash('تم إضافة العميل بنجاح', 'success');
+    };
+    
+    function updateCustomerSelects() {
+        const orderSelect = document.getElementById('orderCustomerSelect');
+        const paymentSelect = document.getElementById('paymentCustomerSelect');
+        
+        if (orderSelect) {
+            orderSelect.innerHTML = '<option value="">-- اختر عميل --</option>';
+            customers.forEach(c => {
+                orderSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+        }
+        
+        if (paymentSelect) {
+            paymentSelect.innerHTML = '<option value="">-- اختر عميل --</option>';
+            customers.forEach(c => {
+                paymentSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+        }
+    }
+    
+    // عرض طلبيات عميل معين
+    window.showCustomerOrders = (customerId) => {
+        const customer = customers.find(c => c.id === customerId);
+        if (!customer) return;
+        
+        const customerOrders = orders.filter(o => o.customerId === customerId);
+        
+        if (customerOrders.length === 0) {
+            showFlash('لا توجد طلبيات لهذا العميل', 'warning');
+            return;
+        }
+        
+        let html = `<div style="margin-bottom:15px;"><strong>👤 ${customer.name}</strong></div>`;
+        
+        customerOrders.forEach(order => {
+            const orderPayments = payments.filter(p => p.orderId === order.id);
+            const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = order.amount - totalPaid;
+            const percent = (totalPaid / order.amount) * 100;
+            
+            html += `
+                <div class="list-item" style="margin-bottom:10px;">
+                    <div class="flex-between">
+                        <span>🔢 ${order.orderNumber}</span>
+                        <span>${formatMoney(order.amount)}</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                    <div class="flex-between small-text">
+                        <span>مدفوع: ${formatMoney(totalPaid)}</span>
+                        <span>متبقي: ${formatMoney(remaining)}</span>
+                    </div>
+                    <div class="flex-between small-text" style="margin-top:8px;">
+                        <span>📅 ${formatDate(order.date)}</span>
+                        ${remaining > 0 ? `<button onclick="quickPayment('${order.id}')" style="background:#2ecc71; padding:5px 10px; font-size:11px; width:auto;">+ دفعة</button>` : ''}
+                        <button onclick="showOrderDetail('${order.id}')" style="background:#3498db; padding:5px 10px; font-size:11px; width:auto;">تفاصيل</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'tempModal';
+        modal.innerHTML = `<div class="modal-content"><div class="modal-header"><span>📋 طلبيات ${customer.name}</span><button onclick="closeModal('tempModal')" style="background:none; font-size:20px;">✕</button></div>${html}</div>`;
+        document.body.appendChild(modal);
+    };
+    
+    // ========== Orders Functions ==========
+    function renderOrdersList() {
+        const container = document.getElementById('ordersList');
+        const search = document.getElementById('searchOrders')?.value.toLowerCase() || '';
+        
+        let filtered = orders;
+        if (search) {
+            filtered = orders.filter(o => {
+                const customer = customers.find(c => c.id === o.customerId);
+                const customerName = customer ? customer.name : '';
+                return customerName.toLowerCase().includes(search) || (o.orderNumber || '').toLowerCase().includes(search);
+            });
+        }
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="empty">📭 لا توجد طلبيات</div>';
+            return;
+        }
+        
+        filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        container.innerHTML = filtered.map(order => {
+            const customer = customers.find(c => c.id === order.customerId);
+            const customerName = customer ? customer.name : 'غير معروف';
+            const orderPayments = payments.filter(p => p.orderId === order.id);
+            const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = order.amount - totalPaid;
+            const percent = (totalPaid / order.amount) * 100;
+            
+            let statusBadge = '';
+            if (totalPaid >= order.amount) statusBadge = '<span class="badge badge-paid">مدفوع</span>';
+            else if (totalPaid > 0) statusBadge = '<span class="badge badge-partial">مدفوع جزئياً</span>';
+            else statusBadge = '<span class="badge badge-unpaid">غير مدفوع</span>';
+            
+            return `
+                <div class="list-item" onclick="showOrderDetail('${order.id}')">
+                    <div class="flex-between">
+                        <span class="customer-name">${customerName}</span>
+                        ${statusBadge}
+                    </div>
+                    <div class="flex-between" style="margin-top:5px;">
+                        <span>🔢 ${order.orderNumber || '-'}</span>
+                        <span>💰 ${formatMoney(order.amount)}</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                    <div class="flex-between small-text">
+                        <span>✅ مدفوع: ${formatMoney(totalPaid)}</span>
+                        <span>⚠️ متبقي: ${formatMoney(remaining)}</span>
+                    </div>
+                    <div class="small-text" style="margin-top:5px;">📅 ${formatDate(order.date)}</div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    document.getElementById('saveOrderBtn').onclick = async () => {
+        const customerId = document.getElementById('orderCustomerSelect').value;
+        const orderNumber = document.getElementById('orderNumber').value.trim();
+        const amount = parseFloat(document.getElementById('orderAmount').value);
+        const dueDate = document.getElementById('orderDueDate').value;
+        const notes = document.getElementById('orderNotes').value;
+        
+        if (!customerId) { showFlash('اختر عميلاً أولاً', 'warning'); return; }
+        if (!amount || amount <= 0) { showFlash('المبلغ غير صالح', 'warning'); return; }
+        
+        const order = {
+            id: Date.now().toString(),
+            customerId: customerId,
+            orderNumber: orderNumber || `ORD-${Date.now()}`,
+            amount: amount,
+            dueDate: dueDate,
+            notes: notes,
+            date: new Date().toISOString()
+        };
+        
+        await db.ref(`users/${currentUser.uid}/orders/${order.id}`).set(order);
+        
+        document.getElementById('orderNumber').value = '';
+        document.getElementById('orderAmount').value = '';
+        document.getElementById('orderDueDate').value = '';
+        document.getElementById('orderNotes').value = '';
+        
+        showFlash('تم إضافة الطلبية بنجاح', 'success');
+    };
+    
+    // ========== Payments Functions ==========
+    window.loadCustomerOrdersForPayment = () => {
+        const customerId = document.getElementById('paymentCustomerSelect').value;
+        const orderSelect = document.getElementById('paymentOrderSelect');
+        
+        if (!customerId) {
+            orderSelect.innerHTML = '<option value="">-- اختر طلبية --</option>';
+            document.getElementById('paymentOrderInfo').innerHTML = '';
+            return;
+        }
+        
+        const customerOrders = orders.filter(o => o.customerId === customerId);
+        
+        orderSelect.innerHTML = '<option value="">-- اختر طلبية --</option>';
+        customerOrders.forEach(order => {
+            const orderPayments = payments.filter(p => p.orderId === order.id);
+            const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = order.amount - totalPaid;
+            if (remaining > 0) {
+                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - متبقي: ${formatMoney(remaining)}</option>`;
+            } else {
+                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - ✅ مكتمل</option>`;
             }
+        });
+    };
+    
+    window.updatePaymentInfo = () => {
+        const orderId = document.getElementById('paymentOrderSelect').value;
+        const infoDiv = document.getElementById('paymentOrderInfo');
+        if (!orderId) {
+            infoDiv.innerHTML = '';
+            return;
+        }
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        const customer = customers.find(c => c.id === order.customerId);
+        const customerName = customer ? customer.name : 'غير معروف';
+        
+        const orderPayments = payments.filter(p => p.orderId === orderId);
+        const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+        const remaining = order.amount - totalPaid;
+        
+        infoDiv.innerHTML = `
+            <strong>${customerName}</strong><br>
+            رقم الطلبية: ${order.orderNumber}<br>
+            الإجمالي: ${formatMoney(order.amount)}<br>
+            المدفوع: ${formatMoney(totalPaid)}<br>
+            <span style="color: #f39c12;">المتبقي: ${formatMoney(remaining)}</span>
+        `;
+        document.getElementById('paymentAmount').value = remaining > 0 ? remaining.toFixed(2) : 0;
+        document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+    };
+    
+    document.getElementById('savePaymentBtn').onclick = async () => {
+        const orderId = document.getElementById('paymentOrderSelect').value;
+        const amount = parseFloat(document.getElementById('paymentAmount').value);
+        const paymentDate = document.getElementById('paymentDate').value;
+        const method = document.getElementById('paymentMethod').value;
+        
+        if (!orderId) { showFlash('اختر طلبية أولاً', 'warning'); return; }
+        if (!amount || amount <= 0) { showFlash('المبلغ غير صالح', 'warning'); return; }
+        
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        const orderPayments = payments.filter(p => p.orderId === orderId);
+        const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+        const remaining = order.amount - totalPaid;
+        
+        if (amount > remaining) {
+            showFlash(`المبلغ يتجاوز المتبقي (${formatMoney(remaining)})`, 'danger');
+            return;
         }
         
-        // Load home page content
-        async function loadHomeContent() {
-            try {
-                const docRef = doc(db, "siteContent", "homePage");
-                const docSnap = await getDoc(docRef);
-                
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    
-                    // English content
-                    document.getElementById('heroTitleEn').value = data.heroTitle.en;
-                    document.getElementById('heroDescriptionEn').value = data.heroDescription.en;
-                    document.getElementById('aboutTitleEn').value = data.aboutTitle.en;
-                    document.getElementById('aboutContent1En').value = data.aboutContent1.en;
-                    document.getElementById('aboutContent2En').value = data.aboutContent2.en;
-                    document.getElementById('aboutContent3En').value = data.aboutContent3.en;
-                    
-                    // Arabic content
-                    document.getElementById('heroTitleAr').value = data.heroTitle.ar;
-                    document.getElementById('heroDescriptionAr').value = data.heroDescription.ar;
-                    document.getElementById('aboutTitleAr').value = data.aboutTitle.ar;
-                    document.getElementById('aboutContent1Ar').value = data.aboutContent1.ar;
-                    document.getElementById('aboutContent2Ar').value = data.aboutContent2.ar;
-                    document.getElementById('aboutContent3Ar').value = data.aboutContent3.ar;
-                }
-            } catch (error) {
-                console.error("Error loading home content:", error);
-                alert("Failed to load home content. Please try again.");
-            }
+        const customer = customers.find(c => c.id === order.customerId);
+        
+        const payment = {
+            id: Date.now().toString(),
+            orderId: orderId,
+            customerId: order.customerId,
+            customerName: customer ? customer.name : 'غير معروف',
+            orderNumber: order.orderNumber,
+            amount: amount,
+            date: new Date(paymentDate).toISOString(),
+            method: method,
+            timestamp: Date.now()
+        };
+        
+        await db.ref(`users/${currentUser.uid}/payments/${payment.id}`).set(payment);
+        
+        document.getElementById('paymentAmount').value = '';
+        showFlash('تم تسجيل الدفعة بنجاح', 'success');
+        loadCustomerOrdersForPayment();
+    };
+    
+    function renderRecentPayments() {
+        const container = document.getElementById('recentPaymentsList');
+        if (!container) return;
+        
+        const recent = [...payments].sort((a,b) => b.timestamp - a.timestamp).slice(0, 10);
+        
+        if (recent.length === 0) {
+            container.innerHTML = '<div class="empty">لا توجد مدفوعات مسجلة</div>';
+            return;
         }
         
-        // Save home page content
-        async function saveHomeContent() {
-            try {
-                const docRef = doc(db, "siteContent", "homePage");
-                
-                const homeContent = {
-                    heroTitle: {
-                        en: document.getElementById('heroTitleEn').value,
-                        ar: document.getElementById('heroTitleAr').value
-                    },
-                    heroDescription: {
-                        en: document.getElementById('heroDescriptionEn').value,
-                        ar: document.getElementById('heroDescriptionAr').value
-                    },
-                    aboutTitle: {
-                        en: document.getElementById('aboutTitleEn').value,
-                        ar: document.getElementById('aboutTitleAr').value
-                    },
-                    aboutContent1: {
-                        en: document.getElementById('aboutContent1En').value,
-                        ar: document.getElementById('aboutContent1Ar').value
-                    },
-                    aboutContent2: {
-                        en: document.getElementById('aboutContent2En').value,
-                        ar: document.getElementById('aboutContent2Ar').value
-                    },
-                    aboutContent3: {
-                        en: document.getElementById('aboutContent3En').value,
-                        ar: document.getElementById('aboutContent3Ar').value
-                    },
-                    lastUpdated: new Date()
-                };
-                
-                await setDoc(docRef, homeContent, { merge: true });
-                alert("Home content saved successfully!");
-                updateLastUpdated();
-            } catch (error) {
-                console.error("Error saving home content:", error);
-                alert("Failed to save home content. Please try again.");
-            }
+        container.innerHTML = recent.map(p => `
+            <div class="list-item">
+                <div class="flex-between">
+                    <span><strong>${p.customerName}</strong></span>
+                    <span class="badge badge-paid">${formatMoney(p.amount)}</span>
+                </div>
+                <div class="small-text">🔢 ${p.orderNumber} | 💳 ${p.method}</div>
+                <div class="small-text">📅 ${formatDate(p.date)}</div>
+            </div>
+        `).join('');
+    }
+    
+    // ========== Customers Status ==========
+    function renderCustomersStatus() {
+        const container = document.getElementById('customersStatusList');
+        const search = document.getElementById('searchCustomersStatus')?.value.toLowerCase() || '';
+        
+        let filteredCustomers = customers;
+        if (search) {
+            filteredCustomers = customers.filter(c => c.name.toLowerCase().includes(search));
         }
         
-        // Load services
-        async function loadServices() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "services"));
-                const servicesTable = document.querySelector('#servicesTable tbody');
-                servicesTable.innerHTML = '';
-                
-                querySnapshot.forEach((doc) => {
-                    const service = doc.data();
-                    const row = `
-                        <tr data-id="${doc.id}">
-                            <td>${service.title.en}</td>
-                            <td>${service.title.ar}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary edit-service">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger delete-service">Delete</button>
-                            </td>
-                        </tr>
-                    `;
-                    servicesTable.innerHTML += row;
-                });
-                
-                // Update services count
-                document.getElementById('servicesCount').textContent = querySnapshot.size;
-                
-                // Add event listeners for edit/delete buttons
-                document.querySelectorAll('.edit-service').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const serviceId = this.closest('tr').dataset.id;
-                        editService(serviceId);
-                    });
-                });
-                
-                document.querySelectorAll('.delete-service').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const serviceId = this.closest('tr').dataset.id;
-                        if (confirm("Are you sure you want to delete this service?")) {
-                            deleteService(serviceId);
-                        }
-                    });
-                });
-                
-            } catch (error) {
-                console.error("Error loading services:", error);
-                alert("Failed to load services. Please try again.");
-            }
+        if (filteredCustomers.length === 0) {
+            container.innerHTML = '<div class="empty">لا يوجد عملاء</div>';
+            return;
         }
         
-        // Edit service
-        async function editService(serviceId) {
-            try {
-                const docRef = doc(db, "services", serviceId);
-                const docSnap = await getDoc(docRef);
-                
-                if (docSnap.exists()) {
-                    const service = docSnap.data();
-                    
-                    document.getElementById('serviceId').value = serviceId;
-                    document.getElementById('serviceTitleEn').value = service.title.en;
-                    document.getElementById('serviceTitleAr').value = service.title.ar;
-                    document.getElementById('serviceDescEn').value = service.description.en;
-                    document.getElementById('serviceDescAr').value = service.description.ar;
-                    document.getElementById('serviceImage').value = service.imageUrl;
-                    
-                    document.getElementById('serviceModalLabel').textContent = 'Edit Service';
-                    document.getElementById('serviceForm').dataset.mode = 'edit';
-                    
-                    const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
-                    modal.show();
-                }
-            } catch (error) {
-                console.error("Error editing service:", error);
-                alert("Failed to load service for editing. Please try again.");
-            }
+        let html = '';
+        filteredCustomers.forEach(customer => {
+            const customerOrders = orders.filter(o => o.customerId === customer.id);
+            const totalAmount = customerOrders.reduce((s,o) => s + o.amount, 0);
+            
+            const customerPayments = payments.filter(p => customerOrders.some(o => o.id === p.orderId));
+            const totalPaid = customerPayments.reduce((s,p) => s + p.amount, 0);
+            const remaining = totalAmount - totalPaid;
+            const percent = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
+            
+            html += `
+                <div class="list-item" onclick="showCustomerOrders('${customer.id}')">
+                    <div class="flex-between">
+                        <span class="customer-name">👤 ${customer.name}</span>
+                        <span>${customerOrders.length} طلبية</span>
+                    </div>
+                    <div class="flex-between small-text" style="margin-top:5px;">
+                        <span>💰 الإجمالي: ${formatMoney(totalAmount)}</span>
+                        <span>✅ مدفوع: ${formatMoney(totalPaid)}</span>
+                        <span>⚠️ متبقي: ${formatMoney(remaining)}</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    // ========== Order Detail ==========
+    window.showOrderDetail = (orderId) => {
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        const customer = customers.find(c => c.id === order.customerId);
+        const customerName = customer ? customer.name : 'غير معروف';
+        
+        const orderPayments = payments.filter(p => p.orderId === orderId);
+        const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+        const remaining = order.amount - totalPaid;
+        const percent = (totalPaid / order.amount) * 100;
+        
+        let paymentsHtml = '';
+        if (orderPayments.length === 0) {
+            paymentsHtml = '<div class="empty">لا توجد دفعات مسجلة</div>';
+        } else {
+            paymentsHtml = orderPayments.map(p => `
+                <div class="list-item" style="margin-bottom:5px;">
+                    <div class="flex-between">
+                        <span>💰 ${formatMoney(p.amount)}</span>
+                        <span>${p.method}</span>
+                    </div>
+                    <div class="small-text">📅 ${formatDate(p.date)}</div>
+                </div>
+            `).join('');
         }
         
-        // Save service (add or edit)
-        async function saveService() {
-            try {
-                const serviceData = {
-                    title: {
-                        en: document.getElementById('serviceTitleEn').value,
-                        ar: document.getElementById('serviceTitleAr').value
-                    },
-                    description: {
-                        en: document.getElementById('serviceDescEn').value,
-                        ar: document.getElementById('serviceDescAr').value
-                    },
-                    imageUrl: document.getElementById('serviceImage').value
-                };
-                
-                if (document.getElementById('serviceForm').dataset.mode === 'edit') {
-                    // Update existing service
-                    const serviceId = document.getElementById('serviceId').value;
-                    await updateDoc(doc(db, "services", serviceId), serviceData);
-                } else {
-                    // Add new service
-                    await addDoc(collection(db, "services"), serviceData);
-                }
-                
-                // Close modal and refresh services list
-                bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide();
-                loadServices();
-                alert("Service saved successfully!");
-                
-            } catch (error) {
-                console.error("Error saving service:", error);
-                alert("Failed to save service. Please try again.");
-            }
+        const html = `
+            <div style="text-align:center; margin-bottom:15px;">
+                <div style="font-size:16px; font-weight:bold;">${customerName}</div>
+                <div>🔢 ${order.orderNumber}</div>
+            </div>
+            <div class="flex-between"><span>💰 الإجمالي:</span><span>${formatMoney(order.amount)}</span></div>
+            <div class="flex-between"><span>✅ المدفوع:</span><span style="color:#2ecc71;">${formatMoney(totalPaid)}</span></div>
+            <div class="flex-between"><span>⚠️ المتبقي:</span><span style="color:${remaining>0?'#e74c3c':'#2ecc71'};">${formatMoney(remaining)}</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+            ${order.dueDate ? `<div class="small-text" style="margin-top:10px;">📅 تاريخ الاستحقاق: ${formatDate(order.dueDate)}</div>` : ''}
+            ${order.notes ? `<div class="small-text" style="margin-top:5px;">📝 ${order.notes}</div>` : ''}
+            <div style="margin:15px 0 10px; font-weight:bold;">📋 سجل الدفعات:</div>
+            <div id="paymentsListDetail">${paymentsHtml}</div>
+            ${remaining > 0 ? `<button onclick="quickPayment('${order.id}'); closeModal('orderDetailModal');" style="margin-top:10px; background:#9b59b6;">➕ إضافة دفعة</button>` : ''}
+        `;
+        
+        document.getElementById('orderDetailContent').innerHTML = html;
+        openModal('orderDetailModal');
+        
+        document.getElementById('printOrderBtn').onclick = () => printOrderReport(order, orderPayments, customerName);
+    };
+    
+    function printOrderReport(order, orderPayments, customerName) {
+        const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+        const remaining = order.amount - totalPaid;
+        const printWindow = window.open('', '_blank');
+        
+        const paymentsTable = orderPayments.map(p => `
+            <tr>
+                <td style="border:1px solid #ddd; padding:6px;">${formatDate(p.date)}</td>
+                <td style="border:1px solid #ddd; padding:6px;">${formatMoney(p.amount)}</td>
+                <td style="border:1px solid #ddd; padding:6px;">${p.method}</td>
+            </tr>
+        `).join('');
+        
+        printWindow.document.write(`
+            <html dir="rtl">
+            <head><title>تقرير الطلبية - ${order.orderNumber}</title><meta charset="UTF-8">
+            <style>
+                body { font-family: 'Cairo', Arial; margin: 20px; direction: rtl; }
+                h2 { color: #9b59b6; }
+                table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                th { background: #9b59b6; color: white; padding: 8px; border: 1px solid #ddd; }
+                .footer { margin-top: 30px; font-size: 10px; color: #999; text-align: center; }
+            </style>
+            </head>
+            <body>
+                <h2>EL FATH SERVICE</h2>
+                <h3>تقرير الطلبية</h3>
+                <p><strong>العميل:</strong> ${customerName}</p>
+                <p><strong>رقم الطلبية:</strong> ${order.orderNumber}</p>
+                <p><strong>التاريخ:</strong> ${formatDate(order.date)}</p>
+                <p><strong>الإجمالي:</strong> ${formatMoney(order.amount)}</p>
+                <p><strong>المدفوع:</strong> ${formatMoney(totalPaid)}</p>
+                <p><strong>المتبقي:</strong> ${formatMoney(remaining)}</p>
+                ${order.dueDate ? `<p><strong>تاريخ الاستحقاق:</strong> ${formatDate(order.dueDate)}</p>` : ''}
+                <h4>سجل الدفعات:</h4>
+                <table>
+                    <thead><tr><th>التاريخ</th><th>المبلغ</th><th>طريقة الدفع</th></tr></thead>
+                    <tbody>${paymentsTable || '<tr><td colspan="3">لا توجد دفعات</td></tr>'}</tbody>
+                </table>
+                <div class="footer">تم الإنشاء في ${new Date().toLocaleString('ar-EG')}</div>
+            </body>
+            </html>
+        `);
+    }
+    
+    window.quickPayment = (orderId) => {
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        const orderPayments = payments.filter(p => p.orderId === orderId);
+        const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
+        const remaining = order.amount - totalPaid;
+        
+        if (remaining <= 0) {
+            showFlash('هذه الطلبية مدفوعة بالكامل', 'warning');
+            return;
         }
         
-        // Delete service
-        async function deleteService(serviceId) {
-            try {
-                await deleteDoc(doc(db, "services", serviceId));
-                loadServices();
-                alert("Service deleted successfully!");
-            } catch (error) {
-                console.error("Error deleting service:", error);
-                alert("Failed to delete service. Please try again.");
-            }
+        const customer = customers.find(c => c.id === order.customerId);
+        if (customer) {
+            document.getElementById('paymentCustomerSelect').value = customer.id;
+            loadCustomerOrdersForPayment();
+            setTimeout(() => {
+                document.getElementById('paymentOrderSelect').value = orderId;
+                updatePaymentInfo();
+                showTab('payments');
+            }, 100);
         }
+        showFlash('أدخل المبلغ ثم اضغط تسجيل', 'success');
+    };
+    
+    // ========== Helper Functions ==========
+    function formatMoney(amount) {
+        return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'MAD' }).format(amount || 0);
+    }
+    
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString('ar-EG');
+    }
+    
+    function showFlash(msg, type = 'success') {
+        const flash = document.createElement('div');
+        flash.style.cssText = 'position:fixed; bottom:100px; left:16px; right:16px; background:#2ecc71; padding:10px; border-radius:50px; text-align:center; z-index:1000; font-size:13px;';
+        if (type === 'danger') flash.style.background = '#e74c3c';
+        if (type === 'warning') flash.style.background = '#f39c12';
+        flash.innerText = msg;
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 2500);
+    }
+    
+    function openModal(id) {
+        document.getElementById(id).classList.add('active');
+    }
+    
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('active');
+        if (id === 'tempModal') modal?.remove();
+    }
+    window.closeModal = closeModal;
+    
+    function showTab(tab) {
+        document.getElementById('customersTab').classList.add('hidden');
+        document.getElementById('ordersTab').classList.add('hidden');
+        document.getElementById('paymentsTab').classList.add('hidden');
+        document.getElementById('statusTab').classList.add('hidden');
         
-        // Load messages
-        async function loadMessages() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "messages"));
-                const messagesTable = document.querySelector('#messagesTable tbody');
-                messagesTable.innerHTML = '';
-                
-                let unreadCount = 0;
-                
-                querySnapshot.forEach((doc) => {
-                    const message = doc.data();
-                    const date = message.timestamp?.toDate() || new Date();
-                    
-                    if (!message.read) unreadCount++;
-                    
-                    const row = `
-                        <tr data-id="${doc.id}">
-                            <td>${message.name}</td>
-                            <td>${message.email}</td>
-                            <td>${message.service || '-'}</td>
-                            <td>${message.message.substring(0, 50)}...</td>
-                            <td>${date.toLocaleString()}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary view-message">View</button>
-                            </td>
-                        </tr>
-                    `;
-                    messagesTable.innerHTML += row;
-                });
-                
-                // Update messages count
-                document.getElementById('messagesCount').textContent = unreadCount;
-                
-                // Add event listeners for view buttons
-                document.querySelectorAll('.view-message').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const messageId = this.closest('tr').dataset.id;
-                        viewMessage(messageId);
-                    });
-                });
-                
-            } catch (error) {
-                console.error("Error loading messages:", error);
-                alert("Failed to load messages. Please try again.");
-            }
-        }
+        if (tab === 'customers') document.getElementById('customersTab').classList.remove('hidden');
+        else if (tab === 'orders') document.getElementById('ordersTab').classList.remove('hidden');
+        else if (tab === 'payments') document.getElementById('paymentsTab').classList.remove('hidden');
+        else if (tab === 'status') document.getElementById('statusTab').classList.remove('hidden');
         
-        // View message details
-        async function viewMessage(messageId) {
-            try {
-                const docRef = doc(db, "messages", messageId);
-                const docSnap = await getDoc(docRef);
-                
-                if (docSnap.exists()) {
-                    const message = docSnap.data();
-                    const date = message.timestamp?.toDate() || new Date();
-                    
-                    let messageDetails = `
-                        <h5>Message Details</h5>
-                        <p><strong>Name:</strong> ${message.name}</p>
-                        <p><strong>Email:</strong> ${message.email}</p>
-                        <p><strong>Service:</strong> ${message.service || '-'}</p>
-                        <p><strong>Date:</strong> ${date.toLocaleString()}</p>
-                        <hr>
-                        <p><strong>Message:</strong></p>
-                        <p>${message.message}</p>
-                    `;
-                    
-                    alert(messageDetails);
-                    
-                    // Mark as read
-                    if (!message.read) {
-                        await updateDoc(docRef, { read: true });
-                        loadMessages();
-                    }
-                }
-            } catch (error) {
-                console.error("Error viewing message:", error);
-                alert("Failed to load message details. Please try again.");
-            }
-        }
+        document.querySelectorAll('.tab').forEach((t, i) => {
+            const tabs = ['customers', 'orders', 'payments', 'status'];
+            if (tabs[i] === tab) t.classList.add('active');
+            else t.classList.remove('active');
+        });
         
-        // Update last updated time
-        function updateLastUpdated() {
-            const now = new Date();
-            document.getElementById('lastUpdated').textContent = now.toLocaleDateString();
+        if (tab === 'payments') {
+            updateCustomerSelects();
+            loadCustomerOrdersForPayment();
         }
-        
-        // Initialize dashboard
-        function initDashboard() {
-            showSection('dashboard');
-            updateLastUpdated();
-        }
-    </script>
+        if (tab === 'status') renderCustomersStatus();
+        if (tab === 'orders') updateCustomerSelects();
+    }
+    
+    window.showTab = showTab;
+    window.showCustomerOrders = showCustomerOrders;
+    window.showOrderDetail = showOrderDetail;
+    window.quickPayment = quickPayment;
+    window.loadCustomerOrdersForPayment = loadCustomerOrdersForPayment;
+    window.updatePaymentInfo = updatePaymentInfo;
+</script>
 </body>
 </html>
