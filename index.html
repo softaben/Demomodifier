@@ -105,6 +105,8 @@
         .small-icon-btn { background: var(--nav-hover); border-radius: 30px; padding: 5px 12px; font-size: 0.7rem; width: auto; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: none; color: var(--text-primary); }
         .total-payment-card { background: var(--nav-hover); padding: 16px; margin-top: 16px; border-radius: 12px; text-align: center; }
         .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin: 15px 0; }
+        .delete-btn-order { background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .delete-btn-order:hover { opacity: 0.9; transform: scale(1.02); }
         @media (max-width:800px){ .two-columns{ grid-template-columns:1fr; } .app-container{ padding: 12px; } }
     </style>
 </head>
@@ -121,26 +123,23 @@
         </div>
     </div>
     <div class="app-nav">
-        <div class="nav-tab active" onclick="showTab('clients')"><i class="fas fa-users"></i> Clients</div>
-        <div class="nav-tab" onclick="showTab('orders')"><i class="fas fa-file-alt"></i> Commandes</div>
-        <div class="nav-tab" onclick="showTab('payments')"><i class="fas fa-money-bill-wave"></i> Paiements</div>
-        <div class="nav-tab" onclick="showTab('situation')"><i class="fas fa-chart-line"></i> Situation</div>
+        <div class="nav-tab active" data-tab="clients"><i class="fas fa-users"></i> Clients</div>
+        <div class="nav-tab" data-tab="orders"><i class="fas fa-file-alt"></i> Commandes</div>
+        <div class="nav-tab" data-tab="payments"><i class="fas fa-money-bill-wave"></i> Paiements</div>
+        <div class="nav-tab" data-tab="situation"><i class="fas fa-chart-line"></i> Situation</div>
     </div>
 
     <!-- Clients Tab -->
-    <div id="clientsTab"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-user-plus"></i> Nouveau Client</div><div class="form-group"><label>Nom complet *</label><input type="text" id="newClientName" placeholder="Ex: Ahmed Benali"></div><div class="form-group"><label>Téléphone</label><input type="tel" id="newClientPhone" placeholder="06XXXXXXXX"></div><div class="form-group"><label>Adresse</label><input type="text" id="newClientAddress" placeholder="Casablanca, Maroc"></div><button id="saveClientBtn" class="success"><i class="fas fa-save"></i> Ajouter Client</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-list"></i> Liste des Clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('clients')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchClientsList" placeholder="Rechercher un client..." oninput="renderClientsList()"><div class="list-container" id="clientsList"></div></div></div></div>
+    <div id="clientsTab" class="tab-content"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-user-plus"></i> Nouveau Client</div><div class="form-group"><label>Nom complet *</label><input type="text" id="newClientName" placeholder="Ex: Ahmed Benali"></div><div class="form-group"><label>Téléphone</label><input type="tel" id="newClientPhone" placeholder="06XXXXXXXX"></div><div class="form-group"><label>Adresse</label><input type="text" id="newClientAddress" placeholder="Casablanca, Maroc"></div><button id="saveClientBtn" class="success"><i class="fas fa-save"></i> Ajouter Client</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-list"></i> Liste des Clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('clients')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchClientsList" placeholder="Rechercher un client..." oninput="renderClientsList()"><div class="list-container" id="clientsList"></div></div></div></div>
 
     <!-- Orders Tab -->
-    <div id="ordersTab" class="hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-cart-plus"></i> Nouvelle Commande</div><div class="form-group"><label>Choisir le client *</label><select id="orderClientSelect"><option>-- Sélectionner --</option></select></div><div class="form-group"><label>Numéro de commande</label><input type="text" id="orderNumber" placeholder="N° facture"></div><div class="form-group"><label>Montant total (MAD) *</label><input type="number" id="orderAmount" placeholder="0,00"></div><div class="form-group"><label>Date d'échéance</label><input type="date" id="orderDueDate"></div><div class="form-group"><label>Notes</label><textarea id="orderNotes" rows="2" placeholder="Notes optionnelles"></textarea></div><button id="saveOrderBtn" class="success">Enregistrer la commande</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-file-invoice"></i> Liste des Commandes</div><button class="small-icon-btn" onclick="showDeleteAllModal('orders')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchOrders" placeholder="Rechercher..." oninput="renderOrdersList()"><div class="list-container" id="ordersList"></div></div></div></div>
+    <div id="ordersTab" class="tab-content hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-cart-plus"></i> Nouvelle Commande</div><div class="form-group"><label>Choisir le client *</label><select id="orderClientSelect"><option>-- Sélectionner --</option></select></div><div class="form-group"><label>Numéro de commande</label><input type="text" id="orderNumber" placeholder="N° facture"></div><div class="form-group"><label>Montant total (MAD) *</label><input type="number" id="orderAmount" placeholder="0,00"></div><div class="form-group"><label>Date d'échéance</label><input type="date" id="orderDueDate"></div><div class="form-group"><label>Notes</label><textarea id="orderNotes" rows="2" placeholder="Notes optionnelles"></textarea></div><button id="saveOrderBtn" class="success">Enregistrer la commande</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-file-invoice"></i> Liste des Commandes</div><button class="small-icon-btn" onclick="showDeleteAllModal('orders')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchOrders" placeholder="Rechercher..." oninput="renderOrdersList()"><div class="list-container" id="ordersList"></div></div></div></div>
 
     <!-- Payments Tab -->
-    <div id="paymentsTab" class="hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-hand-holding-usd"></i> Mode de Paiement</div><div class="row"><button onclick="setPaymentMode('single')" id="singleModeBtn" style="background:var(--accent);">Paiement unique</button><button onclick="setPaymentMode('multi')" id="multiModeBtn" style="background:var(--nav-hover);">Paiement multiple</button></div></div></div><div id="singlePaymentCard" class="card"><div class="card-title"><i class="fas fa-receipt"></i> Enregistrer un paiement</div><select id="paymentClientSelect" onchange="loadClientOrdersForPayment()"><option>-- Choisir client --</option></select><select id="paymentOrderSelect" onchange="updatePaymentInfo()"><option>-- Choisir commande --</option></select><div id="paymentOrderInfo" style="background:var(--nav-hover);padding:12px;border-radius:12px;margin-bottom:15px;"></div><input type="number" id="paymentAmount" placeholder="Montant payé"><input type="date" id="paymentDate"><select id="paymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option><option>Chèque</option></select><input type="text" id="paymentNotes" placeholder="Notes"><button id="savePaymentBtn" class="success">Enregistrer le paiement</button></div><div id="multiPaymentCard" class="card hidden"><div class="card-title"><i class="fas fa-layer-group"></i> Paiement multiple</div><select id="multiClientSelect" onchange="loadMultiClientOrdersModern()"><option>-- Choisir client --</option></select><div id="multiOrdersListModern"></div><div class="total-payment-card"><label>💰 Montant total à payer</label><input type="number" id="totalPaymentAmount" step="0.01" placeholder="0,00"><button onclick="distributePaymentModern()" style="margin-top:8px;background:var(--info);">Répartir automatiquement</button></div><input type="date" id="multiPaymentDate"><select id="multiPaymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option></select><input type="text" id="multiPaymentNotes" placeholder="Notes"><button id="saveMultiPaymentBtn" class="success">Valider les paiements</button></div><div class="card"><div class="card-title"><i class="fas fa-history"></i> Derniers paiements</div><div id="recentPaymentsList" class="list-container"></div></div></div>
+    <div id="paymentsTab" class="tab-content hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-hand-holding-usd"></i> Mode de Paiement</div><div class="row"><button onclick="setPaymentMode('single')" id="singleModeBtn" style="background:var(--accent);">Paiement unique</button><button onclick="setPaymentMode('multi')" id="multiModeBtn" style="background:var(--nav-hover);">Paiement multiple</button></div></div></div><div id="singlePaymentCard" class="card"><div class="card-title"><i class="fas fa-receipt"></i> Enregistrer un paiement</div><select id="paymentClientSelect" onchange="loadClientOrdersForPayment()"><option>-- Choisir client --</option></select><select id="paymentOrderSelect" onchange="updatePaymentInfo()"><option>-- Choisir commande --</option></select><div id="paymentOrderInfo" style="background:var(--nav-hover);padding:12px;border-radius:12px;margin-bottom:15px;"></div><input type="number" id="paymentAmount" placeholder="Montant payé"><input type="date" id="paymentDate"><select id="paymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option><option>Chèque</option></select><input type="text" id="paymentNotes" placeholder="Notes"><button id="savePaymentBtn" class="success">Enregistrer le paiement</button></div><div id="multiPaymentCard" class="card hidden"><div class="card-title"><i class="fas fa-layer-group"></i> Paiement multiple</div><select id="multiClientSelect" onchange="loadMultiClientOrdersModern()"><option>-- Choisir client --</option></select><div id="multiOrdersListModern"></div><div class="total-payment-card"><label>💰 Montant total à payer</label><input type="number" id="totalPaymentAmount" step="0.01" placeholder="0,00"><button onclick="distributePaymentModern()" style="margin-top:8px;background:var(--info);">Répartir automatiquement</button></div><input type="date" id="multiPaymentDate"><select id="multiPaymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option></select><input type="text" id="multiPaymentNotes" placeholder="Notes"><button id="saveMultiPaymentBtn" class="success">Valider les paiements</button></div><div class="card"><div class="card-title"><i class="fas fa-history"></i> Derniers paiements</div><div id="recentPaymentsList" class="list-container"></div></div></div>
 
     <!-- Situation Tab -->
-    <div id="situationTab" class="hidden"><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-chart-simple"></i> Situation financière des clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('all')"><i class="fas fa-trash"></i> Tout supprimer</button></div><div class="filter-bar"><input type="date" id="filterDateStart"><input type="date" id="filterDateEnd"><select id="filterPeriodPreset" onchange="applyPresetFilter()"><option value="">Période personnalisée</option><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option></select><button onclick="applyDateFilter()" class="info">Appliquer</button><button onclick="resetPeriodFilter()">Réinitialiser</button></div>
-        <div class="row" style="margin-bottom:15px;">
-            <button onclick="exportJournalCommandesPDF()" class="info" style="background:var(--info);"><i class="fas fa-book"></i> Journal global PDF</button>
-        </div>
+    <div id="situationTab" class="tab-content hidden"><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-chart-simple"></i> Situation financière des clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('all')"><i class="fas fa-trash"></i> Tout supprimer</button></div><div class="filter-bar"><input type="date" id="filterDateStart"><input type="date" id="filterDateEnd"><select id="filterPeriodPreset" onchange="applyPresetFilter()"><option value="">Période personnalisée</option><option value="today">Aujourd'hui</option><option value="week">Cette semaine</option><option value="month">Ce mois</option></select><button onclick="applyDateFilter()" class="info">Appliquer</button><button onclick="resetPeriodFilter()">Réinitialiser</button></div>
         <div class="flex-between" style="margin:15px 0"><span><i class="fas fa-file-pdf"></i> Journal par client</span><select id="journalClientSelect" style="flex:1; margin-left:10px;"><option value="">-- Sélectionner un client --</option></select><button onclick="exportJournalClientPDF()" class="small-icon-btn" style="background:var(--accent);color:white;"><i class="fas fa-download"></i> PDF</button></div>
         <div class="flex-between" style="margin:10px 0"><span><i class="fas fa-file-pdf"></i> Rapports client</span><div><button onclick="exportClientPaymentsPDF()" class="small-icon-btn" style="background:var(--success);">PDF Paiements</button><button onclick="exportClientOrdersPDF()" class="small-icon-btn" style="background:var(--danger);">PDF Commandes</button></div></div>
         <select id="reportClientSelect"><option>-- Sélectionner un client --</option></select>
@@ -151,7 +150,7 @@
 
 <!-- Modals -->
 <div id="deleteConfirmModal" class="modal"><div class="modal-content"><div class="modal-header">⚠️ Confirmation <button onclick="closeModal('deleteConfirmModal')" style="background:none; width:auto; color:var(--text-primary);">✕</button></div><div id="deleteConfirmMessage" style="margin:20px 0; text-align:center;"></div><div class="row"><button onclick="closeModal('deleteConfirmModal')">Annuler</button><button id="confirmDeleteBtn" class="danger">Confirmer la suppression</button></div></div></div>
-<div id="orderDetailModal" class="modal"><div class="modal-content"><div class="modal-header">Détails de la commande <button onclick="closeModal('orderDetailModal')" style="background:none; width:auto;">✕</button></div><div id="orderDetailContent"></div><div class="row"><button id="printOrderBtn" class="info"><i class="fas fa-print"></i> PDF Facture</button><button onclick="closeModal('orderDetailModal')">Fermer</button></div></div></div>
+<div id="orderDetailModal" class="modal"><div class="modal-content"><div class="modal-header">Détails de la commande <button onclick="closeModal('orderDetailModal')" style="background:none; width:auto;">✕</button></div><div id="orderDetailContent"></div><div class="row" style="margin-top:20px;"><button id="printOrderBtn" class="info"><i class="fas fa-print"></i> PDF Facture</button><button id="deleteOrderBtn" class="danger delete-btn-order"><i class="fas fa-trash"></i> Supprimer la commande</button></div></div></div>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyB-TBjgISvKwJnYc7hNRoUcNLhxRnJvVE0", authDomain: "stock-c1643.firebaseapp.com", projectId: "stock-c1643", storageBucket: "stock-c1643.firebasestorage.app", messagingSenderId: "935549361989", appId: "1:935549361989:web:5407897ba6febc50f1682c" };
@@ -205,44 +204,6 @@
     function applyPresetFilter(){ let p=document.getElementById('filterPeriodPreset').value; let d=new Date(); if(p==='today'){ document.getElementById('filterDateStart').value=d.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } else if(p==='week'){ let start=new Date(d); start.setDate(d.getDate()-7); document.getElementById('filterDateStart').value=start.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } else if(p==='month'){ let start=new Date(d); start.setDate(d.getDate()-30); document.getElementById('filterDateStart').value=start.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } }
     window.applyPresetFilter=applyPresetFilter; window.applyDateFilter=applyDateFilter; window.resetPeriodFilter=resetPeriodFilter;
 
-    // ========== JOURNAL GLOBAL PDF ==========
-    window.exportJournalCommandesPDF = () => {
-        let commandesFiltrees = [...orders];
-        if (dateFilterStart || dateFilterEnd) {
-            commandesFiltrees = commandesFiltrees.filter(o => {
-                let d = new Date(o.date);
-                if (dateFilterStart && d < dateFilterStart) return false;
-                if (dateFilterEnd && d > dateFilterEnd) return false;
-                return true;
-            });
-        }
-        if (commandesFiltrees.length === 0) { showFlash('Aucune commande à exporter', 'danger'); return; }
-        commandesFiltrees.sort((a,b) => new Date(b.date) - new Date(a.date));
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        doc.setFillColor(13, 148, 136); doc.rect(0, 0, 210, 45, 'F');
-        doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.text('EL FATH SERVICE', 105, 22, { align: 'center' });
-        doc.setFontSize(11); doc.text('Journal des Commandes (Global)', 105, 34, { align: 'center' });
-        doc.setTextColor(0, 0, 0); doc.setFontSize(10);
-        let periodText = (dateFilterStart && dateFilterEnd) ? `Période: du ${formatDateFr(dateFilterStart)} au ${formatDateFr(dateFilterEnd)}` : 'Toutes les commandes';
-        doc.text(periodText, 14, 55); doc.text(`Date: ${formatDateFr(new Date())}`, 14, 63);
-        doc.text(`Total commandes: ${commandesFiltrees.length}`, 14, 71);
-        let totalGeneral = 0, totalPayeGeneral = 0;
-        const tableData = commandesFiltrees.map(o => {
-            const c = clients.find(cl => cl.id === o.clientId);
-            const paid = payments.filter(p => p.orderId === o.id).reduce((s, p) => s + p.amount, 0);
-            totalGeneral += o.amount; totalPayeGeneral += paid;
-            return [o.orderNumber, c?.name || '?', formatDateFr(o.date), formatNumber(o.amount), formatNumber(paid), formatNumber(o.amount-paid)];
-        });
-        doc.autoTable({ startY: 80, head: [['N°', 'Client', 'Date', 'Total', 'Payé', 'Reste']], body: tableData, headStyles: { fillColor: [13, 148, 136], textColor: 255 }, styles: { fontSize: 8 } });
-        let y = doc.lastAutoTable.finalY + 10;
-        doc.setFillColor(240, 240, 245); doc.rect(14, y, 182, 30, 'F');
-        doc.text(`Total général: ${formatMoney(totalGeneral)}`, 20, y+10);
-        doc.text(`Total payé: ${formatMoney(totalPayeGeneral)}`, 20, y+20);
-        doc.text(`Solde global: ${formatMoney(totalGeneral - totalPayeGeneral)}`, 20, y+30);
-        doc.save(`Journal_Commandes_Global.pdf`); showFlash('Journal global PDF généré');
-    };
-
     // ========== JOURNAL PAR CLIENT PDF ==========
     window.exportJournalClientPDF = () => {
         const clientId = document.getElementById('journalClientSelect').value;
@@ -250,7 +211,6 @@
         const c = clients.find(cl => cl.id === clientId);
         const clientOrders = orders.filter(o => o.clientId === clientId).sort((a,b) => new Date(b.date) - new Date(a.date));
         if (clientOrders.length === 0) { showFlash('Aucune commande pour ce client', 'danger'); return; }
-        
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         doc.setFillColor(13, 148, 136); doc.rect(0, 0, 210, 45, 'F');
@@ -261,7 +221,6 @@
         if (c.phone) doc.text(`Téléphone: ${c.phone}`, 14, 63);
         if (c.address) doc.text(`Adresse: ${c.address}`, 14, 71);
         doc.text(`Date d'édition: ${formatDateFr(new Date())}`, 14, 79);
-        
         let totalGeneral = 0, totalPaye = 0;
         const tableData = clientOrders.map(o => {
             const paid = payments.filter(p => p.orderId === o.id).reduce((s, p) => s + p.amount, 0);
@@ -269,7 +228,6 @@
             return [o.orderNumber, formatDateFr(o.date), o.dueDate ? formatDateFr(o.dueDate) : '-', formatNumber(o.amount), formatNumber(paid), formatNumber(o.amount-paid), paid >= o.amount ? 'Payée' : (paid > 0 ? 'Partielle' : 'Impayée')];
         });
         doc.autoTable({ startY: 90, head: [['N° Commande', 'Date', 'Échéance', 'Total', 'Payé', 'Reste', 'Statut']], body: tableData, headStyles: { fillColor: [13, 148, 136], textColor: 255 }, styles: { fontSize: 8 }, margin: { left: 10, right: 10 } });
-        
         let y = doc.lastAutoTable.finalY + 10;
         doc.setFillColor(240, 240, 245); doc.rect(14, y, 182, 45, 'F');
         doc.setFontSize(10); doc.setTextColor(13, 148, 136); doc.text('RÉCAPITULATIF', 20, y+8);
@@ -279,8 +237,6 @@
         doc.text(`Total des paiements: ${formatMoney(totalPaye)}`, 20, y+40);
         doc.setTextColor(totalGeneral - totalPaye > 0 ? 220 : 5, totalGeneral - totalPaye > 0 ? 38 : 150, 38);
         doc.text(`Solde restant: ${formatMoney(totalGeneral - totalPaye)}`, 20, y+52);
-        
-        // Liste des paiements détaillés
         const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId)).sort((a,b) => new Date(b.date) - new Date(a.date));
         if (clientPayments.length > 0) {
             let y2 = y + 60;
@@ -293,6 +249,18 @@
         showFlash('Journal du client PDF généré avec succès');
     };
 
+    // ========== FONCTION SUPPRIMER UNE COMMANDE ==========
+    window.deleteOrder = async (orderId) => {
+        if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette commande ainsi que tous ses paiements associés ? Cette action est irréversible.')) return;
+        const orderPayments = payments.filter(p => p.orderId === orderId);
+        for (let p of orderPayments) {
+            await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove();
+        }
+        await db.ref(`users/${currentUser.uid}/orders/${orderId}`).remove();
+        closeModal('orderDetailModal');
+        showFlash('Commande et ses paiements supprimés avec succès', 'success');
+    };
+
     // ========== AUTRES EXPORTS ==========
     window.exportClientPaymentsPDF = () => { const clientId = document.getElementById('reportClientSelect').value; if(!clientId){ showFlash('Veuillez sélectionner un client'); return; } const c = clients.find(c=>c.id===clientId); const clientOrders = orders.filter(o=>o.clientId===clientId); const clientPayments = payments.filter(p=>clientOrders.some(o=>o.id===p.orderId)).sort((a,b)=>new Date(a.date)-new Date(b.date)); const totalGeneral = clientOrders.reduce((s,o)=>s+o.amount,0); const totalPaye = clientPayments.reduce((s,p)=>s+p.amount,0); const solde = totalGeneral - totalPaye; const { jsPDF } = window.jspdf; const doc = new jsPDF('p','mm','a4'); doc.setFillColor(13,148,136); doc.rect(0,0,210,45,'F'); doc.setTextColor(255,255,255); doc.setFontSize(22); doc.text('EL FATH SERVICE',105,22,{align:'center'}); doc.setFontSize(11); doc.text('Historique des versements',105,34,{align:'center'}); doc.setTextColor(0,0,0); doc.setFontSize(11); doc.text(`Client: ${c.name}`,14,55); if(c.phone) doc.text(`Téléphone: ${c.phone}`,14,63); let periodTxt = dateFilterStart&&dateFilterEnd ? `Période: du ${formatDateFr(dateFilterStart)} au ${formatDateFr(dateFilterEnd)}` : 'Toutes les périodes'; doc.text(periodTxt,14,71); if(clientPayments.length){ let body = clientPayments.map(p=>[formatDateFr(p.date), p.orderNumber, formatNumber(p.amount), p.method||'-', p.notes||'-']); doc.autoTable({ startY:85, head:[['Date','N° Commande','Montant','Mode','Notes']], body, headStyles:{fillColor:[13,148,136],textColor:255}, styles:{fontSize:9}, margin:{left:14,right:14} }); } else { doc.text('Aucun versement enregistré',14,85); } let y = doc.lastAutoTable ? doc.lastAutoTable.finalY+15 : 110; doc.setFillColor(240,240,245); doc.rect(14,y,182,35,'F'); doc.text(`Total des commandes: ${formatMoney(totalGeneral)}`,20,y+8); doc.text(`Total versé: ${formatMoney(totalPaye)}`,20,y+18); doc.text(`Solde restant: ${formatMoney(solde)}`,20,y+28); doc.save(`Versements_${c.name.replace(/\s/g,'_')}.pdf`); showFlash('PDF généré avec succès'); };
     window.exportClientOrdersPDF = () => { const clientId = document.getElementById('reportClientSelect').value; if(!clientId) return; const c = clients.find(c=>c.id===clientId); const clientOrders = orders.filter(o=>o.clientId===clientId); if(!clientOrders.length){ showFlash('Aucune commande pour ce client'); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF('p','mm','a4'); doc.setFillColor(13,148,136); doc.rect(0,0,210,45,'F'); doc.text('EL FATH SERVICE',105,22,{align:'center'}); doc.text('Liste des commandes',105,34,{align:'center'}); doc.setTextColor(0,0,0); doc.text(`Client: ${c.name}`,14,55); let body = clientOrders.map(o=>{ let paid=payments.filter(p=>p.orderId===o.id).reduce((s,p)=>s+p.amount,0); return [o.orderNumber, formatDateFr(o.date), formatNumber(o.amount), formatNumber(paid), formatNumber(o.amount-paid), paid>=o.amount?'Payée':'Impayée']; }); doc.autoTable({ startY:65, head:[['N° Commande','Date','Total','Payé','Reste','Statut']], body, headStyles:{fillColor:[13,148,136],textColor:255}, margin:{left:14} }); doc.save(`Commandes_${c.name}.pdf`); showFlash('PDF commandes généré'); };
@@ -300,12 +268,101 @@
     window.exportSituationExcel = () => { let wsData = [['Client','Téléphone','Total Commandes (MAD)','Payé (MAD)','Reste (MAD)']]; clients.forEach(c=>{ let co=orders.filter(o=>o.clientId===c.id); let total=co.reduce((s,o)=>s+o.amount,0); let paid=payments.filter(p=>co.some(o=>o.id===p.orderId)).reduce((s,p)=>s+p.amount,0); wsData.push([c.name, c.phone||'-', total, paid, total-paid]); }); const ws = XLSX.utils.aoa_to_sheet(wsData); ws['!cols'] = [{wch:25},{wch:15},{wch:18},{wch:18},{wch:18}]; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Situation'); XLSX.writeFile(wb, 'Situation_Clients.xlsx'); showFlash('Excel exporté avec succès'); };
     
     function renderRecentPayments(){ let container=document.getElementById('recentPaymentsList'); if(!container)return; let recent=[...payments].sort((a,b)=>b.timestamp-a.timestamp).slice(0,8); if(!recent.length){ container.innerHTML='<div style="padding:20px;text-align:center;">Aucun paiement récent</div>'; return; } container.innerHTML=recent.map(p=>`<div class="list-item"><div><strong>${p.clientName}</strong> - ${formatMoney(p.amount)}</div><div class="small-text">📄 ${p.orderNumber} | 📅 ${formatDateFr(p.date)}</div></div>`).join(''); }
-    window.showTab=(tab)=>{ document.getElementById('clientsTab').classList.add('hidden'); document.getElementById('ordersTab').classList.add('hidden'); document.getElementById('paymentsTab').classList.add('hidden'); document.getElementById('situationTab').classList.remove('hidden'); document.querySelectorAll('.nav-tab').forEach((t,i)=>{ if(['clients','orders','payments','situation'][i]===tab) t.classList.add('active'); else t.classList.remove('active'); }); if(tab==='situation'){ renderSituationClients(); updateJournalClientSelect(); } if(tab==='payments'){ updateAllSelects(); loadClientOrdersForPayment(); } };
+    
+    // ========== CORRECTION DE LA NAVIGATION ==========
+    window.showTab = (tabName) => {
+        // Cacher tous les contenus
+        document.getElementById('clientsTab').classList.add('hidden');
+        document.getElementById('ordersTab').classList.add('hidden');
+        document.getElementById('paymentsTab').classList.add('hidden');
+        document.getElementById('situationTab').classList.add('hidden');
+        
+        // Afficher le contenu sélectionné
+        document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+        
+        // Mettre à jour la classe active sur les onglets
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            if (tab.getAttribute('data-tab') === tabName) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+        
+        // Rafraîchir les données si nécessaire
+        if (tabName === 'situation') {
+            renderSituationClients();
+            updateJournalClientSelect();
+        }
+        if (tabName === 'payments') {
+            updateAllSelects();
+            loadClientOrdersForPayment();
+        }
+    };
+    
+    // Initialiser les écouteurs d'événements pour la navigation
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.getAttribute('data-tab');
+            showTab(tabName);
+        });
+    });
+    
     window.showDeleteAllModal=(type)=>{ pendingDeleteType=type; document.getElementById('deleteConfirmMessage').innerHTML='⚠️ Êtes-vous sûr de vouloir supprimer toutes les données ? Cette action est irréversible.'; openModal('deleteConfirmModal'); };
     document.getElementById('confirmDeleteBtn').onclick=()=>{ closeModal('deleteConfirmModal'); showFlash('Toutes les données ont été supprimées'); };
     function initTheme(){ let saved=localStorage.getItem('elfath_theme'); if(saved==='dark') document.body.classList.add('dark'); document.getElementById('themeToggleBtn').onclick=()=>{ document.body.classList.toggle('dark'); localStorage.setItem('elfath_theme', document.body.classList.contains('dark')?'dark':'light'); }; }
-    window.showOrderDetail = (orderId) => { let o=orders.find(o=>o.id===orderId); if(!o) return; let c=clients.find(c=>c.id===o.clientId); let paid=payments.filter(p=>p.orderId===orderId).reduce((s,p)=>s+p.amount,0); document.getElementById('orderDetailContent').innerHTML=`<div style="line-height:2;"><strong>${c?.name}</strong><br>N° commande: ${o.orderNumber}<br>Montant total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br><span style="color:var(--warning);">Reste: ${formatMoney(o.amount-paid)}</span></div>`; openModal('orderDetailModal'); document.getElementById('printOrderBtn').onclick=()=>{ const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFillColor(13,148,136); doc.rect(0,0,210,20,'F'); doc.setTextColor(255,255,255); doc.setFontSize(16); doc.text('EL FATH SERVICE',105,14,{align:'center'}); doc.setTextColor(0,0,0); doc.setFontSize(12); doc.text(`Facture N°: ${o.orderNumber}`,10,35); doc.text(`Client: ${c?.name}`,10,45); doc.text(`Date: ${formatDateFr(o.date)}`,10,55); doc.text(`Montant total: ${formatMoney(o.amount)}`,10,65); doc.text(`Montant payé: ${formatMoney(paid)}`,10,75); doc.text(`Montant restant: ${formatMoney(o.amount-paid)}`,10,85); doc.save(`facture_${o.orderNumber}.pdf`); showFlash('PDF facture généré'); }; };
-    window.showClientOrders = (clientId) => { let c=clients.find(c=>c.id===clientId); let clientOrders=orders.filter(o=>o.clientId===clientId); let html=`<div class="modal-content"><div class="modal-header">Commandes de ${c?.name} <button onclick="closeModal('tempModal')" style="background:none; width:auto;">✕</button></div>`; clientOrders.forEach(o=>{ let paid=payments.filter(p=>p.orderId===o.id).reduce((s,p)=>s+p.amount,0); html+=`<div class="list-item">${o.orderNumber} - ${formatMoney(o.amount)} (Payé: ${formatMoney(paid)})</div>`; }); html+=`<button onclick="closeModal('tempModal')" style="margin-top:15px;">Fermer</button></div>`; let modal=document.createElement('div'); modal.id='tempModal'; modal.className='modal active'; modal.innerHTML=html; document.body.appendChild(modal); };
+    
+    window.showOrderDetail = (orderId) => { 
+        let o=orders.find(o=>o.id===orderId); 
+        if(!o) return; 
+        let c=clients.find(c=>c.id===o.clientId); 
+        let paid=payments.filter(p=>p.orderId===orderId).reduce((s,p)=>s+p.amount,0); 
+        document.getElementById('orderDetailContent').innerHTML=`<div style="line-height:2;"><strong>${c?.name}</strong><br>N° commande: ${o.orderNumber}<br>Date: ${formatDateFr(o.date)}<br>Montant total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br><span style="color:var(--warning); font-weight:bold;">Reste: ${formatMoney(o.amount-paid)}</span><br>${o.notes ? `<br>📝 Notes: ${o.notes}` : ''}</div>`; 
+        openModal('orderDetailModal'); 
+        document.getElementById('printOrderBtn').onclick=()=>{ 
+            const {jsPDF}=window.jspdf; 
+            const doc=new jsPDF(); 
+            doc.setFillColor(13,148,136); 
+            doc.rect(0,0,210,20,'F'); 
+            doc.setTextColor(255,255,255); 
+            doc.setFontSize(16); 
+            doc.text('EL FATH SERVICE',105,14,{align:'center'}); 
+            doc.setTextColor(0,0,0); 
+            doc.setFontSize(12); 
+            doc.text(`Facture N°: ${o.orderNumber}`,10,35); 
+            doc.text(`Client: ${c?.name}`,10,45); 
+            doc.text(`Date: ${formatDateFr(o.date)}`,10,55); 
+            doc.text(`Montant total: ${formatMoney(o.amount)}`,10,65); 
+            doc.text(`Montant payé: ${formatMoney(paid)}`,10,75); 
+            doc.text(`Montant restant: ${formatMoney(o.amount-paid)}`,10,85); 
+            doc.save(`facture_${o.orderNumber}.pdf`); 
+            showFlash('PDF facture généré'); 
+        };
+        document.getElementById('deleteOrderBtn').onclick=()=>{ 
+            closeModal('orderDetailModal');
+            deleteOrder(orderId);
+        };
+    };
+    
+    window.showClientOrders = (clientId) => { 
+        let c=clients.find(c=>c.id===clientId); 
+        let clientOrders=orders.filter(o=>o.clientId===clientId); 
+        let html=`<div class="modal-content"><div class="modal-header">Commandes de ${c?.name} <button onclick="closeModal('tempModal')" style="background:none; width:auto;">✕</button></div>`; 
+        if(clientOrders.length === 0){
+            html+=`<div style="padding:20px; text-align:center;">Aucune commande pour ce client</div>`;
+        } else {
+            clientOrders.forEach(o=>{ 
+                let paid=payments.filter(p=>p.orderId===o.id).reduce((s,p)=>s+p.amount,0); 
+                html+=`<div class="list-item" style="cursor:default;"><div class="flex-between"><span><strong>${o.orderNumber}</strong></span><span class="badge ${paid>=o.amount?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=o.amount?'Payée':paid>0?'Partielle':'Impayée'}</span></div><div>${formatMoney(o.amount)} (Payé: ${formatMoney(paid)})</div><div class="small-text">📅 ${formatDateFr(o.date)}</div><button class="small-icon-btn" style="margin-top:8px; background:var(--info); color:white;" onclick="closeModal('tempModal'); showOrderDetail('${o.id}')">Voir détails</button></div>`; 
+            });
+        }
+        html+=`<button onclick="closeModal('tempModal')" style="margin-top:15px;">Fermer</button></div>`; 
+        let modal=document.createElement('div'); 
+        modal.id='tempModal'; 
+        modal.className='modal active'; 
+        modal.innerHTML=html; 
+        document.body.appendChild(modal); 
+    };
 </script>
 </body>
 </html>
