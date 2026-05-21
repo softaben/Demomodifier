@@ -517,16 +517,13 @@
     </div>
 </div>
 
-<!-- Modal Confirmation Suppression -->
 <div id="deleteConfirmModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <span>⚠️ Confirmation de suppression</span>
             <button onclick="closeModal('deleteConfirmModal')" style="background:none; color:white; font-size:20px;">✕</button>
         </div>
-        <div id="deleteConfirmMessage" style="text-align:center; margin:20px 0;">
-            Êtes-vous sûr de vouloir supprimer tous les éléments ?
-        </div>
+        <div id="deleteConfirmMessage" style="text-align:center; margin:20px 0;">Êtes-vous sûr de vouloir supprimer tous les éléments ?</div>
         <div class="row">
             <button onclick="closeModal('deleteConfirmModal')" style="background:#2d2d44;">Annuler</button>
             <button id="confirmDeleteBtn" class="danger">🗑️ Confirmer la suppression</button>
@@ -534,7 +531,6 @@
     </div>
 </div>
 
-<!-- Modal Détails Commande -->
 <div id="orderDetailModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -572,7 +568,6 @@
     let multiOrdersSelected = {};
     let pendingDeleteType = null;
     let currentOrderId = null;
-    
     let dateFilterStart = null;
     let dateFilterEnd = null;
 
@@ -615,7 +610,6 @@
     // ========== Load Data ==========
     async function loadData() {
         const uid = currentUser.uid;
-        
         db.ref(`users/${uid}/clients`).on('value', snap => {
             clients = snap.exists() ? Object.values(snap.val()) : [];
             renderClientsList();
@@ -623,13 +617,11 @@
             renderSituationClients();
             updateReportClientSelect();
         });
-        
         db.ref(`users/${uid}/orders`).on('value', snap => {
             orders = snap.exists() ? Object.values(snap.val()) : [];
             renderOrdersList();
             renderSituationClients();
         });
-        
         db.ref(`users/${uid}/payments`).on('value', snap => {
             payments = snap.exists() ? Object.values(snap.val()) : [];
             renderRecentPayments();
@@ -642,9 +634,7 @@
         const select = document.getElementById('reportClientSelect');
         if (select) {
             select.innerHTML = '<option value="">-- Sélectionner un client --</option>';
-            clients.forEach(c => {
-                select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-            });
+            clients.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
         }
     }
 
@@ -652,77 +642,34 @@
     function applyPresetFilter() {
         const preset = document.getElementById('filterPeriodPreset').value;
         const today = new Date();
-        let start = new Date();
-        let end = new Date();
-        
+        let start = new Date(), end = new Date();
         today.setHours(0, 0, 0, 0);
-        
         switch(preset) {
-            case 'today':
-                start = new Date(today);
-                end = new Date(today);
-                break;
-            case 'yesterday':
-                start = new Date(today);
-                start.setDate(today.getDate() - 1);
-                end = new Date(start);
-                break;
-            case 'week':
-                start = new Date(today);
-                start.setDate(today.getDate() - 7);
-                end = new Date(today);
-                break;
-            case 'month':
-                start = new Date(today);
-                start.setDate(today.getDate() - 30);
-                end = new Date(today);
-                break;
-            case 'lastmonth':
-                start = new Date(today);
-                start.setMonth(today.getMonth() - 1);
-                start.setDate(1);
-                end = new Date(today);
-                end.setDate(0);
-                break;
-            default:
-                return;
+            case 'today': start = new Date(today); end = new Date(today); break;
+            case 'yesterday': start = new Date(today); start.setDate(today.getDate()-1); end = new Date(start); break;
+            case 'week': start = new Date(today); start.setDate(today.getDate()-7); end = new Date(today); break;
+            case 'month': start = new Date(today); start.setDate(today.getDate()-30); end = new Date(today); break;
+            case 'lastmonth': start = new Date(today); start.setMonth(today.getMonth()-1); start.setDate(1); end = new Date(today); end.setDate(0); break;
+            default: return;
         }
-        
         document.getElementById('filterDateStart').value = formatDateInput(start);
         document.getElementById('filterDateEnd').value = formatDateInput(end);
         applyDateFilter();
     }
     
-    function formatDateInput(date) {
-        return date.toISOString().split('T')[0];
-    }
+    function formatDateInput(date) { return date.toISOString().split('T')[0]; }
     
     function applyDateFilter() {
         const startInput = document.getElementById('filterDateStart').value;
         const endInput = document.getElementById('filterDateEnd').value;
-        
         dateFilterStart = startInput ? new Date(startInput) : null;
         dateFilterEnd = endInput ? new Date(endInput) : null;
-        
-        if (dateFilterEnd) {
-            dateFilterEnd.setHours(23, 59, 59, 999);
-        }
-        
+        if (dateFilterEnd) dateFilterEnd.setHours(23,59,59,999);
         const infoDiv = document.getElementById('filterInfo');
-        if (dateFilterStart && dateFilterEnd) {
-            infoDiv.innerHTML = `<i class="fas fa-filter"></i> Filtre actif: du ${formatDate(startInput)} au ${formatDate(endInput)}`;
-            infoDiv.style.color = "#f39c12";
-        } else if (dateFilterStart) {
-            infoDiv.innerHTML = `<i class="fas fa-filter"></i> Filtre actif: à partir du ${formatDate(startInput)}`;
-            infoDiv.style.color = "#f39c12";
-        } else if (dateFilterEnd) {
-            infoDiv.innerHTML = `<i class="fas fa-filter"></i> Filtre actif: jusqu'au ${formatDate(endInput)}`;
-            infoDiv.style.color = "#f39c12";
-        } else {
-            infoDiv.innerHTML = `<i class="fas fa-calendar"></i> Aucun filtre - Toutes les commandes affichées`;
-            infoDiv.style.color = "#a0a0b0";
-        }
-        
+        if (dateFilterStart && dateFilterEnd) infoDiv.innerHTML = `<i class="fas fa-filter"></i> Filtre actif: du ${formatDate(startInput)} au ${formatDate(endInput)}`;
+        else if (dateFilterStart) infoDiv.innerHTML = `<i class="fas fa-filter"></i> Filtre actif: à partir du ${formatDate(startInput)}`;
+        else if (dateFilterEnd) infoDiv.innerHTML = `<i class="fas fa-filter"></i> Filtre actif: jusqu'au ${formatDate(endInput)}`;
+        else infoDiv.innerHTML = `<i class="fas fa-calendar"></i> Aucun filtre - Toutes les commandes affichées`;
         renderSituationClients();
     }
     
@@ -730,8 +677,7 @@
         document.getElementById('filterDateStart').value = '';
         document.getElementById('filterDateEnd').value = '';
         document.getElementById('filterPeriodPreset').value = '';
-        dateFilterStart = null;
-        dateFilterEnd = null;
+        dateFilterStart = null; dateFilterEnd = null;
         document.getElementById('filterInfo').innerHTML = `<i class="fas fa-calendar"></i> Aucun filtre - Toutes les commandes affichées`;
         renderSituationClients();
     }
@@ -744,31 +690,21 @@
         return true;
     }
     
-    // ========== Fonction d'export PDF des commandes d'un client sur une période ==========
+    // ========== Export PDF des commandes d'un client (avec numéro de téléphone) ==========
     window.exportClientOrdersPDF = () => {
         const clientId = document.getElementById('reportClientSelect').value;
-        if (!clientId) {
-            showFlash('Veuillez sélectionner un client', 'warning');
-            return;
-        }
-        
+        if (!clientId) { showFlash('Veuillez sélectionner un client', 'warning'); return; }
         const client = clients.find(c => c.id === clientId);
         if (!client) return;
         
         let clientOrders = orders.filter(o => o.clientId === clientId);
         clientOrders = clientOrders.filter(o => isDateInFilter(o.date));
-        
-        if (clientOrders.length === 0) {
-            showFlash('Aucune commande pour ce client dans la période sélectionnée', 'warning');
-            return;
-        }
-        
+        if (clientOrders.length === 0) { showFlash('Aucune commande pour ce client dans la période sélectionnée', 'warning'); return; }
         clientOrders.sort((a,b) => new Date(a.date) - new Date(b.date));
         
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         
-        // En-tête
         doc.setFillColor(155, 89, 182);
         doc.rect(0, 0, 210, 45, 'F');
         doc.setTextColor(255, 255, 255);
@@ -779,99 +715,57 @@
         doc.setFont('helvetica', 'normal');
         doc.text('Système de Gestion des Crédits', 105, 34, { align: 'center' });
         
-        // Informations
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(11);
         doc.text(`Client: ${client.name}`, 14, 55);
-        if (client.phone) doc.text(`Téléphone: ${client.phone}`, 14, 63);
-        if (client.address) doc.text(`Adresse: ${client.address}`, 14, 71);
+        if (client.phone && client.phone.trim() !== '') doc.text(`Téléphone: ${client.phone}`, 14, 63);
+        if (client.address && client.address.trim() !== '') doc.text(`Adresse: ${client.address}`, 14, 71);
         
         let periodText = '';
-        if (dateFilterStart && dateFilterEnd) {
-            periodText = `du ${formatDate(dateFilterStart.toISOString().split('T')[0])} au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
-        } else if (dateFilterStart) {
-            periodText = `à partir du ${formatDate(dateFilterStart.toISOString().split('T')[0])}`;
-        } else if (dateFilterEnd) {
-            periodText = `jusqu'au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
-        } else {
-            periodText = 'Toutes les commandes';
-        }
+        if (dateFilterStart && dateFilterEnd) periodText = `du ${formatDate(dateFilterStart.toISOString().split('T')[0])} au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
+        else if (dateFilterStart) periodText = `à partir du ${formatDate(dateFilterStart.toISOString().split('T')[0])}`;
+        else if (dateFilterEnd) periodText = `jusqu'au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
+        else periodText = 'Toutes les commandes';
         doc.text(`Période: ${periodText}`, 14, 79);
         doc.text(`Date d'édition: ${new Date().toLocaleString('fr-FR')}`, 14, 87);
         
-        // Préparation des données
         const tableData = [];
-        let totalGeneral = 0;
-        let totalPayeGeneral = 0;
-        
+        let totalGeneral = 0, totalPayeGeneral = 0;
         clientOrders.forEach(order => {
             const orderPayments = payments.filter(p => p.orderId === order.id);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
             totalGeneral += order.amount;
             totalPayeGeneral += totalPaid;
-            
-            let status = '';
-            if (totalPaid >= order.amount) status = 'Payée';
-            else if (totalPaid > 0) status = 'Partielle';
-            else status = 'Impayée';
-            
-            tableData.push([
-                order.orderNumber,
-                formatDate(order.date),
-                order.dueDate ? formatDate(order.dueDate) : '-',
-                formatNumber(order.amount),
-                formatNumber(totalPaid),
-                formatNumber(remaining),
-                status,
-                order.notes || '-'
-            ]);
+            let status = totalPaid >= order.amount ? 'Payée' : (totalPaid > 0 ? 'Partielle' : 'Impayée');
+            tableData.push([order.orderNumber, formatDate(order.date), order.dueDate ? formatDate(order.dueDate) : '-', formatNumber(order.amount), formatNumber(totalPaid), formatNumber(remaining), status, order.notes || '-']);
         });
         
-        // Tableau
         doc.autoTable({
             startY: 95,
-            head: [['N° Commande', 'Date', 'Échéance', 'Total', 'Payé', 'Reste', 'Statut', 'Notes']],
+            head: [['N° Commande', 'Date', 'Échéance', 'Total (MAD)', 'Payé (MAD)', 'Reste (MAD)', 'Statut', 'Notes']],
             body: tableData,
             theme: 'striped',
-            headStyles: { 
-                fillColor: [155, 89, 182], 
-                textColor: 255, 
-                fontSize: 10,
-                fontStyle: 'bold',
-                halign: 'center'
-            },
-            bodyStyles: { 
-                fontSize: 9, 
-                textColor: [0, 0, 0],
-                halign: 'center'
-            },
-            columnStyles: {
-                3: { halign: 'right' },
-                4: { halign: 'right' },
-                5: { halign: 'right' }
-            },
+            headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 9, fontStyle: 'bold', halign: 'center' },
+            bodyStyles: { fontSize: 8, textColor: [0, 0, 0], halign: 'center' },
+            columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
             margin: { left: 14, right: 14 }
         });
         
         let finalY = doc.lastAutoTable.finalY + 10;
-        
-        // Totaux
-        const totalRestant = totalGeneral - totalPayeGeneral;
         doc.setFillColor(240, 240, 245);
-        doc.rect(14, finalY, 182, 35, 'F');
-        doc.setFontSize(11);
+        doc.rect(14, finalY, 182, 38, 'F');
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(155, 89, 182);
         doc.text('RÉCAPITULATIF', 20, finalY + 8);
-        doc.setFontSize(10);
+        doc.setFontSize(9);
         doc.setTextColor(0, 0, 0);
         doc.text(`Nombre de commandes: ${clientOrders.length}`, 20, finalY + 18);
         doc.text(`Total général: ${formatNumber(totalGeneral)} MAD`, 20, finalY + 26);
         doc.text(`Total payé: ${formatNumber(totalPayeGeneral)} MAD`, 20, finalY + 34);
-        doc.text(`Total restant: ${formatNumber(totalRestant)} MAD`, 20, finalY + 42);
+        doc.text(`Total restant: ${formatNumber(totalGeneral - totalPayeGeneral)} MAD`, 20, finalY + 42);
         
-        // Pied de page
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.text('EL FATH SERVICE - Système de gestion des crédits', 105, 280, { align: 'center' });
@@ -881,94 +775,47 @@
         showFlash('PDF des commandes généré avec succès', 'success');
     };
     
-    // ========== Formatage des nombres avec espace comme séparateur de milliers ==========
+    // ========== Formatage des nombres ==========
     function formatNumber(amount) {
         if (amount === undefined || amount === null) return '0,00';
-        // Formater avec espace comme séparateur de milliers et virgule pour les décimales
-        return new Intl.NumberFormat('fr-FR', { 
-            minimumFractionDigits: 2, 
-            maximumFractionDigits: 2,
-            useGrouping: true
-        }).format(amount).replace(/\s/g, ' ');
+        return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true }).format(amount).replace(/\s/g, ' ');
     }
-    
-    function formatMoney(amount) {
-        return formatNumber(amount) + ' MAD';
-    }
+    function formatMoney(amount) { return formatNumber(amount) + ' MAD'; }
     
     // ========== Delete Functions ==========
     window.showDeleteAllModal = (type) => {
         pendingDeleteType = type;
         const messageDiv = document.getElementById('deleteConfirmMessage');
-        if (type === 'clients') {
-            messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUS les clients ?<br><small>Toutes les commandes et paiements liés seront également supprimés !</small>';
-        } else if (type === 'orders') {
-            messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUTES les commandes ?<br><small>Tous les paiements liés seront également supprimés !</small>';
-        } else if (type === 'payments') {
-            messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUS les paiements ?';
-        } else if (type === 'all') {
-            messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUTES les données ?<br><small>Clients, commandes et paiements seront définitivement supprimés !</small>';
-        }
+        if (type === 'clients') messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUS les clients ?<br><small>Toutes les commandes et paiements liés seront également supprimés !</small>';
+        else if (type === 'orders') messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUTES les commandes ?<br><small>Tous les paiements liés seront également supprimés !</small>';
+        else if (type === 'payments') messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUS les paiements ?';
+        else if (type === 'all') messageDiv.innerHTML = '⚠️ Êtes-vous sûr de vouloir supprimer TOUTES les données ?<br><small>Clients, commandes et paiements seront définitivement supprimés !</small>';
         openModal('deleteConfirmModal');
     };
-
     document.getElementById('confirmDeleteBtn').onclick = async () => {
         const uid = currentUser.uid;
-        
-        if (pendingDeleteType === 'clients') {
-            await db.ref(`users/${uid}/clients`).remove();
-            await db.ref(`users/${uid}/orders`).remove();
-            await db.ref(`users/${uid}/payments`).remove();
-            showFlash('Tous les clients et leurs données ont été supprimés', 'success');
-        } 
-        else if (pendingDeleteType === 'orders') {
-            await db.ref(`users/${uid}/orders`).remove();
-            await db.ref(`users/${uid}/payments`).remove();
-            showFlash('Toutes les commandes et paiements ont été supprimés', 'success');
-        }
-        else if (pendingDeleteType === 'payments') {
-            await db.ref(`users/${uid}/payments`).remove();
-            showFlash('Tous les paiements ont été supprimés', 'success');
-        }
-        else if (pendingDeleteType === 'all') {
-            await db.ref(`users/${uid}/clients`).remove();
-            await db.ref(`users/${uid}/orders`).remove();
-            await db.ref(`users/${uid}/payments`).remove();
-            showFlash('Toutes les données ont été supprimées', 'success');
-        }
-        
-        closeModal('deleteConfirmModal');
-        pendingDeleteType = null;
+        if (pendingDeleteType === 'clients') { await db.ref(`users/${uid}/clients`).remove(); await db.ref(`users/${uid}/orders`).remove(); await db.ref(`users/${uid}/payments`).remove(); showFlash('Tous les clients et leurs données ont été supprimés', 'success'); }
+        else if (pendingDeleteType === 'orders') { await db.ref(`users/${uid}/orders`).remove(); await db.ref(`users/${uid}/payments`).remove(); showFlash('Toutes les commandes et paiements ont été supprimés', 'success'); }
+        else if (pendingDeleteType === 'payments') { await db.ref(`users/${uid}/payments`).remove(); showFlash('Tous les paiements ont été supprimés', 'success'); }
+        else if (pendingDeleteType === 'all') { await db.ref(`users/${uid}/clients`).remove(); await db.ref(`users/${uid}/orders`).remove(); await db.ref(`users/${uid}/payments`).remove(); showFlash('Toutes les données ont été supprimées', 'success'); }
+        closeModal('deleteConfirmModal'); pendingDeleteType = null;
     };
-
     window.deleteOrder = async (orderId) => {
         if (!confirm('⚠️ Supprimer cette commande et tous ses paiements ?')) return;
-        
         const uid = currentUser.uid;
         const orderPayments = payments.filter(p => p.orderId === orderId);
-        
-        for (let payment of orderPayments) {
-            await db.ref(`users/${uid}/payments/${payment.id}`).remove();
-        }
+        for (let payment of orderPayments) await db.ref(`users/${uid}/payments/${payment.id}`).remove();
         await db.ref(`users/${uid}/orders/${orderId}`).remove();
-        
         closeModal('orderDetailModal');
         showFlash('Commande et paiements supprimés', 'success');
     };
-
+    
     // ========== Clients Functions ==========
     function renderClientsList() {
         const container = document.getElementById('clientsList');
         const search = document.getElementById('searchClientsList')?.value.toLowerCase() || '';
-        
-        let filtered = clients;
-        if (search) filtered = clients.filter(c => c.name.toLowerCase().includes(search));
-        
-        if (filtered.length === 0) {
-            container.innerHTML = '<div class="empty">📭 Aucun client</div>';
-            return;
-        }
-        
+        let filtered = search ? clients.filter(c => c.name.toLowerCase().includes(search)) : clients;
+        if (filtered.length === 0) { container.innerHTML = '<div class="empty">📭 Aucun client</div>'; return; }
         container.innerHTML = filtered.map(client => `
             <div class="list-item animate" onclick="showClientOrders('${client.id}')">
                 <div class="flex-between">
@@ -984,117 +831,66 @@
             </div>
         `).join('');
     }
-    
     window.deleteSingleClient = async (clientId) => {
         if (!confirm('⚠️ Supprimer ce client et toutes ses commandes/paiements ?')) return;
-        
         const uid = currentUser.uid;
         const clientOrders = orders.filter(o => o.clientId === clientId);
-        
         for (let order of clientOrders) {
             const orderPayments = payments.filter(p => p.orderId === order.id);
-            for (let payment of orderPayments) {
-                await db.ref(`users/${uid}/payments/${payment.id}`).remove();
-            }
+            for (let payment of orderPayments) await db.ref(`users/${uid}/payments/${payment.id}`).remove();
             await db.ref(`users/${uid}/orders/${order.id}`).remove();
         }
         await db.ref(`users/${uid}/clients/${clientId}`).remove();
-        
         showFlash('Client et ses données supprimés', 'success');
     };
-    
     window.editClient = (clientId) => {
         const client = clients.find(c => c.id === clientId);
         if (!client) return;
-        
         const newName = prompt('Nom du client:', client.name);
         if (newName && newName.trim()) {
             const newPhone = prompt('Téléphone:', client.phone || '');
             const newAddress = prompt('Adresse:', client.address || '');
-            
             const updated = { ...client, name: newName.trim(), phone: newPhone || '', address: newAddress || '' };
             db.ref(`users/${currentUser.uid}/clients/${clientId}`).set(updated);
             showFlash('Client modifié avec succès', 'success');
         }
     };
-    
     document.getElementById('saveClientBtn').onclick = async () => {
         const name = document.getElementById('newClientName').value.trim();
         const phone = document.getElementById('newClientPhone').value.trim();
         const address = document.getElementById('newClientAddress').value.trim();
-        
         if (!name) { showFlash('Le nom du client est requis', 'warning'); return; }
-        
-        const client = {
-            id: Date.now().toString(),
-            name: name,
-            phone: phone,
-            address: address,
-            date: new Date().toISOString()
-        };
-        
+        const client = { id: Date.now().toString(), name, phone, address, date: new Date().toISOString() };
         await db.ref(`users/${currentUser.uid}/clients/${client.id}`).set(client);
-        
         document.getElementById('newClientName').value = '';
         document.getElementById('newClientPhone').value = '';
         document.getElementById('newClientAddress').value = '';
-        
         showFlash('Client ajouté avec succès', 'success');
     };
-    
     function updateAllSelects() {
         const selects = ['orderClientSelect', 'paymentClientSelect', 'multiClientSelect'];
         selects.forEach(id => {
             const select = document.getElementById(id);
             if (select) {
                 select.innerHTML = '<option value="">-- Sélectionner un client --</option>';
-                clients.forEach(c => {
-                    select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-                });
+                clients.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
             }
         });
     }
-    
     window.showClientOrders = (clientId) => {
         const client = clients.find(c => c.id === clientId);
         if (!client) return;
-        
         let clientOrders = orders.filter(o => o.clientId === clientId);
         clientOrders = clientOrders.filter(o => isDateInFilter(o.date));
-        
-        if (clientOrders.length === 0) {
-            showFlash('Aucune commande pour ce client dans la période sélectionnée', 'warning');
-            return;
-        }
-        
+        if (clientOrders.length === 0) { showFlash('Aucune commande pour ce client dans la période sélectionnée', 'warning'); return; }
         let html = `<div style="margin-bottom:15px;"><strong>👤 ${client.name}</strong></div>`;
-        
         clientOrders.forEach(order => {
             const orderPayments = payments.filter(p => p.orderId === order.id);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
             const percent = (totalPaid / order.amount) * 100;
-            
-            html += `
-                <div class="list-item" style="margin-bottom:10px;">
-                    <div class="flex-between">
-                        <span>🔢 ${order.orderNumber}</span>
-                        <span>${formatMoney(order.amount)}</span>
-                    </div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-                    <div class="flex-between small-text">
-                        <span>Payé: ${formatMoney(totalPaid)}</span>
-                        <span>Reste: ${formatMoney(remaining)}</span>
-                    </div>
-                    <div class="flex-between small-text" style="margin-top:8px;">
-                        <span>📅 ${formatDate(order.date)}</span>
-                        ${remaining > 0 ? `<button onclick="quickPayment('${order.id}')" style="background:#2ecc71; padding:5px 10px; font-size:11px; width:auto;">+ Paiement</button>` : ''}
-                        <button onclick="showOrderDetail('${order.id}')" style="background:#3498db; padding:5px 10px; font-size:11px; width:auto;">Détails</button>
-                    </div>
-                </div>
-            `;
+            html += `<div class="list-item" style="margin-bottom:10px;"><div class="flex-between"><span>🔢 ${order.orderNumber}</span><span>${formatMoney(order.amount)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="flex-between small-text"><span>Payé: ${formatMoney(totalPaid)}</span><span>Reste: ${formatMoney(remaining)}</span></div><div class="flex-between small-text" style="margin-top:8px;"><span>📅 ${formatDate(order.date)}</span>${remaining > 0 ? `<button onclick="quickPayment('${order.id}')" style="background:#2ecc71; padding:5px 10px; font-size:11px; width:auto;">+ Paiement</button>` : ''}<button onclick="showOrderDetail('${order.id}')" style="background:#3498db; padding:5px 10px; font-size:11px; width:auto;">Détails</button></div></div>`;
         });
-        
         const modal = document.createElement('div');
         modal.className = 'modal active';
         modal.id = 'tempModal';
@@ -1106,23 +902,10 @@
     function renderOrdersList() {
         const container = document.getElementById('ordersList');
         const search = document.getElementById('searchOrders')?.value.toLowerCase() || '';
-        
         let filtered = orders;
-        if (search) {
-            filtered = orders.filter(o => {
-                const client = clients.find(c => c.id === o.clientId);
-                const clientName = client ? client.name : '';
-                return clientName.toLowerCase().includes(search) || (o.orderNumber || '').toLowerCase().includes(search);
-            });
-        }
-        
-        if (filtered.length === 0) {
-            container.innerHTML = '<div class="empty">📭 Aucune commande</div>';
-            return;
-        }
-        
+        if (search) filtered = orders.filter(o => { const client = clients.find(c => c.id === o.clientId); const clientName = client ? client.name : ''; return clientName.toLowerCase().includes(search) || (o.orderNumber || '').toLowerCase().includes(search); });
+        if (filtered.length === 0) { container.innerHTML = '<div class="empty">📭 Aucune commande</div>'; return; }
         filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
-        
         container.innerHTML = filtered.map(order => {
             const client = clients.find(c => c.id === order.clientId);
             const clientName = client ? client.name : 'Inconnu';
@@ -1130,60 +913,24 @@
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
             const percent = (totalPaid / order.amount) * 100;
-            
-            let statusBadge = '';
-            if (totalPaid >= order.amount) statusBadge = '<span class="badge badge-paid">Payé</span>';
-            else if (totalPaid > 0) statusBadge = '<span class="badge badge-partial">Partiel</span>';
-            else statusBadge = '<span class="badge badge-unpaid">Impayé</span>';
-            
-            return `
-                <div class="list-item animate" onclick="showOrderDetail('${order.id}')">
-                    <div class="flex-between">
-                        <span class="client-name">${clientName}</span>
-                        ${statusBadge}
-                    </div>
-                    <div class="flex-between" style="margin-top:5px;">
-                        <span>🔢 ${order.orderNumber || '-'}</span>
-                        <span>💰 ${formatMoney(order.amount)}</span>
-                    </div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-                    <div class="flex-between small-text">
-                        <span>✅ Payé: ${formatMoney(totalPaid)}</span>
-                        <span>⚠️ Reste: ${formatMoney(remaining)}</span>
-                    </div>
-                    <div class="small-text" style="margin-top:5px;">📅 ${formatDate(order.date)}</div>
-                </div>
-            `;
+            let statusBadge = totalPaid >= order.amount ? '<span class="badge badge-paid">Payé</span>' : (totalPaid > 0 ? '<span class="badge badge-partial">Partiel</span>' : '<span class="badge badge-unpaid">Impayé</span>');
+            return `<div class="list-item animate" onclick="showOrderDetail('${order.id}')"><div class="flex-between"><span class="client-name">${clientName}</span>${statusBadge}</div><div class="flex-between" style="margin-top:5px;"><span>🔢 ${order.orderNumber || '-'}</span><span>💰 ${formatMoney(order.amount)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="flex-between small-text"><span>✅ Payé: ${formatMoney(totalPaid)}</span><span>⚠️ Reste: ${formatMoney(remaining)}</span></div><div class="small-text" style="margin-top:5px;">📅 ${formatDate(order.date)}</div></div>`;
         }).join('');
     }
-    
     document.getElementById('saveOrderBtn').onclick = async () => {
         const clientId = document.getElementById('orderClientSelect').value;
         const orderNumber = document.getElementById('orderNumber').value.trim();
         const amount = parseFloat(document.getElementById('orderAmount').value);
         const dueDate = document.getElementById('orderDueDate').value;
         const notes = document.getElementById('orderNotes').value;
-        
         if (!clientId) { showFlash('Sélectionnez un client', 'warning'); return; }
         if (!amount || amount <= 0) { showFlash('Montant invalide', 'warning'); return; }
-        
-        const order = {
-            id: Date.now().toString(),
-            clientId: clientId,
-            orderNumber: orderNumber || `CMD-${Date.now()}`,
-            amount: amount,
-            dueDate: dueDate,
-            notes: notes,
-            date: new Date().toISOString()
-        };
-        
+        const order = { id: Date.now().toString(), clientId, orderNumber: orderNumber || `CMD-${Date.now()}`, amount, dueDate, notes, date: new Date().toISOString() };
         await db.ref(`users/${currentUser.uid}/orders/${order.id}`).set(order);
-        
         document.getElementById('orderNumber').value = '';
         document.getElementById('orderAmount').value = '';
         document.getElementById('orderDueDate').value = '';
         document.getElementById('orderNotes').value = '';
-        
         showFlash('Commande ajoutée avec succès', 'success');
     };
     
@@ -1194,7 +941,6 @@
         const multiCard = document.getElementById('multiPaymentCard');
         const singleBtn = document.getElementById('singleModeBtn');
         const multiBtn = document.getElementById('multiModeBtn');
-        
         if (mode === 'single') {
             singleCard.classList.remove('hidden');
             multiCard.classList.add('hidden');
@@ -1207,162 +953,83 @@
             multiBtn.style.background = '#9b59b6';
         }
     };
-    
     window.loadClientOrdersForPayment = () => {
         const clientId = document.getElementById('paymentClientSelect').value;
         const orderSelect = document.getElementById('paymentOrderSelect');
-        
-        if (!clientId) {
-            orderSelect.innerHTML = '<option value="">-- Sélectionner une commande --</option>';
-            document.getElementById('paymentOrderInfo').innerHTML = '';
-            return;
-        }
-        
+        if (!clientId) { orderSelect.innerHTML = '<option value="">-- Sélectionner une commande --</option>'; document.getElementById('paymentOrderInfo').innerHTML = ''; return; }
         const clientOrders = orders.filter(o => o.clientId === clientId);
-        
         orderSelect.innerHTML = '<option value="">-- Sélectionner une commande --</option>';
         clientOrders.forEach(order => {
             const orderPayments = payments.filter(p => p.orderId === order.id);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
-            if (remaining > 0) {
-                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - Reste: ${formatMoney(remaining)}</option>`;
-            } else {
-                orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - ✅ Soldée</option>`;
-            }
+            if (remaining > 0) orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - Reste: ${formatMoney(remaining)}</option>`;
+            else orderSelect.innerHTML += `<option value="${order.id}">${order.orderNumber} - ✅ Soldée</option>`;
         });
     };
-    
     window.updatePaymentInfo = () => {
         const orderId = document.getElementById('paymentOrderSelect').value;
         const infoDiv = document.getElementById('paymentOrderInfo');
-        if (!orderId) {
-            infoDiv.innerHTML = '';
-            return;
-        }
+        if (!orderId) { infoDiv.innerHTML = ''; return; }
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
-        
         const client = clients.find(c => c.id === order.clientId);
         const clientName = client ? client.name : 'Inconnu';
-        
         const orderPayments = payments.filter(p => p.orderId === orderId);
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
-        
-        infoDiv.innerHTML = `
-            <strong>${clientName}</strong><br>
-            N° commande: ${order.orderNumber}<br>
-            Total: ${formatMoney(order.amount)}<br>
-            Payé: ${formatMoney(totalPaid)}<br>
-            <span style="color: #f39c12;">Reste: ${formatMoney(remaining)}</span>
-        `;
+        infoDiv.innerHTML = `<strong>${clientName}</strong><br>N° commande: ${order.orderNumber}<br>Total: ${formatMoney(order.amount)}<br>Payé: ${formatMoney(totalPaid)}<br><span style="color: #f39c12;">Reste: ${formatMoney(remaining)}</span>`;
         document.getElementById('paymentAmount').value = remaining > 0 ? remaining.toFixed(2) : 0;
         document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
     };
-    
     document.getElementById('savePaymentBtn').onclick = async () => {
         const orderId = document.getElementById('paymentOrderSelect').value;
         const amount = parseFloat(document.getElementById('paymentAmount').value);
         const paymentDate = document.getElementById('paymentDate').value;
         const method = document.getElementById('paymentMethod').value;
         const notes = document.getElementById('paymentNotes').value;
-        
         if (!orderId) { showFlash('Sélectionnez une commande', 'warning'); return; }
         if (!amount || amount <= 0) { showFlash('Montant invalide', 'warning'); return; }
-        
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
-        
         const orderPayments = payments.filter(p => p.orderId === orderId);
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
-        
-        if (amount > remaining) {
-            showFlash(`Le montant dépasse le reste dû (${formatMoney(remaining)})`, 'danger');
-            return;
-        }
-        
+        if (amount > remaining) { showFlash(`Le montant dépasse le reste dû (${formatMoney(remaining)})`, 'danger'); return; }
         const client = clients.find(c => c.id === order.clientId);
-        
-        const payment = {
-            id: Date.now().toString(),
-            orderId: orderId,
-            clientId: order.clientId,
-            clientName: client ? client.name : 'Inconnu',
-            orderNumber: order.orderNumber,
-            amount: amount,
-            date: new Date(paymentDate).toISOString(),
-            method: method,
-            notes: notes,
-            timestamp: Date.now()
-        };
-        
+        const payment = { id: Date.now().toString(), orderId, clientId: order.clientId, clientName: client ? client.name : 'Inconnu', orderNumber: order.orderNumber, amount, date: new Date(paymentDate).toISOString(), method, notes, timestamp: Date.now() };
         await db.ref(`users/${currentUser.uid}/payments/${payment.id}`).set(payment);
-        
         document.getElementById('paymentAmount').value = '';
         document.getElementById('paymentNotes').value = '';
         showFlash('Paiement enregistré avec succès', 'success');
         loadClientOrdersForPayment();
     };
-    
     window.loadMultiClientOrders = () => {
         const clientId = document.getElementById('multiClientSelect').value;
         const container = document.getElementById('multiOrdersList');
-        
-        if (!clientId) {
-            container.innerHTML = '';
-            return;
-        }
-        
+        if (!clientId) { container.innerHTML = ''; return; }
         const clientOrders = orders.filter(o => o.clientId === clientId);
         multiOrdersSelected = {};
-        
-        if (clientOrders.length === 0) {
-            container.innerHTML = '<div class="empty">Aucune commande pour ce client</div>';
-            return;
-        }
-        
+        if (clientOrders.length === 0) { container.innerHTML = '<div class="empty">Aucune commande pour ce client</div>'; return; }
         let html = '<div class="form-group"><label>📋 Sélectionnez les commandes à payer:</label></div>';
-        
         clientOrders.forEach(order => {
             const orderPayments = payments.filter(p => p.orderId === order.id);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
-            
             if (remaining > 0) {
-                html += `
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="multiOrder_${order.id}" value="${order.id}" data-remaining="${remaining}" onchange="updateMultiOrderSelection('${order.id}', this.checked, ${remaining})">
-                        <label for="multiOrder_${order.id}" style="flex:1; cursor:pointer;">
-                            <strong>${order.orderNumber}</strong><br>
-                            <span class="small-text">Total: ${formatMoney(order.amount)} | Reste: ${formatMoney(remaining)}</span>
-                        </label>
-                        <input type="number" id="amount_${order.id}" placeholder="Montant" step="0.01" style="width:120px;" disabled onchange="updateIndividualAmount('${order.id}', this.value)">
-                    </div>
-                `;
+                html += `<div class="checkbox-group"><input type="checkbox" id="multiOrder_${order.id}" value="${order.id}" data-remaining="${remaining}" onchange="updateMultiOrderSelection('${order.id}', this.checked, ${remaining})"><label for="multiOrder_${order.id}" style="flex:1; cursor:pointer;"><strong>${order.orderNumber}</strong><br><span class="small-text">Total: ${formatMoney(order.amount)} | Reste: ${formatMoney(remaining)}</span></label><input type="number" id="amount_${order.id}" placeholder="Montant" step="0.01" style="width:120px;" disabled onchange="updateIndividualAmount('${order.id}', this.value)"></div>`;
             }
         });
-        
         container.innerHTML = html;
         document.getElementById('totalPaymentAmount').value = '';
         document.getElementById('multiPaymentDate').value = new Date().toISOString().split('T')[0];
     };
-    
     window.updateMultiOrderSelection = (orderId, checked, remaining) => {
         const amountInput = document.getElementById(`amount_${orderId}`);
-        if (checked) {
-            amountInput.disabled = false;
-            amountInput.value = remaining;
-            multiOrdersSelected[orderId] = remaining;
-        } else {
-            amountInput.disabled = true;
-            amountInput.value = '';
-            delete multiOrdersSelected[orderId];
-        }
+        if (checked) { amountInput.disabled = false; amountInput.value = remaining; multiOrdersSelected[orderId] = remaining; }
+        else { amountInput.disabled = true; amountInput.value = ''; delete multiOrdersSelected[orderId]; }
         updateTotalPaymentAmount();
     };
-    
     window.updateIndividualAmount = (orderId, value) => {
         const amount = parseFloat(value);
         const order = orders.find(o => o.id === orderId);
@@ -1370,38 +1037,19 @@
             const orderPayments = payments.filter(p => p.orderId === orderId);
             const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = order.amount - totalPaid;
-            
-            if (isNaN(amount) || amount <= 0) {
-                delete multiOrdersSelected[orderId];
-            } else if (amount > remaining) {
-                showFlash(`Montant dépasse le reste dû (${formatMoney(remaining)})`, 'warning');
-                document.getElementById(`amount_${orderId}`).value = remaining;
-                multiOrdersSelected[orderId] = remaining;
-            } else {
-                multiOrdersSelected[orderId] = amount;
-            }
+            if (isNaN(amount) || amount <= 0) delete multiOrdersSelected[orderId];
+            else if (amount > remaining) { showFlash(`Montant dépasse le reste dû (${formatMoney(remaining)})`, 'warning'); document.getElementById(`amount_${orderId}`).value = remaining; multiOrdersSelected[orderId] = remaining; }
+            else multiOrdersSelected[orderId] = amount;
         }
         updateTotalPaymentAmount();
     };
-    
-    window.updateTotalPaymentAmount = () => {
-        let total = 0;
-        for (let amount of Object.values(multiOrdersSelected)) {
-            total += amount;
-        }
-        document.getElementById('totalPaymentAmount').value = total.toFixed(2);
-    };
-    
+    window.updateTotalPaymentAmount = () => { let total = 0; for (let amount of Object.values(multiOrdersSelected)) total += amount; document.getElementById('totalPaymentAmount').value = total.toFixed(2); };
     window.distributePayment = () => {
         const totalAmount = parseFloat(document.getElementById('totalPaymentAmount').value);
         if (isNaN(totalAmount) || totalAmount <= 0) return;
-        
         const selectedOrders = Object.keys(multiOrdersSelected);
         if (selectedOrders.length === 0) return;
-        
-        let totalRemaining = 0;
-        const remainingMap = {};
-        
+        let totalRemaining = 0, remainingMap = {};
         selectedOrders.forEach(orderId => {
             const order = orders.find(o => o.id === orderId);
             if (order) {
@@ -1412,12 +1060,7 @@
                 totalRemaining += remaining;
             }
         });
-        
-        if (totalAmount > totalRemaining) {
-            showFlash(`Le montant total (${formatMoney(totalAmount)}) dépasse le total restant dû (${formatMoney(totalRemaining)})`, 'warning');
-            return;
-        }
-        
+        if (totalAmount > totalRemaining) { showFlash(`Le montant total (${formatMoney(totalAmount)}) dépasse le total restant dû (${formatMoney(totalRemaining)})`, 'warning'); return; }
         let distributedTotal = 0;
         for (let orderId of selectedOrders) {
             const remaining = remainingMap[orderId];
@@ -1427,7 +1070,6 @@
             multiOrdersSelected[orderId] = allocated;
             distributedTotal += allocated;
         }
-        
         const diff = totalAmount - distributedTotal;
         if (Math.abs(diff) > 0.01 && selectedOrders.length > 0) {
             const firstOrder = selectedOrders[0];
@@ -1436,150 +1078,64 @@
             multiOrdersSelected[firstOrder] = parseFloat(newAmount);
         }
     };
-    
     document.getElementById('saveMultiPaymentBtn').onclick = async () => {
         const clientId = document.getElementById('multiClientSelect').value;
         const paymentDate = document.getElementById('multiPaymentDate').value;
         const method = document.getElementById('multiPaymentMethod').value;
         const notes = document.getElementById('multiPaymentNotes').value;
-        
         if (!clientId) { showFlash('Sélectionnez un client', 'warning'); return; }
-        
         const selectedOrders = Object.keys(multiOrdersSelected);
         if (selectedOrders.length === 0) { showFlash('Sélectionnez au moins une commande', 'warning'); return; }
-        
         const client = clients.find(c => c.id === clientId);
         let paymentsToSave = [];
-        
         for (let orderId of selectedOrders) {
             const amount = multiOrdersSelected[orderId];
             if (amount > 0) {
                 const order = orders.find(o => o.id === orderId);
-                if (order) {
-                    paymentsToSave.push({
-                        id: Date.now().toString() + '_' + orderId,
-                        orderId: orderId,
-                        clientId: clientId,
-                        clientName: client ? client.name : 'Inconnu',
-                        orderNumber: order.orderNumber,
-                        amount: amount,
-                        date: new Date(paymentDate).toISOString(),
-                        method: method,
-                        notes: notes,
-                        timestamp: Date.now()
-                    });
-                }
+                if (order) paymentsToSave.push({ id: Date.now().toString() + '_' + orderId, orderId, clientId, clientName: client ? client.name : 'Inconnu', orderNumber: order.orderNumber, amount, date: new Date(paymentDate).toISOString(), method, notes, timestamp: Date.now() });
             }
         }
-        
-        for (let payment of paymentsToSave) {
-            await db.ref(`users/${currentUser.uid}/payments/${payment.id}`).set(payment);
-        }
-        
+        for (let payment of paymentsToSave) await db.ref(`users/${currentUser.uid}/payments/${payment.id}`).set(payment);
         multiOrdersSelected = {};
         document.getElementById('multiPaymentNotes').value = '';
         showFlash(`${paymentsToSave.length} paiement(s) enregistré(s) avec succès`, 'success');
         loadMultiClientOrders();
     };
-    
     function renderRecentPayments() {
         const container = document.getElementById('recentPaymentsList');
         if (!container) return;
-        
         const recent = [...payments].sort((a,b) => b.timestamp - a.timestamp).slice(0, 10);
-        
-        if (recent.length === 0) {
-            container.innerHTML = '<div class="empty">Aucun paiement enregistré</div>';
-            return;
-        }
-        
-        container.innerHTML = recent.map(p => `
-            <div class="list-item animate">
-                <div class="flex-between">
-                    <span><strong>${p.clientName}</strong></span>
-                    <span class="badge badge-paid">${formatMoney(p.amount)}</span>
-                </div>
-                <div class="small-text">🔢 ${p.orderNumber} | 💳 ${p.method}</div>
-                <div class="small-text">📅 ${formatDate(p.date)}</div>
-                ${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}
-            </div>
-        `).join('');
+        if (recent.length === 0) { container.innerHTML = '<div class="empty">Aucun paiement enregistré</div>'; return; }
+        container.innerHTML = recent.map(p => `<div class="list-item animate"><div class="flex-between"><span><strong>${p.clientName}</strong></span><span class="badge badge-paid">${formatMoney(p.amount)}</span></div><div class="small-text">🔢 ${p.orderNumber} | 💳 ${p.method}</div><div class="small-text">📅 ${formatDate(p.date)}</div>${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}</div>`).join('');
     }
-    
     function renderSituationClients() {
         const container = document.getElementById('situationList');
         const search = document.getElementById('searchSituation')?.value.toLowerCase() || '';
-        
-        let filteredClients = clients;
-        if (search) filteredClients = clients.filter(c => c.name.toLowerCase().includes(search));
-        
-        if (filteredClients.length === 0) {
-            container.innerHTML = '<div class="empty">Aucun client</div>';
-            return;
-        }
-        
+        let filteredClients = search ? clients.filter(c => c.name.toLowerCase().includes(search)) : clients;
+        if (filteredClients.length === 0) { container.innerHTML = '<div class="empty">Aucun client</div>'; return; }
         let html = '';
         filteredClients.forEach(client => {
             let clientOrders = orders.filter(o => o.clientId === client.id);
             clientOrders = clientOrders.filter(o => isDateInFilter(o.date));
-            
             const totalAmount = clientOrders.reduce((s,o) => s + o.amount, 0);
             const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
             const totalPaid = clientPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = totalAmount - totalPaid;
             const percent = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
-            
-            let statusClass = '';
-            let statusText = '';
-            if (remaining <= 0 && totalAmount > 0) {
-                statusClass = 'badge-paid';
-                statusText = '✅ À jour';
-            } else if (totalPaid > 0) {
-                statusClass = 'badge-partial';
-                statusText = '⚠️ Partiel';
-            } else if (totalAmount > 0) {
-                statusClass = 'badge-unpaid';
-                statusText = '❌ Impayé';
-            } else {
-                statusClass = 'badge-paid';
-                statusText = '📭 Aucune commande';
-            }
-            
+            let statusClass = '', statusText = '';
+            if (remaining <= 0 && totalAmount > 0) { statusClass = 'badge-paid'; statusText = '✅ À jour'; }
+            else if (totalPaid > 0) { statusClass = 'badge-partial'; statusText = '⚠️ Partiel'; }
+            else if (totalAmount > 0) { statusClass = 'badge-unpaid'; statusText = '❌ Impayé'; }
+            else { statusClass = 'badge-paid'; statusText = '📭 Aucune commande'; }
             const lastOrderDate = clientOrders.length > 0 ? formatDate(Math.max(...clientOrders.map(o => new Date(o.date)))) : '-';
-            
-            html += `
-                <div class="list-item status-card animate" onclick="showClientOrders('${client.id}')">
-                    <div class="flex-between">
-                        <span class="client-name">👤 ${client.name}</span>
-                        <span class="badge ${statusClass}">${statusText}</span>
-                    </div>
-                    <div class="flex-between small-text" style="margin-top:5px;">
-                        <span>📦 ${clientOrders.length} commande(s)</span>
-                        <span>💰 Total: ${formatMoney(totalAmount)}</span>
-                    </div>
-                    <div class="flex-between small-text">
-                        <span>✅ Payé: ${formatMoney(totalPaid)}</span>
-                        <span>⚠️ Reste: ${formatMoney(remaining)}</span>
-                    </div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-                    <div class="small-text" style="margin-top:5px;">
-                        <i class="fas fa-calendar-alt"></i> Dernière commande: ${lastOrderDate}
-                    </div>
-                </div>
-            `;
+            html += `<div class="list-item status-card animate" onclick="showClientOrders('${client.id}')"><div class="flex-between"><span class="client-name">👤 ${client.name}</span><span class="badge ${statusClass}">${statusText}</span></div><div class="flex-between small-text" style="margin-top:5px;"><span>📦 ${clientOrders.length} commande(s)</span><span>💰 Total: ${formatMoney(totalAmount)}</span></div><div class="flex-between small-text"><span>✅ Payé: ${formatMoney(totalPaid)}</span><span>⚠️ Reste: ${formatMoney(remaining)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="small-text" style="margin-top:5px;"><i class="fas fa-calendar-alt"></i> Dernière commande: ${lastOrderDate}</div></div>`;
         });
         container.innerHTML = html;
     }
-    
     function exportSituationPDF() {
-        if (clients.length === 0) {
-            showFlash('Aucun client à exporter', 'warning');
-            return;
-        }
-        
+        if (clients.length === 0) { showFlash('Aucun client à exporter', 'warning'); return; }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        
         doc.setFillColor(155, 89, 182);
         doc.rect(0, 0, 210, 45, 'F');
         doc.setTextColor(255, 255, 255);
@@ -1589,171 +1145,78 @@
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         doc.text('Situation des Clients', 105, 34, { align: 'center' });
-        
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
         let filterText = '';
-        if (dateFilterStart && dateFilterEnd) {
-            filterText = `Période: du ${formatDate(dateFilterStart.toISOString().split('T')[0])} au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
-        } else if (dateFilterStart) {
-            filterText = `Période: à partir du ${formatDate(dateFilterStart.toISOString().split('T')[0])}`;
-        } else if (dateFilterEnd) {
-            filterText = `Période: jusqu'au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
-        } else {
-            filterText = 'Période: Toutes les commandes';
-        }
+        if (dateFilterStart && dateFilterEnd) filterText = `Période: du ${formatDate(dateFilterStart.toISOString().split('T')[0])} au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
+        else if (dateFilterStart) filterText = `Période: à partir du ${formatDate(dateFilterStart.toISOString().split('T')[0])}`;
+        else if (dateFilterEnd) filterText = `Période: jusqu'au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
+        else filterText = 'Période: Toutes les commandes';
         doc.text(`Généré le: ${new Date().toLocaleString('fr-FR')}`, 14, 55);
         doc.text(filterText, 14, 63);
-        
         const situationData = [];
         clients.forEach(client => {
             let clientOrders = orders.filter(o => o.clientId === client.id);
             clientOrders = clientOrders.filter(o => isDateInFilter(o.date));
-            
             const totalAmount = clientOrders.reduce((s,o) => s + o.amount, 0);
             const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
             const totalPaid = clientPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = totalAmount - totalPaid;
-            
-            situationData.push([
-                client.name,
-                client.phone || '-',
-                clientOrders.length,
-                formatNumber(totalAmount),
-                formatNumber(totalPaid),
-                formatNumber(remaining),
-                remaining <= 0 && totalAmount > 0 ? 'À jour' : (totalPaid > 0 ? 'Partiel' : (totalAmount > 0 ? 'Impayé' : 'Aucune commande'))
-            ]);
+            situationData.push([client.name, client.phone || '-', clientOrders.length, formatNumber(totalAmount), formatNumber(totalPaid), formatNumber(remaining), remaining <= 0 && totalAmount > 0 ? 'À jour' : (totalPaid > 0 ? 'Partiel' : (totalAmount > 0 ? 'Impayé' : 'Aucune commande'))]);
         });
-        
-        doc.autoTable({
-            startY: 70,
-            head: [['Client', 'Téléphone', 'Commandes', 'Total (MAD)', 'Payé (MAD)', 'Reste (MAD)', 'Statut']],
-            body: situationData,
-            theme: 'striped',
-            headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 11, fontStyle: 'bold', halign: 'center' },
-            bodyStyles: { fontSize: 10, textColor: [0, 0, 0], halign: 'center' },
-            columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
-            margin: { left: 14, right: 14 }
-        });
-        
+        doc.autoTable({ startY: 70, head: [['Client', 'Téléphone', 'Commandes', 'Total (MAD)', 'Payé (MAD)', 'Reste (MAD)', 'Statut']], body: situationData, theme: 'striped', headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 10, fontStyle: 'bold', halign: 'center' }, bodyStyles: { fontSize: 9, textColor: [0, 0, 0], halign: 'center' }, columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } }, margin: { left: 14, right: 14 } });
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.text('EL FATH SERVICE - Système de gestion des crédits', 105, 280, { align: 'center' });
-        
         doc.save(`Situation_Clients_${new Date().toISOString().split('T')[0]}.pdf`);
         showFlash('PDF généré avec succès', 'success');
     }
-    
     function exportSituationExcel() {
-        if (clients.length === 0) {
-            showFlash('Aucun client à exporter', 'warning');
-            return;
-        }
-        
+        if (clients.length === 0) { showFlash('Aucun client à exporter', 'warning'); return; }
         let filterText = '';
-        if (dateFilterStart && dateFilterEnd) {
-            filterText = `Période: ${formatDate(dateFilterStart.toISOString().split('T')[0])} au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
-        } else if (dateFilterStart) {
-            filterText = `Période: à partir du ${formatDate(dateFilterStart.toISOString().split('T')[0])}`;
-        } else if (dateFilterEnd) {
-            filterText = `Période: jusqu'au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
-        } else {
-            filterText = 'Période: Toutes les commandes';
-        }
-        
+        if (dateFilterStart && dateFilterEnd) filterText = `Période: ${formatDate(dateFilterStart.toISOString().split('T')[0])} au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
+        else if (dateFilterStart) filterText = `Période: à partir du ${formatDate(dateFilterStart.toISOString().split('T')[0])}`;
+        else if (dateFilterEnd) filterText = `Période: jusqu'au ${formatDate(dateFilterEnd.toISOString().split('T')[0])}`;
+        else filterText = 'Période: Toutes les commandes';
         const wsData = [['Client', 'Téléphone', 'Adresse', 'Nb Commandes', 'Total (MAD)', 'Payé (MAD)', 'Reste (MAD)', 'Statut', 'Dernière commande', filterText]];
-        
         clients.forEach(client => {
             let clientOrders = orders.filter(o => o.clientId === client.id);
             clientOrders = clientOrders.filter(o => isDateInFilter(o.date));
-            
             const totalAmount = clientOrders.reduce((s,o) => s + o.amount, 0);
             const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
             const totalPaid = clientPayments.reduce((s,p) => s + p.amount, 0);
             const remaining = totalAmount - totalPaid;
             const lastOrderDate = clientOrders.length > 0 ? formatDate(Math.max(...clientOrders.map(o => new Date(o.date)))) : '-';
-            
-            wsData.push([
-                client.name,
-                client.phone || '-',
-                client.address || '-',
-                clientOrders.length,
-                totalAmount.toFixed(2),
-                totalPaid.toFixed(2),
-                remaining.toFixed(2),
-                remaining <= 0 && totalAmount > 0 ? 'À jour' : (totalPaid > 0 ? 'Partiel' : (totalAmount > 0 ? 'Impayé' : 'Aucune commande')),
-                lastOrderDate
-            ]);
+            wsData.push([client.name, client.phone || '-', client.address || '-', clientOrders.length, totalAmount.toFixed(2), totalPaid.toFixed(2), remaining.toFixed(2), remaining <= 0 && totalAmount > 0 ? 'À jour' : (totalPaid > 0 ? 'Partiel' : (totalAmount > 0 ? 'Impayé' : 'Aucune commande')), lastOrderDate]);
         });
-        
         const ws = XLSX.utils.aoa_to_sheet(wsData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Situation Clients');
         XLSX.writeFile(wb, `Situation_Clients_${new Date().toISOString().split('T')[0]}.xlsx`);
         showFlash('Excel généré avec succès', 'success');
     }
-    
     window.showOrderDetail = (orderId) => {
         currentOrderId = orderId;
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
-        
         const client = clients.find(c => c.id === order.clientId);
         const clientName = client ? client.name : 'Inconnu';
-        
         const orderPayments = payments.filter(p => p.orderId === orderId);
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
         const percent = (totalPaid / order.amount) * 100;
-        
-        let paymentsHtml = '';
-        if (orderPayments.length === 0) {
-            paymentsHtml = '<div class="empty">Aucun paiement enregistré</div>';
-        } else {
-            paymentsHtml = orderPayments.map(p => `
-                <div class="list-item" style="margin-bottom:5px;">
-                    <div class="flex-between">
-                        <span>💰 ${formatMoney(p.amount)}</span>
-                        <span>${p.method}</span>
-                        <button class="small-icon-btn" onclick="deletePayment('${p.id}')" style="background:#e74c3c;"><i class="fas fa-trash"></i></button>
-                    </div>
-                    <div class="small-text">📅 ${formatDate(p.date)}</div>
-                    ${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}
-                </div>
-            `).join('');
-        }
-        
-        const html = `
-            <div style="text-align:center; margin-bottom:15px;">
-                <div style="font-size:18px; font-weight:bold; color:#9b59b6;">${clientName}</div>
-                <div style="font-size:14px;">🔢 ${order.orderNumber}</div>
-            </div>
-            <div class="flex-between"><span>💰 Total:</span><span>${formatMoney(order.amount)}</span></div>
-            <div class="flex-between"><span>✅ Payé:</span><span style="color:#2ecc71;">${formatMoney(totalPaid)}</span></div>
-            <div class="flex-between"><span>⚠️ Reste:</span><span style="color:${remaining>0?'#e74c3c':'#2ecc71'};">${formatMoney(remaining)}</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-            ${order.dueDate ? `<div class="small-text" style="margin-top:10px;">📅 Échéance: ${formatDate(order.dueDate)}</div>` : ''}
-            ${order.notes ? `<div class="small-text" style="margin-top:5px;">📝 ${order.notes}</div>` : ''}
-            <div class="divider"></div>
-            <div style="margin:10px 0; font-weight:bold;">📋 Historique des paiements (${orderPayments.length})</div>
-            <div id="paymentsListDetail">${paymentsHtml}</div>
-            ${remaining > 0 ? `<button onclick="quickPayment('${order.id}'); closeModal('orderDetailModal');" style="margin-top:10px; background:#9b59b6;"><i class="fas fa-plus"></i> Ajouter un paiement</button>` : ''}
-        `;
-        
+        let paymentsHtml = orderPayments.length === 0 ? '<div class="empty">Aucun paiement enregistré</div>' : orderPayments.map(p => `<div class="list-item" style="margin-bottom:5px;"><div class="flex-between"><span>💰 ${formatMoney(p.amount)}</span><span>${p.method}</span><button class="small-icon-btn" onclick="deletePayment('${p.id}')" style="background:#e74c3c;"><i class="fas fa-trash"></i></button></div><div class="small-text">📅 ${formatDate(p.date)}</div>${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}</div>`).join('');
+        const html = `<div style="text-align:center; margin-bottom:15px;"><div style="font-size:18px; font-weight:bold; color:#9b59b6;">${clientName}</div><div style="font-size:14px;">🔢 ${order.orderNumber}</div></div><div class="flex-between"><span>💰 Total:</span><span>${formatMoney(order.amount)}</span></div><div class="flex-between"><span>✅ Payé:</span><span style="color:#2ecc71;">${formatMoney(totalPaid)}</span></div><div class="flex-between"><span>⚠️ Reste:</span><span style="color:${remaining>0?'#e74c3c':'#2ecc71'};">${formatMoney(remaining)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>${order.dueDate ? `<div class="small-text" style="margin-top:10px;">📅 Échéance: ${formatDate(order.dueDate)}</div>` : ''}${order.notes ? `<div class="small-text" style="margin-top:5px;">📝 ${order.notes}</div>` : ''}<div class="divider"></div><div style="margin:10px 0; font-weight:bold;">📋 Historique des paiements (${orderPayments.length})</div><div id="paymentsListDetail">${paymentsHtml}</div>${remaining > 0 ? `<button onclick="quickPayment('${order.id}'); closeModal('orderDetailModal');" style="margin-top:10px; background:#9b59b6;"><i class="fas fa-plus"></i> Ajouter un paiement</button>` : ''}`;
         document.getElementById('orderDetailContent').innerHTML = html;
         openModal('orderDetailModal');
-        
         document.getElementById('printOrderBtn').onclick = () => printOrderDetailPDF(order, orderPayments, clientName);
         document.getElementById('deleteOrderBtn').onclick = () => deleteOrder(orderId);
     };
-    
     function printOrderDetailPDF(order, orderPayments, clientName) {
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        
         doc.setFillColor(155, 89, 182);
         doc.rect(0, 0, 210, 45, 'F');
         doc.setTextColor(255, 255, 255);
@@ -1763,116 +1226,71 @@
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         doc.text('Détail de la commande', 105, 34, { align: 'center' });
-        
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(11);
         doc.text(`Client: ${clientName}`, 14, 55);
-        doc.text(`N° commande: ${order.orderNumber}`, 14, 63);
-        doc.text(`Date: ${formatDate(order.date)}`, 14, 71);
-        if (order.dueDate) doc.text(`Échéance: ${formatDate(order.dueDate)}`, 14, 79);
-        doc.text(`Date d'édition: ${new Date().toLocaleString('fr-FR')}`, 14, 87);
-        
+        const client = clients.find(c => c.name === clientName);
+        if (client && client.phone && client.phone.trim() !== '') doc.text(`Téléphone: ${client.phone}`, 14, 63);
+        doc.text(`N° commande: ${order.orderNumber}`, 14, 71);
+        doc.text(`Date: ${formatDate(order.date)}`, 14, 79);
+        if (order.dueDate) doc.text(`Échéance: ${formatDate(order.dueDate)}`, 14, 87);
+        doc.text(`Date d'édition: ${new Date().toLocaleString('fr-FR')}`, 14, 95);
         doc.setFillColor(240, 240, 245);
-        doc.rect(14, 95, 182, 35, 'F');
-        doc.setFontSize(12);
+        doc.rect(14, 103, 182, 35, 'F');
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(155, 89, 182);
-        doc.text('RÉSUMÉ FINANCIER', 20, 103);
-        doc.setFontSize(11);
+        doc.text('RÉSUMÉ FINANCIER', 20, 111);
+        doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        doc.text(`💰 Montant total: ${formatMoney(order.amount)}`, 20, 115);
-        doc.text(`✅ Montant payé: ${formatMoney(totalPaid)}`, 20, 123);
-        doc.text(`⚠️ Montant restant: ${formatMoney(remaining)}`, 20, 131);
-        
-        let y = 145;
+        doc.text(`💰 Montant total: ${formatMoney(order.amount)}`, 20, 123);
+        doc.text(`✅ Montant payé: ${formatMoney(totalPaid)}`, 20, 131);
+        doc.text(`⚠️ Montant restant: ${formatMoney(remaining)}`, 20, 139);
+        let y = 155;
         if (orderPayments.length > 0) {
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(155, 89, 182);
             doc.text('HISTORIQUE DES PAIEMENTS', 14, y);
             y += 8;
-            
-            const paymentData = orderPayments.map(p => [
-                formatDate(p.date),
-                formatNumber(p.amount),
-                p.method,
-                p.notes || '-'
-            ]);
-            
-            doc.autoTable({
-                startY: y,
-                head: [['Date', 'Montant (MAD)', 'Mode de paiement', 'Notes']],
-                body: paymentData,
-                theme: 'striped',
-                headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 10, fontStyle: 'bold', halign: 'center' },
-                bodyStyles: { fontSize: 9, textColor: [0, 0, 0], halign: 'center' },
-                columnStyles: { 1: { halign: 'right' } },
-                margin: { left: 14, right: 14 }
-            });
+            const paymentData = orderPayments.map(p => [formatDate(p.date), formatNumber(p.amount), p.method, p.notes || '-']);
+            doc.autoTable({ startY: y, head: [['Date', 'Montant (MAD)', 'Mode de paiement', 'Notes']], body: paymentData, theme: 'striped', headStyles: { fillColor: [155, 89, 182], textColor: 255, fontSize: 10, fontStyle: 'bold', halign: 'center' }, bodyStyles: { fontSize: 9, textColor: [0, 0, 0], halign: 'center' }, columnStyles: { 1: { halign: 'right' } }, margin: { left: 14, right: 14 } });
         } else {
             doc.setFontSize(10);
             doc.setFont('helvetica', 'italic');
             doc.setTextColor(150, 150, 150);
             doc.text('Aucun paiement enregistré pour cette commande', 14, y);
         }
-        
-        if (order.notes) {
-            let notesY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : y + 20;
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 0, 0);
-            doc.text('Notes:', 14, notesY);
-            doc.setFont('helvetica', 'normal');
-            doc.text(order.notes, 14, notesY + 6);
-        }
-        
+        if (order.notes) { let notesY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : y + 20; doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 0, 0); doc.text('Notes:', 14, notesY); doc.setFont('helvetica', 'normal'); doc.text(order.notes, 14, notesY + 6); }
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.text('EL FATH SERVICE - Système de gestion des crédits', 105, 280, { align: 'center' });
-        
         doc.save(`Commande_${order.orderNumber}_${new Date().toISOString().split('T')[0]}.pdf`);
         showFlash('PDF généré avec succès', 'success');
     }
-    
     window.deletePayment = async (paymentId) => {
         if (!confirm('⚠️ Supprimer ce paiement ?')) return;
         await db.ref(`users/${currentUser.uid}/payments/${paymentId}`).remove();
         showFlash('Paiement supprimé', 'success');
         if (currentOrderId) showOrderDetail(currentOrderId);
     };
-    
     window.quickPayment = (orderId) => {
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
-        
         const orderPayments = payments.filter(p => p.orderId === orderId);
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
-        
-        if (remaining <= 0) {
-            showFlash('Cette commande est entièrement payée', 'warning');
-            return;
-        }
-        
+        if (remaining <= 0) { showFlash('Cette commande est entièrement payée', 'warning'); return; }
         setPaymentMode('single');
         const client = clients.find(c => c.id === order.clientId);
         if (client) {
             document.getElementById('paymentClientSelect').value = client.id;
             loadClientOrdersForPayment();
-            setTimeout(() => {
-                document.getElementById('paymentOrderSelect').value = orderId;
-                updatePaymentInfo();
-                showTab('payments');
-            }, 100);
+            setTimeout(() => { document.getElementById('paymentOrderSelect').value = orderId; updatePaymentInfo(); showTab('payments'); }, 100);
         }
         showFlash('Entrez le montant puis validez', 'success');
     };
-    
-    function formatDate(dateStr) {
-        if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('fr-FR');
-    }
-    
+    function formatDate(dateStr) { if (!dateStr) return ''; return new Date(dateStr).toLocaleDateString('fr-FR'); }
     function showFlash(msg, type = 'success') {
         const flash = document.createElement('div');
         flash.style.cssText = 'position:fixed; bottom:100px; left:16px; right:16px; background:#2ecc71; padding:12px; border-radius:50px; text-align:center; z-index:1000; font-size:13px; animation:fadeIn 0.3s ease;';
@@ -1882,42 +1300,19 @@
         document.body.appendChild(flash);
         setTimeout(() => flash.remove(), 2500);
     }
-    
-    function openModal(id) {
-        document.getElementById(id).classList.add('active');
-    }
-    
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.classList.remove('active');
-        if (id === 'tempModal') modal?.remove();
-    }
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { const modal = document.getElementById(id); if (modal) modal.classList.remove('active'); if (id === 'tempModal') modal?.remove(); }
     window.closeModal = closeModal;
-    
     function showTab(tab) {
         const tabs = ['clients', 'orders', 'payments', 'situation'];
-        tabs.forEach(t => {
-            document.getElementById(`${t}Tab`).classList.add('hidden');
-        });
+        tabs.forEach(t => document.getElementById(`${t}Tab`).classList.add('hidden'));
         document.getElementById(`${tab}Tab`).classList.remove('hidden');
-        
-        document.querySelectorAll('.tab').forEach((t, i) => {
-            if (tabs[i] === tab) t.classList.add('active');
-            else t.classList.remove('active');
-        });
-        
-        if (tab === 'payments') {
-            updateAllSelects();
-            loadClientOrdersForPayment();
-        }
-        if (tab === 'situation') {
-            renderSituationClients();
-            updateReportClientSelect();
-        }
+        document.querySelectorAll('.tab').forEach((t, i) => { if (tabs[i] === tab) t.classList.add('active'); else t.classList.remove('active'); });
+        if (tab === 'payments') { updateAllSelects(); loadClientOrdersForPayment(); }
+        if (tab === 'situation') { renderSituationClients(); updateReportClientSelect(); }
         if (tab === 'orders') updateAllSelects();
         if (tab === 'clients') renderClientsList();
     }
-    
     window.showTab = showTab;
     window.showClientOrders = showClientOrders;
     window.showOrderDetail = showOrderDetail;
@@ -1937,7 +1332,6 @@
     window.resetPeriodFilter = resetPeriodFilter;
     window.applyPresetFilter = applyPresetFilter;
     window.exportClientOrdersPDF = exportClientOrdersPDF;
-    
     document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
     setPaymentMode('single');
 </script>
