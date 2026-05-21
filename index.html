@@ -517,6 +517,90 @@
     </div>
 </div>
 
+<!-- Modal Modification Commande -->
+<div id="editOrderModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>✏️ Modifier la commande</span>
+            <button onclick="closeModal('editOrderModal')" style="background:none; color:white; font-size:20px;">✕</button>
+        </div>
+        <input type="hidden" id="editOrderId">
+        <div class="form-group">
+            <label>📛 Client</label>
+            <input type="text" id="editOrderClientName" readonly style="background:#2d2d44;">
+        </div>
+        <div class="form-group">
+            <label>🔢 Numéro de commande</label>
+            <input type="text" id="editOrderNumber" placeholder="Numéro de commande">
+        </div>
+        <div class="form-group">
+            <label>💰 Montant total (MAD)</label>
+            <input type="number" id="editOrderAmount" placeholder="0.00" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>📅 Date de la commande</label>
+            <input type="date" id="editOrderDate">
+        </div>
+        <div class="form-group">
+            <label>📅 Date d'échéance</label>
+            <input type="date" id="editOrderDueDate">
+        </div>
+        <div class="form-group">
+            <label>📝 Notes</label>
+            <textarea id="editOrderNotes" rows="2" placeholder="Notes"></textarea>
+        </div>
+        <div class="row">
+            <button id="saveOrderEditBtn" class="success">💾 Enregistrer les modifications</button>
+            <button id="cancelOrderEditBtn" class="danger" onclick="closeModal('editOrderModal')">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modification Paiement -->
+<div id="editPaymentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>✏️ Modifier le paiement</span>
+            <button onclick="closeModal('editPaymentModal')" style="background:none; color:white; font-size:20px;">✕</button>
+        </div>
+        <input type="hidden" id="editPaymentId">
+        <input type="hidden" id="editPaymentOrderId">
+        <div class="form-group">
+            <label>📛 Client</label>
+            <input type="text" id="editPaymentClientName" readonly style="background:#2d2d44;">
+        </div>
+        <div class="form-group">
+            <label>🔢 Commande</label>
+            <input type="text" id="editPaymentOrderNumber" readonly style="background:#2d2d44;">
+        </div>
+        <div class="form-group">
+            <label>💰 Montant (MAD)</label>
+            <input type="number" id="editPaymentAmount" placeholder="0.00" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>📅 Date du paiement</label>
+            <input type="date" id="editPaymentDate">
+        </div>
+        <div class="form-group">
+            <label>💳 Mode de paiement</label>
+            <select id="editPaymentMethod">
+                <option value="Espèces">💰 Espèces</option>
+                <option value="Virement bancaire">🏦 Virement bancaire</option>
+                <option value="Carte bancaire">💳 Carte bancaire</option>
+                <option value="Chèque">📝 Chèque</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>📝 Notes</label>
+            <input type="text" id="editPaymentNotes" placeholder="Optionnel">
+        </div>
+        <div class="row">
+            <button id="savePaymentEditBtn" class="success">💾 Enregistrer les modifications</button>
+            <button id="cancelPaymentEditBtn" class="danger" onclick="closeModal('editPaymentModal')">Annuler</button>
+        </div>
+    </div>
+</div>
+
 <div id="deleteConfirmModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -539,6 +623,7 @@
         </div>
         <div id="orderDetailContent"></div>
         <div class="row" style="margin-top:10px;">
+            <button id="editOrderFromDetailBtn" class="info" style="background:#f39c12;"><i class="fas fa-edit"></i> Modifier</button>
             <button id="printOrderBtn" style="background:#3498db;"><i class="fas fa-file-pdf"></i> Télécharger PDF</button>
             <button id="deleteOrderBtn" class="danger"><i class="fas fa-trash"></i> Supprimer</button>
         </div>
@@ -638,6 +723,106 @@
         }
     }
 
+    // ========== Functions de modification commande et paiement ==========
+    
+    // Modifier une commande
+    window.openEditOrder = (orderId) => {
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        const client = clients.find(c => c.id === order.clientId);
+        
+        document.getElementById('editOrderId').value = order.id;
+        document.getElementById('editOrderClientName').value = client ? client.name : 'Inconnu';
+        document.getElementById('editOrderNumber').value = order.orderNumber || '';
+        document.getElementById('editOrderAmount').value = order.amount;
+        document.getElementById('editOrderDate').value = order.date ? order.date.split('T')[0] : '';
+        document.getElementById('editOrderDueDate').value = order.dueDate || '';
+        document.getElementById('editOrderNotes').value = order.notes || '';
+        
+        openModal('editOrderModal');
+    };
+    
+    document.getElementById('saveOrderEditBtn').onclick = async () => {
+        const orderId = document.getElementById('editOrderId').value;
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        const newOrderNumber = document.getElementById('editOrderNumber').value.trim();
+        const newAmount = parseFloat(document.getElementById('editOrderAmount').value);
+        const newDate = document.getElementById('editOrderDate').value;
+        const newDueDate = document.getElementById('editOrderDueDate').value;
+        const newNotes = document.getElementById('editOrderNotes').value;
+        
+        if (!newAmount || newAmount <= 0) { showFlash('Montant invalide', 'warning'); return; }
+        
+        const updatedOrder = {
+            ...order,
+            orderNumber: newOrderNumber || order.orderNumber,
+            amount: newAmount,
+            date: newDate ? new Date(newDate).toISOString() : order.date,
+            dueDate: newDueDate,
+            notes: newNotes
+        };
+        
+        await db.ref(`users/${currentUser.uid}/orders/${orderId}`).set(updatedOrder);
+        closeModal('editOrderModal');
+        showFlash('Commande modifiée avec succès', 'success');
+    };
+    
+    // Modifier un paiement
+    window.openEditPayment = (paymentId) => {
+        const payment = payments.find(p => p.id === paymentId);
+        if (!payment) return;
+        
+        document.getElementById('editPaymentId').value = payment.id;
+        document.getElementById('editPaymentOrderId').value = payment.orderId;
+        document.getElementById('editPaymentClientName').value = payment.clientName || '';
+        document.getElementById('editPaymentOrderNumber').value = payment.orderNumber || '';
+        document.getElementById('editPaymentAmount').value = payment.amount;
+        document.getElementById('editPaymentDate').value = payment.date ? payment.date.split('T')[0] : '';
+        document.getElementById('editPaymentMethod').value = payment.method || 'Espèces';
+        document.getElementById('editPaymentNotes').value = payment.notes || '';
+        
+        openModal('editPaymentModal');
+    };
+    
+    document.getElementById('savePaymentEditBtn').onclick = async () => {
+        const paymentId = document.getElementById('editPaymentId').value;
+        const payment = payments.find(p => p.id === paymentId);
+        if (!payment) return;
+        
+        const newAmount = parseFloat(document.getElementById('editPaymentAmount').value);
+        const newDate = document.getElementById('editPaymentDate').value;
+        const newMethod = document.getElementById('editPaymentMethod').value;
+        const newNotes = document.getElementById('editPaymentNotes').value;
+        
+        if (!newAmount || newAmount <= 0) { showFlash('Montant invalide', 'warning'); return; }
+        
+        // Vérifier que le nouveau montant ne dépasse pas le total de la commande
+        const order = orders.find(o => o.id === payment.orderId);
+        if (order) {
+            const otherPayments = payments.filter(p => p.orderId === payment.orderId && p.id !== paymentId);
+            const otherTotal = otherPayments.reduce((s,p) => s + p.amount, 0);
+            if (newAmount + otherTotal > order.amount) {
+                showFlash(`Le montant total des paiements (${formatMoney(newAmount + otherTotal)}) dépasse le montant de la commande (${formatMoney(order.amount)})`, 'danger');
+                return;
+            }
+        }
+        
+        const updatedPayment = {
+            ...payment,
+            amount: newAmount,
+            date: newDate ? new Date(newDate).toISOString() : payment.date,
+            method: newMethod,
+            notes: newNotes,
+            timestamp: Date.now()
+        };
+        
+        await db.ref(`users/${currentUser.uid}/payments/${paymentId}`).set(updatedPayment);
+        closeModal('editPaymentModal');
+        showFlash('Paiement modifié avec succès', 'success');
+    };
+    
     // ========== Functions de filtre par période ==========
     function applyPresetFilter() {
         const preset = document.getElementById('filterPeriodPreset').value;
@@ -690,7 +875,7 @@
         return true;
     }
     
-    // ========== Export PDF des commandes d'un client (avec numéro de téléphone) ==========
+    // ========== Export PDF des commandes d'un client ==========
     window.exportClientOrdersPDF = () => {
         const clientId = document.getElementById('reportClientSelect').value;
         if (!clientId) { showFlash('Veuillez sélectionner un client', 'warning'); return; }
@@ -1106,7 +1291,7 @@
         if (!container) return;
         const recent = [...payments].sort((a,b) => b.timestamp - a.timestamp).slice(0, 10);
         if (recent.length === 0) { container.innerHTML = '<div class="empty">Aucun paiement enregistré</div>'; return; }
-        container.innerHTML = recent.map(p => `<div class="list-item animate"><div class="flex-between"><span><strong>${p.clientName}</strong></span><span class="badge badge-paid">${formatMoney(p.amount)}</span></div><div class="small-text">🔢 ${p.orderNumber} | 💳 ${p.method}</div><div class="small-text">📅 ${formatDate(p.date)}</div>${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}</div>`).join('');
+        container.innerHTML = recent.map(p => `<div class="list-item animate"><div class="flex-between"><span><strong>${p.clientName}</strong></span><span class="badge badge-paid">${formatMoney(p.amount)}</span></div><div class="small-text">🔢 ${p.orderNumber} | 💳 ${p.method}</div><div class="small-text">📅 ${formatDate(p.date)}</div>${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}<button class="small-icon-btn" onclick="openEditPayment('${p.id}')" style="margin-top:5px; background:#f39c12;"><i class="fas fa-edit"></i> Modifier</button></div>`).join('');
     }
     function renderSituationClients() {
         const container = document.getElementById('situationList');
@@ -1195,6 +1380,8 @@
         XLSX.writeFile(wb, `Situation_Clients_${new Date().toISOString().split('T')[0]}.xlsx`);
         showFlash('Excel généré avec succès', 'success');
     }
+    
+    // ========== Order Detail with Edit Option ==========
     window.showOrderDetail = (orderId) => {
         currentOrderId = orderId;
         const order = orders.find(o => o.id === orderId);
@@ -1205,10 +1392,11 @@
         const totalPaid = orderPayments.reduce((s,p) => s + p.amount, 0);
         const remaining = order.amount - totalPaid;
         const percent = (totalPaid / order.amount) * 100;
-        let paymentsHtml = orderPayments.length === 0 ? '<div class="empty">Aucun paiement enregistré</div>' : orderPayments.map(p => `<div class="list-item" style="margin-bottom:5px;"><div class="flex-between"><span>💰 ${formatMoney(p.amount)}</span><span>${p.method}</span><button class="small-icon-btn" onclick="deletePayment('${p.id}')" style="background:#e74c3c;"><i class="fas fa-trash"></i></button></div><div class="small-text">📅 ${formatDate(p.date)}</div>${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}</div>`).join('');
+        let paymentsHtml = orderPayments.length === 0 ? '<div class="empty">Aucun paiement enregistré</div>' : orderPayments.map(p => `<div class="list-item" style="margin-bottom:5px;"><div class="flex-between"><span>💰 ${formatMoney(p.amount)}</span><span>${p.method}</span><div><button class="small-icon-btn" onclick="openEditPayment('${p.id}')" style="background:#f39c12;"><i class="fas fa-edit"></i></button><button class="small-icon-btn" onclick="deletePayment('${p.id}')" style="background:#e74c3c;"><i class="fas fa-trash"></i></button></div></div><div class="small-text">📅 ${formatDate(p.date)}</div>${p.notes ? `<div class="small-text">📝 ${p.notes}</div>` : ''}</div>`).join('');
         const html = `<div style="text-align:center; margin-bottom:15px;"><div style="font-size:18px; font-weight:bold; color:#9b59b6;">${clientName}</div><div style="font-size:14px;">🔢 ${order.orderNumber}</div></div><div class="flex-between"><span>💰 Total:</span><span>${formatMoney(order.amount)}</span></div><div class="flex-between"><span>✅ Payé:</span><span style="color:#2ecc71;">${formatMoney(totalPaid)}</span></div><div class="flex-between"><span>⚠️ Reste:</span><span style="color:${remaining>0?'#e74c3c':'#2ecc71'};">${formatMoney(remaining)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>${order.dueDate ? `<div class="small-text" style="margin-top:10px;">📅 Échéance: ${formatDate(order.dueDate)}</div>` : ''}${order.notes ? `<div class="small-text" style="margin-top:5px;">📝 ${order.notes}</div>` : ''}<div class="divider"></div><div style="margin:10px 0; font-weight:bold;">📋 Historique des paiements (${orderPayments.length})</div><div id="paymentsListDetail">${paymentsHtml}</div>${remaining > 0 ? `<button onclick="quickPayment('${order.id}'); closeModal('orderDetailModal');" style="margin-top:10px; background:#9b59b6;"><i class="fas fa-plus"></i> Ajouter un paiement</button>` : ''}`;
         document.getElementById('orderDetailContent').innerHTML = html;
         openModal('orderDetailModal');
+        document.getElementById('editOrderFromDetailBtn').onclick = () => { closeModal('orderDetailModal'); openEditOrder(orderId); };
         document.getElementById('printOrderBtn').onclick = () => printOrderDetailPDF(order, orderPayments, clientName);
         document.getElementById('deleteOrderBtn').onclick = () => deleteOrder(orderId);
     };
@@ -1332,6 +1520,8 @@
     window.resetPeriodFilter = resetPeriodFilter;
     window.applyPresetFilter = applyPresetFilter;
     window.exportClientOrdersPDF = exportClientOrdersPDF;
+    window.openEditOrder = openEditOrder;
+    window.openEditPayment = openEditPayment;
     document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
     setPaymentMode('single');
 </script>
