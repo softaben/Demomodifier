@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>El Fath Service · Portail Professionnel</title>
+    <title>لوحة بطاقات مشاريعي | منصة الأعمال</title>
+    <!-- Google Fonts (Arabic friendly) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 (Free icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -12,300 +16,384 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Amazon Ember', 'Helvetica Neue', sans-serif;
-            background: linear-gradient(135deg, #0b2b26 0%, #1a3f3a 100%);
-            color: #e8edf2;
-            line-height: 1.4;
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(145deg, #eef2f7 0%, #d9e0e8 100%);
             min-height: 100vh;
-        }
-
-        .portal {
-            max-width: 1280px;
-            margin: 0 auto;
             padding: 2rem 1.5rem;
+            color: #1a2c3e;
         }
 
-        .portal-header {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-bottom: 3rem;
-            padding-bottom: 1.2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            animation: fadeInDown 0.6s ease-out;
+        /* حاوية عامة */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .title-section h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-            background: linear-gradient(120deg, #f0f9f4, #b7e4d4);
+
+        /* الهيدر الجذاب */
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .hero-section h1 {
+            font-size: 2.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1f4870, #1b6b87, #2c9b77);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            margin-bottom: 0.3rem;
-        }
-        .title-section p {
-            font-size: 0.85rem;
-            color: #9bb7ae;
-        }
-        .badge-pro {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(4px);
-            padding: 0.3rem 1.2rem;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #cfe9e0;
-            border: 1px solid rgba(255,255,255,0.2);
+            text-shadow: 2px 2px 12px rgba(0,0,0,0.05);
+            letter-spacing: -0.3px;
         }
 
+        .hero-section p {
+            color: #2c5368;
+            font-weight: 500;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            opacity: 0.85;
+        }
+
+        .badge-counter {
+            background: #ffffffcc;
+            backdrop-filter: blur(4px);
+            display: inline-block;
+            padding: 0.3rem 1.2rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e5f6e;
+            margin-top: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* شبكة البطاقات - تصميم عصري متجاوب */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 2rem;
-            margin: 2rem 0 1rem;
+            margin-top: 1rem;
         }
 
-        .card-link {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            border-radius: 28px;
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 1.8rem;
+        /* البطاقة نفسها - عنصر قابل للنقر */
+        .project-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(0px);
+            border-radius: 2rem;
+            overflow: hidden;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             cursor: pointer;
-            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border: 1px solid rgba(255,255,255,0.6);
             display: flex;
             flex-direction: column;
             height: 100%;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            opacity: 0;
-            transform: translateY(30px);
-            animation: cardEntrance 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
-            position: relative;
-        }
-        
-        .card-link:nth-child(1) { animation-delay: 0.1s; }
-        .card-link:nth-child(2) { animation-delay: 0.25s; }
-        .card-link:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes cardEntrance {
-            0% { opacity: 0; transform: translateY(40px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-25px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
-        .card-link:hover {
-            transform: translateY(-6px);
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255,255,255,0.3);
-            box-shadow: 0 25px 40px rgba(0,0,0,0.3);
-        }
-        .card-link:active {
-            transform: scale(0.98);
+        .project-card:hover {
+            transform: translateY(-10px) scale(1.01);
+            box-shadow: 0 28px 40px -16px rgba(0, 0, 0, 0.3);
+            background: white;
+            border-color: #cbdbe9;
         }
 
-        .save-btn {
-            position: absolute;
-            top: 1.2rem;
-            right: 1.2rem;
-            background: rgba(0,0,0,0.5);
-            border: none;
-            border-radius: 30px;
-            padding: 0.3rem 0.7rem;
-            font-size: 0.7rem;
-            cursor: pointer;
-            color: #ffd966;
-            transition: 0.2s;
-            backdrop-filter: blur(4px);
+        /* شريط علوي ملون حسب الموقع (تمييز بصري) */
+        .card-header {
+            padding: 1.2rem 1.5rem 0.8rem 1.5rem;
             display: flex;
             align-items: center;
-            gap: 4px;
-            z-index: 2;
-        }
-        .save-btn:hover {
-            background: #479e8a;
-            color: white;
-            transform: scale(1.02);
-        }
-        .save-btn.saved {
-            background: #479e8a;
-            color: white;
+            gap: 12px;
+            border-bottom: 2px solid rgba(0,0,0,0.05);
         }
 
         .card-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(145deg, #2a6b5e, #1e4f45);
-            border-radius: 20px;
+            font-size: 2.5rem;
+            width: 56px;
+            height: 56px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 8px 14px rgba(0,0,0,0.2);
-            transition: 0.2s;
-        }
-        .card-link:hover .card-icon {
-            transform: scale(1.02);
-            background: linear-gradient(145deg, #348d7c, #246b5d);
+            background: rgba(70, 130, 200, 0.12);
+            border-radius: 28px;
+            color: #1e5f6e;
         }
 
         .card-title {
-            font-size: 1.45rem;
+            font-size: 1.7rem;
             font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 0.4rem;
+            margin: 0;
+            line-height: 1.3;
+            color: #1f3b4c;
             letter-spacing: -0.3px;
-            padding-right: 60px;
         }
+
         .card-sub {
             font-size: 0.8rem;
-            color: #bcd9d0;
+            font-weight: 500;
+            color: #5d7e96;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .card-body {
+            padding: 1.3rem 1.5rem 1.5rem;
+            flex: 1;
+        }
+
+        .desc-preview {
+            background: #f4f9fe;
+            padding: 0.7rem 1rem;
+            border-radius: 1.2rem;
+            font-size: 0.9rem;
+            color: #2a5068;
             margin-bottom: 1rem;
-            border-left: 3px solid #479e8a;
-            padding-left: 0.8rem;
+            display: inline-block;
+            width: 100%;
+            font-weight: 500;
         }
-        .card-description {
-            font-size: 0.85rem;
-            color: #d4eae3;
-            margin: 0.8rem 0;
-            line-height: 1.5;
+
+        .link-preview {
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: #eef3fa;
+            padding: 0.5rem 0.8rem;
+            border-radius: 40px;
+            color: #0b5e7e;
+            word-break: break-all;
+            direction: ltr;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: auto;
         }
-        
-        .card-footer {
-            margin-top: auto;
-            padding-top: 1.3rem;
+
+        .meta-badge {
+            margin-top: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.7rem;
-            color: #9bc2b6;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid #e2edf2;
+            padding-top: 1rem;
+            font-size: 0.75rem;
+            color: #517e9b;
         }
 
+        /* تذييل البطاقة */
+        .card-footer {
+            padding: 0.8rem 1.5rem 1.2rem;
+            border-top: 1px solid #eef2f8;
+            font-size: 0.8rem;
+            color: #1f6e8c;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fafdff;
+        }
+
+        /* تأثير النقر (تلميح بصري سريع) */
+        .project-card:active {
+            transform: scale(0.98);
+            transition: 0.05s;
+        }
+
+        /* رسالة توضيحية */
         .info-note {
-            text-align: center;
-            margin-top: 3rem;
-            font-size: 0.75rem;
-            color: #b2cfc4;
-            background: rgba(0,0,0,0.25);
-            padding: 0.65rem 1.2rem;
+            background: #1f487033;
+            backdrop-filter: blur(8px);
             border-radius: 60px;
+            padding: 0.6rem 1.4rem;
+            margin-top: 3rem;
+            text-align: center;
             width: fit-content;
             margin-left: auto;
             margin-right: auto;
-            backdrop-filter: blur(4px);
-            animation: fadeInUp 0.6s ease-out 0.5s both;
-        }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            font-weight: 500;
+            color: #1a4c66;
+            font-size: 0.9rem;
         }
 
         footer {
-            margin-top: 2.5rem;
             text-align: center;
-            font-size: 0.7rem;
-            color: #7fa298;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            padding-top: 1.5rem;
-            animation: fadeInUp 0.6s ease-out 0.7s both;
+            margin-top: 3rem;
+            font-size: 0.8rem;
+            color: #557c99;
         }
 
         @media (max-width: 700px) {
-            .portal { padding: 1.2rem; }
-            .cards-grid { gap: 1.2rem; }
-            .card-title { font-size: 1.25rem; }
-            .card-icon { width: 50px; height: 50px; font-size: 1.6rem; }
+            body {
+                padding: 1.2rem;
+            }
+            .hero-section h1 {
+                font-size: 1.9rem;
+            }
+            .cards-grid {
+                gap: 1.2rem;
+            }
+            .card-title {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* تخصيص لكل بطاقة لمسة فريدة */
+        .card-1 .card-icon { background: #e1f0fa; color: #126b7e; }
+        .card-2 .card-icon { background: #e4f3e8; color: #2a7f6e; }
+        .card-3 .card-icon { background: #fdeadf; color: #c16f2e; }
+
+        /* عدم تحديد النص عند النقر السريع */
+        .project-card {
+            user-select: none;
         }
     </style>
 </head>
 <body>
-<div class="portal">
-    <div class="portal-header">
-        <div class="title-section">
-            <h1>El Fath Service</h1>
-            <p>Accès rapide · plateforme professionnelle</p>
+
+<div class="dashboard-container">
+    <div class="hero-section">
+        <h1><i class="fas fa-cubes" style="margin-left: 12px;"></i> منصة أعمالي <span style="color:#2c9b77;">| بطاقات المشاريع</span></h1>
+        <p>انقر على أي بطاقة لفتح المشروع في نفس النافذة — تجربة سلسة وسريعة</p>
+        <div class="badge-counter">
+            <i class="fas fa-globe"></i> 3 مشاريع تفاعلية
         </div>
-        <div class="badge-pro">KFP · interface intégrée</div>
     </div>
 
-    <div class="cards-grid" id="professionalCards"></div>
+    <div class="cards-grid" id="projectsGrid">
+        <!-- سيتم تعبئة البطاقات عبر JavaScript مع الحفاظ على وظيفة الفتح في نفس النافذة -->
+    </div>
 
     <div class="info-note">
-        ⚡ Cliquez sur une carte → ouverture dans la même fenêtre
+        <i class="fas fa-mouse-pointer"></i>  ملاحظة: الضغط على البطاقة يوجهك مباشرة للموقع دون فتح علامة تبويب جديدة
     </div>
-    <footer>© El Fath · solutions digitales</footer>
+    <footer>
+        <i class="far fa-copyright"></i> لوحة تحكم المشاريع | جميع الروابط تعمل بنفس النافذة
+    </footer>
 </div>
 
 <script>
-    const services = [
+    // مصادر الروابط كما طلبت بالضبط:
+    // 1. https://softaben.github.io/Suivi-des-ch-ques/
+    // 2. https://softaben.github.io/demorestaurant-/
+    // 3. https://softaben.github.io/Suivi-des-ch-ques/  (مكرر حسب الطلب، مع ذلك سنظهره كبطاقة ثالثة بنفس الرابط ولكن يمكن تمييزه)
+    
+    // بناءً على طلب المستخدم: لديه موقعان مختلفان لكن الثالث مكرر (ربما يكون نفس الأول أو خطأ مطبعي)
+    // وسنحافظ على التكرار لأن النص يوضح ثلاث بطاقات (عندي مواقعي على شكل بطاقات)
+    // لذا سأستخدم الروابط كما هي مع بطاقة خاصة للثالث، ولكن نص مختلف لتمييز نفس الخدمة كعنصر آخر.
+    // لكن أفضل عرض المشروع الأول و المشروع الثاني و يمكن إضافة المشروع الأول مرة أخرى، لكني سأضيف إسم مميز "CheckFlow Pro (نسخة متقدمة)" أو أتركها كما هي
+    // الالتزام الدقيق: الروابط التي أرسلها المستخدم:
+    // 1. https://softaben.github.io/Suivi-des-ch-ques/
+    // 2. https://softaben.github.io/demorestaurant-/
+    // 3. https://softaben.github.io/Suivi-des-ch-ques/
+    // لذلك سيكون لدينا 3 بطاقات: اثنان منها لنفس الرابط لكن ليمكن تمييزهما بوصف مختلف (لأن المستخدم يريد ثلاث بطاقات)
+    // سأمنح كل بطاقة هوية فريدة مع الحفاظ على سلوك فتح الرابط بنفس النافذة.
+    
+    const projectsData = [
         {
-            id: "credit_clients",
-            name: "Système de Gestion de Crédit Clients",
-            tag: "Crédit clients · facturation",
-            desc: "Gestion complète des clients, commandes, paiements échelonnés et suivi financier.",
-            icon: "📊",
-            url: "https://softaben.github.io/Demomodifier/"
+            id: 1,
+            title: "CheckFlow Pro",
+            subtitle: "إدارة الشيكات الاحترافية",
+            iconClass: "fas fa-money-check-alt",
+            url: "https://softaben.github.io/Suivi-des-ch-ques/",
+            description: "منصة متكاملة لتتبع الشيكات، تحليلات المخاطر، وتقارير PDF فورية.",
+            colorStyle: "card-1",
+            extraInfo: "إحصائيات - بنوك - تأخيرات"
         },
         {
-            id: "gestion_stock",
-            name: "Gestion de Stock",
-            tag: "Stock & inventaire",
-            desc: "Contrôle des produits, scanner code-barres, mouvements d'entrée/sortie et export Excel/PDF.",
-            icon: "📦",
-            url: "https://softaben.github.io/demorestaurant-/"
+            id: 2,
+            title: "El Fath Service",
+            subtitle: "إدارة المخزون والمطاعم",
+            iconClass: "fas fa-utensils",
+            url: "https://softaben.github.io/demorestaurant-/",
+            description: "نظام إدارة المنتجات، الباركود، حركات الإدخال والإخراج، وتقارير الـ Stock.",
+            colorStyle: "card-2",
+            extraInfo: "مسح ضوئي | PDF | Excel"
         },
         {
-            id: "suivi_cheque",
-            name: "SUIVI CHEQUE",
-            tag: "Portail de suivi",
-            desc: "Outils de suivi financier et gestion des chèques.",
-            icon: "📝",
-            url: "https://softaben.github.io/Suivi-des-ch-ques/"
+            id: 3,
+            title: "CheckFlow Pro • مرآة",
+            subtitle: "نفس الأداة القوية",
+            iconClass: "fas fa-chart-line",
+            url: "https://softaben.github.io/Suivi-des-ch-ques/",
+            description: "نسخة إضافية من نظام متابعة الشيكات — دخول سريع لنفس اللوحة الغنية بالميزات.",
+            colorStyle: "card-3",
+            extraInfo: "إدارة كاملة للشيكات"
         }
     ];
 
-    const gridContainer = document.getElementById("professionalCards");
+    const gridContainer = document.getElementById('projectsGrid');
 
-    function buildProCards() {
+    function buildCards() {
         if (!gridContainer) return;
-        gridContainer.innerHTML = "";
-
-        services.forEach(item => {
-            const card = document.createElement("div");
-            card.className = "card-link";
-            card.setAttribute("data-url", item.url);
-
+        gridContainer.innerHTML = '';
+        
+        projectsData.forEach(project => {
+            // إنشاء عنصر البطاقة الرئيسي
+            const card = document.createElement('div');
+            card.className = `project-card ${project.colorStyle}`;
+            
+            // إضافة خاصية data-url لتسهيل الوصول
+            card.setAttribute('data-url', project.url);
+            
+            // هيكل البطاقة الداخلي (HTML أنيق)
             card.innerHTML = `
-                <div class="card-icon">${item.icon}</div>
-                <div class="card-title">${item.name}</div>
-                <div class="card-sub">${item.tag}</div>
-                <div class="card-description">${item.desc}</div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="${project.iconClass}"></i>
+                    </div>
+                    <div>
+                        <div class="card-title">${project.title}</div>
+                        <div class="card-sub">
+                            <i class="fas fa-tag"></i> ${project.subtitle}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="desc-preview">
+                        <i class="fas fa-info-circle" style="margin-left: 8px;"></i> ${project.description}
+                    </div>
+                    <div class="link-preview">
+                        <i class="fas fa-link"></i> 
+                        <span dir="ltr">${project.url.replace('https://', '')}</span>
+                    </div>
+                    <div class="meta-badge">
+                        <span><i class="far fa-clock"></i> متاح الآن</span>
+                        <span><i class="fas fa-share-alt"></i> نافذة حاليّة</span>
+                    </div>
+                </div>
                 <div class="card-footer">
-                    <span>👆 Cliquer pour ouvrir</span>
-                    <span>même onglet →</span>
+                    <span><i class="fas fa-hand-pointer"></i> اضغط للذهاب للموقع</span>
+                    <span>${project.extraInfo} <i class="fas fa-arrow-left"></i></span>
                 </div>
             `;
-
-            card.addEventListener("click", (e) => {
-                const targetUrl = card.getAttribute("data-url");
-                if (targetUrl) {
-                    window.location.href = targetUrl;
+            
+            // إضافة مستمع الحدث "click" لفتح الرابط في نفس النافذة (بدون target="_blank")
+            // باستخدام window.location.href لتغيير الصفحة الحالية
+            card.addEventListener('click', (e) => {
+                // نتأكد أن الضغط ليس على عنصر داخلي قد يسبب مشكلة (لكننا نريد فتح الرابط دائماً)
+                // ولكن نمنع التداخل مع أي أحداث افتراضية أخرى
+                e.stopPropagation(); 
+                const linkUrl = card.getAttribute('data-url');
+                if (linkUrl) {
+                    // فتح نفس النافذة الحالية -> الانتقال إلى الرابط
+                    window.location.href = linkUrl;
                 }
             });
-
+            
+            // اختياري: تغيير شكل المؤشر لدلالة على أنه قابل للنقر (موجود بالفعل في الـ CSS)
             gridContainer.appendChild(card);
         });
+        
+        // للتأكد من عدم وجود أي عنصر فقاعات منعزلة (مثلاً لو ضغط على أيقونات داخلية لا تؤثر)
+        // مع ذلك، بالفعل event listener على البطاقة يلتقط كل النقرات.
+        // تحسين إضافي: لو المستخدم ضغط على نص الرابط الموجود داخل البطاقة، يشتغل نفس السلوك ولا فرق.
     }
+    
+    buildCards();
 
-    buildProCards();
+    // (اختياري) إضافة تأثير تمويه بسيط عند تحميل الصفحة
+    console.log("لوحة البطاقات جاهزة — جميع الروابط تفتح في نفس النافذة حسب الطلب");
 </script>
 </body>
 </html>
