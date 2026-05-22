@@ -60,7 +60,7 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* Barre d'outils des liens sauvegardés */
+        /* Barre des liens sauvegardés */
         .saved-bar {
             background: rgba(0,0,0,0.3);
             backdrop-filter: blur(8px);
@@ -131,10 +131,6 @@
             background: rgba(255,100,80,0.5);
             color: white;
         }
-        .save-indicator {
-            font-size: 0.7rem;
-            color: #9bc2b6;
-        }
 
         .cards-grid {
             display: grid;
@@ -190,7 +186,6 @@
             transform: scale(0.98);
         }
 
-        /* Bouton sauvegarder sur la carte */
         .save-btn {
             position: absolute;
             top: 1.2rem;
@@ -207,6 +202,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            z-index: 2;
         }
         .save-btn:hover {
             background: #479e8a;
@@ -256,22 +252,6 @@
             color: #d4eae3;
             margin: 0.8rem 0;
             line-height: 1.5;
-        }
-        
-        .card-url-display {
-            font-size: 0.7rem;
-            font-family: 'SF Mono', monospace;
-            background: rgba(0,0,0,0.4);
-            padding: 0.5rem 0.8rem;
-            border-radius: 40px;
-            color: #c2f0e4;
-            word-break: break-all;
-            margin: 0.8rem 0 0.3rem;
-            display: block;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: left;
-            direction: ltr;
         }
         
         .card-footer {
@@ -344,16 +324,14 @@
 
     <div class="info-note">
         ⚡ Cliquez sur une carte → ouverture dans la même fenêtre &nbsp;&nbsp;|&nbsp;&nbsp;
-        ⭐ Cliquez sur <strong>★ Sauvegarder</strong> pour mémoriser le lien (reste après fermeture)
+        ⭐ Cliquez sur <strong>★ Sauvegarder</strong> pour mémoriser le lien
     </div>
-    <footer>© El Fath · solutions digitales — localStorage (liens uniquement)</footer>
+    <footer>© El Fath · solutions digitales — liens sauvegardés localement</footer>
 </div>
 
 <script>
-    // Clé pour le stockage local
     const STORAGE_KEY = "ElFath_Saved_Links";
     
-    // Liste des cartes par défaut
     const services = [
         {
             id: "credit_clients",
@@ -375,13 +353,12 @@
             id: "suivi_cheque",
             name: "SUIVI CHEQUE",
             tag: "Portail de suivi",
-            desc: "Instance secondaire — outils de suivi financier et gestion des chèques.",
+            desc: "Outils de suivi financier et gestion des chèques.",
             icon: "📝",
             url: "https://softaben.github.io/Suivi-des-ch-ques/"
         }
     ];
 
-    // Récupérer les liens sauvegardés depuis localStorage
     function getSavedLinks() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
@@ -392,10 +369,8 @@
         return [];
     }
 
-    // Sauvegarder un lien (objet { url, name, icon, id })
     function saveLink(linkData) {
         let saved = getSavedLinks();
-        // Vérifier si déjà présent (basé sur l'url)
         const exists = saved.some(item => item.url === linkData.url);
         if (!exists) {
             saved.push(linkData);
@@ -406,7 +381,6 @@
         return !exists;
     }
 
-    // Supprimer un lien sauvegardé par son url
     function removeSavedLink(url) {
         let saved = getSavedLinks();
         saved = saved.filter(item => item.url !== url);
@@ -415,26 +389,22 @@
         refreshCardsSaveButtons();
     }
 
-    // Effacer tous les liens sauvegardés
     function clearAllSaved() {
         localStorage.removeItem(STORAGE_KEY);
         refreshSavedBar();
         refreshCardsSaveButtons();
     }
 
-    // Vérifier si une URL est déjà sauvegardée
     function isLinkSaved(url) {
         const saved = getSavedLinks();
         return saved.some(item => item.url === url);
     }
 
-    // Rafraîchir l'affichage de la barre des liens sauvegardés
     function refreshSavedBar() {
         const savedLinks = getSavedLinks();
         const container = document.getElementById('savedLinksList');
         if (!container) return;
         
-        // Garder le label fixe
         let html = `<span style="font-size:0.7rem; opacity:0.7;">📌 Liens mémorisés :</span>`;
         
         if (savedLinks.length === 0) {
@@ -453,7 +423,6 @@
         
         container.innerHTML = html;
         
-        // Attacher les événements aux boutons de suppression
         document.querySelectorAll('.remove-saved').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -463,7 +432,6 @@
         });
     }
 
-    // Mettre à jour l'état des boutons "Sauvegarder" sur chaque carte
     function refreshCardsSaveButtons() {
         document.querySelectorAll('.card-link').forEach(card => {
             const url = card.getAttribute('data-url');
@@ -480,7 +448,6 @@
         });
     }
 
-    // Générer toutes les cartes
     function buildProCards() {
         const gridContainer = document.getElementById("professionalCards");
         if (!gridContainer) return;
@@ -502,16 +469,13 @@
                 <div class="card-title">${item.name}</div>
                 <div class="card-sub">${item.tag}</div>
                 <div class="card-description">${item.desc}</div>
-                <div class="card-url-display">🔗 ${item.url}</div>
                 <div class="card-footer">
                     <span>👆 Cliquer pour ouvrir</span>
                     <span>même onglet →</span>
                 </div>
             `;
 
-            // Redirection au clic sur la carte (sauf si on clique sur le bouton)
             card.addEventListener("click", (e) => {
-                // Si le clic vient du bouton de sauvegarde, ne pas rediriger
                 if (e.target.classList && e.target.classList.contains('save-btn')) return;
                 if (e.target.parentElement && e.target.parentElement.classList && e.target.parentElement.classList.contains('save-btn')) return;
                 
@@ -524,7 +488,6 @@
             gridContainer.appendChild(card);
         });
 
-        // Attacher les événements de sauvegarde après création
         document.querySelectorAll('.save-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -535,11 +498,9 @@
                 
                 if (!isLinkSaved(url)) {
                     saveLink({ url, name, icon, id });
-                    // Feedback visuel instantané
                     btn.innerHTML = '⭐ Sauvegardé';
                     btn.classList.add('saved');
                 } else {
-                    // Optionnel : on peut aussi permettre de retirer depuis le bouton
                     removeSavedLink(url);
                     btn.innerHTML = '☆ Sauvegarder';
                     btn.classList.remove('saved');
@@ -548,12 +509,10 @@
         });
     }
 
-    // Initialisation
     function init() {
         buildProCards();
         refreshSavedBar();
         
-        // Bouton tout effacer
         const clearBtn = document.getElementById('clearAllBtn');
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
