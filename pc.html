@@ -30,7 +30,7 @@
             align-items: baseline;
             justify-content: space-between;
             flex-wrap: wrap;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
             padding-bottom: 1.2rem;
             border-bottom: 1px solid rgba(255,255,255,0.15);
             animation: fadeInDown 0.6s ease-out;
@@ -58,78 +58,6 @@
             font-weight: 500;
             color: #cfe9e0;
             border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        /* Barre des liens sauvegardés */
-        .saved-bar {
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(8px);
-            border-radius: 60px;
-            padding: 0.6rem 1.2rem;
-            margin-bottom: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            animation: fadeInUp 0.5s ease-out 0.1s both;
-        }
-        .saved-links-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            align-items: center;
-        }
-        .saved-badge {
-            background: rgba(71, 158, 138, 0.3);
-            border-radius: 40px;
-            padding: 0.3rem 0.9rem;
-            font-size: 0.7rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid rgba(71,158,138,0.5);
-            transition: 0.2s;
-        }
-        .saved-badge a {
-            color: #c2f0e4;
-            text-decoration: none;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .saved-badge a:hover {
-            text-decoration: underline;
-            color: white;
-        }
-        .remove-saved {
-            background: none;
-            border: none;
-            color: #ff9f8f;
-            cursor: pointer;
-            font-size: 0.8rem;
-            padding: 0 4px;
-            border-radius: 20px;
-            transition: 0.1s;
-        }
-        .remove-saved:hover {
-            color: #ff6b4a;
-            transform: scale(1.1);
-        }
-        .btn-clear-all {
-            background: rgba(255,100,80,0.25);
-            border: 1px solid rgba(255,100,80,0.5);
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            color: #ffb5a8;
-            transition: 0.2s;
-        }
-        .btn-clear-all:hover {
-            background: rgba(255,100,80,0.5);
-            color: white;
         }
 
         .cards-grid {
@@ -168,11 +96,6 @@
         
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-25px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -279,6 +202,11 @@
             backdrop-filter: blur(4px);
             animation: fadeInUp 0.6s ease-out 0.5s both;
         }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         footer {
             margin-top: 2.5rem;
@@ -295,8 +223,6 @@
             .cards-grid { gap: 1.2rem; }
             .card-title { font-size: 1.25rem; }
             .card-icon { width: 50px; height: 50px; font-size: 1.6rem; }
-            .saved-bar { flex-direction: column; align-items: stretch; }
-            .saved-links-list { justify-content: center; }
         }
     </style>
 </head>
@@ -310,28 +236,15 @@
         <div class="badge-pro">KFP · interface intégrée</div>
     </div>
 
-    <!-- Barre des liens sauvegardés -->
-    <div class="saved-bar" id="savedBar">
-        <div class="saved-links-list" id="savedLinksList">
-            <span style="font-size:0.7rem; opacity:0.7;">📌 Liens mémorisés :</span>
-        </div>
-        <div>
-            <button class="btn-clear-all" id="clearAllBtn">🗑️ Tout effacer</button>
-        </div>
-    </div>
-
     <div class="cards-grid" id="professionalCards"></div>
 
     <div class="info-note">
-        ⚡ Cliquez sur une carte → ouverture dans la même fenêtre &nbsp;&nbsp;|&nbsp;&nbsp;
-        ⭐ Cliquez sur <strong>★ Sauvegarder</strong> pour mémoriser le lien
+        ⚡ Cliquez sur une carte → ouverture dans la même fenêtre
     </div>
-    <footer>© El Fath · solutions digitales — liens sauvegardés localement</footer>
+    <footer>© El Fath · solutions digitales</footer>
 </div>
 
 <script>
-    const STORAGE_KEY = "ElFath_Saved_Links";
-    
     const services = [
         {
             id: "credit_clients",
@@ -359,97 +272,9 @@
         }
     ];
 
-    function getSavedLinks() {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            try {
-                return JSON.parse(saved);
-            } catch(e) { return []; }
-        }
-        return [];
-    }
-
-    function saveLink(linkData) {
-        let saved = getSavedLinks();
-        const exists = saved.some(item => item.url === linkData.url);
-        if (!exists) {
-            saved.push(linkData);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-        }
-        refreshSavedBar();
-        refreshCardsSaveButtons();
-        return !exists;
-    }
-
-    function removeSavedLink(url) {
-        let saved = getSavedLinks();
-        saved = saved.filter(item => item.url !== url);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-        refreshSavedBar();
-        refreshCardsSaveButtons();
-    }
-
-    function clearAllSaved() {
-        localStorage.removeItem(STORAGE_KEY);
-        refreshSavedBar();
-        refreshCardsSaveButtons();
-    }
-
-    function isLinkSaved(url) {
-        const saved = getSavedLinks();
-        return saved.some(item => item.url === url);
-    }
-
-    function refreshSavedBar() {
-        const savedLinks = getSavedLinks();
-        const container = document.getElementById('savedLinksList');
-        if (!container) return;
-        
-        let html = `<span style="font-size:0.7rem; opacity:0.7;">📌 Liens mémorisés :</span>`;
-        
-        if (savedLinks.length === 0) {
-            html += `<span style="font-size:0.7rem; color:#9bc2b6; margin-left:0.5rem;">(aucun lien sauvegardé)</span>`;
-        } else {
-            savedLinks.forEach(link => {
-                html += `
-                    <div class="saved-badge">
-                        <span>${link.icon || '🔗'}</span>
-                        <a href="${link.url}" title="${link.url}" target="_self">${link.name.substring(0, 25)}</a>
-                        <button class="remove-saved" data-url="${link.url}" title="Retirer">✖</button>
-                    </div>
-                `;
-            });
-        }
-        
-        container.innerHTML = html;
-        
-        document.querySelectorAll('.remove-saved').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const url = btn.getAttribute('data-url');
-                if (url) removeSavedLink(url);
-            });
-        });
-    }
-
-    function refreshCardsSaveButtons() {
-        document.querySelectorAll('.card-link').forEach(card => {
-            const url = card.getAttribute('data-url');
-            const saveBtn = card.querySelector('.save-btn');
-            if (saveBtn && url) {
-                if (isLinkSaved(url)) {
-                    saveBtn.innerHTML = '⭐ Sauvegardé';
-                    saveBtn.classList.add('saved');
-                } else {
-                    saveBtn.innerHTML = '☆ Sauvegarder';
-                    saveBtn.classList.remove('saved');
-                }
-            }
-        });
-    }
+    const gridContainer = document.getElementById("professionalCards");
 
     function buildProCards() {
-        const gridContainer = document.getElementById("professionalCards");
         if (!gridContainer) return;
         gridContainer.innerHTML = "";
 
@@ -457,14 +282,8 @@
             const card = document.createElement("div");
             card.className = "card-link";
             card.setAttribute("data-url", item.url);
-            card.setAttribute("data-id", item.id);
-
-            const isSaved = isLinkSaved(item.url);
-            const saveBtnText = isSaved ? '⭐ Sauvegardé' : '☆ Sauvegarder';
-            const savedClass = isSaved ? 'saved' : '';
 
             card.innerHTML = `
-                <button class="save-btn ${savedClass}" data-url="${item.url}" data-name="${item.name}" data-icon="${item.icon}" data-id="${item.id}">${saveBtnText}</button>
                 <div class="card-icon">${item.icon}</div>
                 <div class="card-title">${item.name}</div>
                 <div class="card-sub">${item.tag}</div>
@@ -476,9 +295,6 @@
             `;
 
             card.addEventListener("click", (e) => {
-                if (e.target.classList && e.target.classList.contains('save-btn')) return;
-                if (e.target.parentElement && e.target.parentElement.classList && e.target.parentElement.classList.contains('save-btn')) return;
-                
                 const targetUrl = card.getAttribute("data-url");
                 if (targetUrl) {
                     window.location.href = targetUrl;
@@ -487,43 +303,9 @@
 
             gridContainer.appendChild(card);
         });
-
-        document.querySelectorAll('.save-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const url = btn.getAttribute('data-url');
-                const name = btn.getAttribute('data-name');
-                const icon = btn.getAttribute('data-icon');
-                const id = btn.getAttribute('data-id');
-                
-                if (!isLinkSaved(url)) {
-                    saveLink({ url, name, icon, id });
-                    btn.innerHTML = '⭐ Sauvegardé';
-                    btn.classList.add('saved');
-                } else {
-                    removeSavedLink(url);
-                    btn.innerHTML = '☆ Sauvegarder';
-                    btn.classList.remove('saved');
-                }
-            });
-        });
     }
 
-    function init() {
-        buildProCards();
-        refreshSavedBar();
-        
-        const clearBtn = document.getElementById('clearAllBtn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (confirm('⚠️ Supprimer TOUS les liens sauvegardés ?')) {
-                    clearAllSaved();
-                }
-            });
-        }
-    }
-    
-    init();
+    buildProCards();
 </script>
 </body>
 </html>
