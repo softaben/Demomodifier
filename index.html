@@ -106,6 +106,7 @@
         .total-payment-card { background: var(--nav-hover); padding: 16px; margin-top: 16px; border-radius: 12px; text-align: center; }
         .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin: 15px 0; }
         .delete-btn-order { background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .edit-btn-order { background: var(--info); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-right: 8px; }
         /* Dashboard cards */
         .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 28px; }
         .stat-card { background: var(--bg-card); border-radius: 20px; padding: 20px; border: 1px solid var(--border-light); text-align: center; transition: 0.2s; }
@@ -163,7 +164,7 @@
     <div id="clientsTab" class="tab-content hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-user-plus"></i> Nouveau Client</div><div class="form-group"><label>Nom complet *</label><input type="text" id="newClientName" placeholder="Ex: Ahmed Benali"></div><div class="form-group"><label>Téléphone</label><input type="tel" id="newClientPhone" placeholder="06XXXXXXXX"></div><div class="form-group"><label>Adresse</label><input type="text" id="newClientAddress" placeholder="Casablanca, Maroc"></div><button id="saveClientBtn" class="success"><i class="fas fa-save"></i> Ajouter Client</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-list"></i> Liste des Clients</div><button class="small-icon-btn" onclick="showDeleteAllModal('clients')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchClientsList" placeholder="Rechercher un client..." oninput="renderClientsList()"><div class="list-container" id="clientsList"></div></div></div></div>
 
     <!-- Orders Tab -->
-    <div id="ordersTab" class="tab-content hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-cart-plus"></i> Nouvelle Commande</div><div class="form-group"><label>Choisir le client *</label><select id="orderClientSelect"><option>-- Sélectionner --</option></select></div><div class="form-group"><label>Numéro de commande</label><input type="text" id="orderNumber" placeholder="N° facture"></div><div class="form-group"><label>Montant total (MAD) *</label><input type="number" id="orderAmount" placeholder="0,00"></div><div class="form-group"><label>Date d'échéance</label><input type="date" id="orderDueDate"></div><div class="form-group"><label>Notes</label><textarea id="orderNotes" rows="2" placeholder="Notes optionnelles"></textarea></div><button id="saveOrderBtn" class="success">Enregistrer la commande</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-file-invoice"></i> Liste des Commandes</div><button class="small-icon-btn" onclick="showDeleteAllModal('orders')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchOrders" placeholder="Rechercher..." oninput="renderOrdersList()"><div class="list-container" id="ordersList"></div></div></div></div>
+    <div id="ordersTab" class="tab-content hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-cart-plus"></i> <span id="orderFormTitle">Nouvelle Commande</span></div><input type="hidden" id="editOrderId" value=""><div class="form-group"><label>Choisir le client *</label><select id="orderClientSelect"><option>-- Sélectionner --</option></select></div><div class="form-group"><label>Numéro de commande</label><input type="text" id="orderNumber" placeholder="N° facture"></div><div class="form-group"><label>Montant total (MAD) *</label><input type="number" id="orderAmount" placeholder="0,00"></div><div class="form-group"><label>Date d'échéance</label><input type="date" id="orderDueDate"></div><div class="form-group"><label>Notes</label><textarea id="orderNotes" rows="2" placeholder="Notes optionnelles"></textarea></div><button id="saveOrderBtn" class="success">Enregistrer la commande</button><button id="cancelEditOrderBtn" class="danger hidden" style="margin-top: 10px;">Annuler la modification</button></div><div class="card"><div class="flex-between"><div class="card-title"><i class="fas fa-file-invoice"></i> Liste des Commandes</div><button class="small-icon-btn" onclick="showDeleteAllModal('orders')"><i class="fas fa-trash"></i> Tout supprimer</button></div><input type="text" id="searchOrders" placeholder="Rechercher..." oninput="renderOrdersList()"><div class="list-container" id="ordersList"></div></div></div></div>
 
     <!-- Payments Tab -->
     <div id="paymentsTab" class="tab-content hidden"><div class="two-columns"><div class="card"><div class="card-title"><i class="fas fa-hand-holding-usd"></i> Mode de Paiement</div><div class="row"><button onclick="setPaymentMode('single')" id="singleModeBtn" style="background:var(--accent);">Paiement unique</button><button onclick="setPaymentMode('multi')" id="multiModeBtn" style="background:var(--nav-hover);">Paiement multiple</button></div></div></div><div id="singlePaymentCard" class="card"><div class="card-title"><i class="fas fa-receipt"></i> Enregistrer un paiement</div><select id="paymentClientSelect" onchange="loadClientOrdersForPayment()"><option>-- Choisir client --</option></select><select id="paymentOrderSelect" onchange="updatePaymentInfo()"><option>-- Choisir commande --</option></select><div id="paymentOrderInfo" style="background:var(--nav-hover);padding:12px;border-radius:12px;margin-bottom:15px;"></div><input type="number" id="paymentAmount" placeholder="Montant payé"><input type="date" id="paymentDate"><select id="paymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option><option>Chèque</option></select><input type="text" id="paymentNotes" placeholder="Notes"><button id="savePaymentBtn" class="success">Enregistrer le paiement</button></div><div id="multiPaymentCard" class="card hidden"><div class="card-title"><i class="fas fa-layer-group"></i> Paiement multiple</div><select id="multiClientSelect" onchange="loadMultiClientOrdersModern()"><option>-- Choisir client --</option></select><div id="multiOrdersListModern"></div><div class="total-payment-card"><label>💰 Montant total à payer</label><input type="number" id="totalPaymentAmount" step="0.01" placeholder="0,00"><button onclick="distributePaymentModern()" style="margin-top:8px;background:var(--info);">Répartir automatiquement</button></div><input type="date" id="multiPaymentDate"><select id="multiPaymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option></select><input type="text" id="multiPaymentNotes" placeholder="Notes"><button id="saveMultiPaymentBtn" class="success">Valider les paiements</button></div><div class="card"><div class="card-title"><i class="fas fa-history"></i> Derniers paiements</div><div id="recentPaymentsList" class="list-container"></div></div></div>
@@ -180,7 +181,7 @@
 
 <!-- Modals -->
 <div id="deleteConfirmModal" class="modal"><div class="modal-content"><div class="modal-header">⚠️ Confirmation <button onclick="closeModal('deleteConfirmModal')" style="background:none; width:auto; color:var(--text-primary);">✕</button></div><div id="deleteConfirmMessage" style="margin:20px 0; text-align:center;"></div><div class="row"><button onclick="closeModal('deleteConfirmModal')">Annuler</button><button id="confirmDeleteBtn" class="danger">Confirmer la suppression</button></div></div></div>
-<div id="orderDetailModal" class="modal"><div class="modal-content"><div class="modal-header">Détails de la commande <button onclick="closeModal('orderDetailModal')" style="background:none; width:auto;">✕</button></div><div id="orderDetailContent"></div><div class="row" style="margin-top:20px;"><button id="printOrderBtn" class="info"><i class="fas fa-print"></i> PDF Facture</button><button id="deleteOrderBtn" class="danger delete-btn-order"><i class="fas fa-trash"></i> Supprimer</button></div></div></div>
+<div id="orderDetailModal" class="modal"><div class="modal-content"><div class="modal-header">Détails de la commande <button onclick="closeModal('orderDetailModal')" style="background:none; width:auto;">✕</button></div><div id="orderDetailContent"></div><div class="row" style="margin-top:20px;"><button id="printOrderBtn" class="info"><i class="fas fa-print"></i> PDF Facture</button><button id="editOrderFromDetailBtn" class="edit-btn-order"><i class="fas fa-edit"></i> Modifier</button><button id="deleteOrderBtn" class="danger delete-btn-order"><i class="fas fa-trash"></i> Supprimer</button></div></div></div>
 <div id="movementModal" class="modal"><div class="modal-content" style="max-width: 900px;"><div class="modal-header">Historique des mouvements <button onclick="closeModal('movementModal')" style="background:none; width:auto;">✕</button></div><div id="movementContent"></div><div class="row"><button id="printMovementPDF" class="info"><i class="fas fa-file-pdf"></i> Télécharger PDF</button><button onclick="closeModal('movementModal')">Fermer</button></div></div></div>
 
 <script>
@@ -209,7 +210,6 @@
 
     // ========== DASHBOARD RENDER ==========
     function renderDashboard() {
-        // Stats
         const totalClients = clients.length;
         const totalOrders = orders.length;
         const totalPayments = payments.length;
@@ -225,7 +225,6 @@
             <div class="stat-card"><div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div><div class="stat-value">${formatMoney(totalRemaining)}</div><div class="stat-label">Encours clients</div><div class="stat-badge" style="background:var(--warning-bg);">⚠️ Restant à payer</div></div>
         `;
         
-        // Top 5 clients par montant total commandé
         let clientsStats = clients.map(c => {
             let clientOrders = orders.filter(o => o.clientId === c.id);
             let total = clientOrders.reduce((s,o)=>s+o.amount,0);
@@ -242,7 +241,6 @@
         }
         document.getElementById('topClientsList').innerHTML = topHtml;
         
-        // Dernières activités (5 dernières commandes + 5 derniers paiements)
         let lastOrders = [...orders].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
         let lastPayments = [...payments].sort((a,b)=>b.timestamp-a.timestamp).slice(0,5);
         let activities = [];
@@ -252,7 +250,6 @@
         let actHtml = activities.length ? activities.map(a=>`<div class="list-item" style="cursor:default;"><div class="small-text">📅 ${formatDateFr(a.date)}</div><div>${a.text}</div></div>`).join('') : '<div style="padding:20px;text-align:center;">Aucune activité récente</div>';
         document.getElementById('recentActivities').innerHTML = actHtml;
         
-        // Résumé financier
         let paidPercent = totalOrdersAmount > 0 ? (totalPaidAmount / totalOrdersAmount * 100) : 0;
         document.getElementById('financialSummary').innerHTML = `
             <div style="text-align:center;"><div class="stat-label">Total facturé</div><div class="stat-value" style="font-size:1.3rem;">${formatMoney(totalOrdersAmount)}</div></div>
@@ -267,9 +264,106 @@
     window.deleteSingleClient=async(id)=>{ if(!confirm('Supprimer ce client et toutes ses données ?'))return; for(let o of orders.filter(o=>o.clientId===id)){ for(let p of payments.filter(p=>p.orderId===o.id)) await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove(); await db.ref(`users/${currentUser.uid}/orders/${o.id}`).remove(); } await db.ref(`users/${currentUser.uid}/clients/${id}`).remove(); showFlash('Client supprimé'); };
     document.getElementById('saveClientBtn').onclick=async()=>{ let name=document.getElementById('newClientName').value.trim(); if(!name) return showFlash('Nom requis'); await db.ref(`users/${currentUser.uid}/clients/${Date.now()}`).set({id:Date.now().toString(),name,phone:document.getElementById('newClientPhone').value,address:document.getElementById('newClientAddress').value,date:new Date().toISOString()}); showFlash('Client ajouté'); document.getElementById('newClientName').value=''; };
 
-    function renderOrdersList(){ const cont=document.getElementById('ordersList'); let f=orders; if(!f.length){ cont.innerHTML='<div style="padding:30px;text-align:center;">📭 Aucune commande</div>'; return; } cont.innerHTML=f.map(o=>{ let c=clients.find(c=>c.id===o.clientId); let paid=payments.filter(p=>p.orderId===o.id).reduce((a,b)=>a+b.amount,0); let perc=(paid/o.amount)*100; return `<div class="list-item" onclick="showOrderDetail('${o.id}')"><div class="flex-between"><span class="client-name">${c?.name||'?'}</span><span class="badge ${paid>=o.amount?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=o.amount?'Payé':paid>0?'Partiel':'Impayé'}</span></div><div>🔢 ${o.orderNumber} · ${formatMoney(o.amount)}</div><div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div><div class="small-text">✅ Restant: ${formatMoney(o.amount-paid)}</div></div>`; }).join(''); }
-    document.getElementById('saveOrderBtn').onclick=async()=>{ let clientId=document.getElementById('orderClientSelect').value; let amount=parseFloat(document.getElementById('orderAmount').value); if(!clientId||isNaN(amount)||amount<=0) return showFlash('Client et montant requis'); await db.ref(`users/${currentUser.uid}/orders/${Date.now()}`).set({id:Date.now().toString(),clientId,orderNumber:document.getElementById('orderNumber').value.trim()||`CMD-${Date.now()}`,amount,dueDate:document.getElementById('orderDueDate').value,notes:document.getElementById('orderNotes').value,date:new Date().toISOString()}); showFlash('Commande ajoutée'); document.getElementById('orderAmount').value=''; };
+    // Fonctions de modification de commande
+    window.startEditOrder = (orderId) => {
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        // Remplir le formulaire avec les données de la commande
+        document.getElementById('orderClientSelect').value = order.clientId;
+        document.getElementById('orderNumber').value = order.orderNumber;
+        document.getElementById('orderAmount').value = order.amount;
+        document.getElementById('orderDueDate').value = order.dueDate || '';
+        document.getElementById('orderNotes').value = order.notes || '';
+        document.getElementById('editOrderId').value = order.id;
+        
+        // Changer le titre et les boutons
+        document.getElementById('orderFormTitle').innerHTML = '<i class="fas fa-edit"></i> Modifier la Commande';
+        document.getElementById('saveOrderBtn').innerHTML = '<i class="fas fa-save"></i> Mettre à jour';
+        document.getElementById('cancelEditOrderBtn').classList.remove('hidden');
+        
+        // Désactiver la sélection client pendant la modification (optionnel)
+        document.getElementById('orderClientSelect').disabled = false;
+        
+        // Scroller vers le formulaire
+        document.querySelector('#ordersTab .card:first-child').scrollIntoView({ behavior: 'smooth' });
+        showFlash('Mode édition activé - Modifiez les champs puis cliquez sur "Mettre à jour"', 'info');
+    };
+    
+    window.cancelEditOrder = () => {
+        // Réinitialiser le formulaire
+        document.getElementById('orderClientSelect').value = '';
+        document.getElementById('orderNumber').value = '';
+        document.getElementById('orderAmount').value = '';
+        document.getElementById('orderDueDate').value = '';
+        document.getElementById('orderNotes').value = '';
+        document.getElementById('editOrderId').value = '';
+        
+        // Restaurer le titre et les boutons
+        document.getElementById('orderFormTitle').innerHTML = '<i class="fas fa-cart-plus"></i> Nouvelle Commande';
+        document.getElementById('saveOrderBtn').innerHTML = '<i class="fas fa-save"></i> Enregistrer la commande';
+        document.getElementById('cancelEditOrderBtn').classList.add('hidden');
+        
+        showFlash('Édition annulée', 'info');
+    };
+    
+    // Modification de la fonction saveOrder pour supporter la mise à jour
+    const originalSaveOrder = document.getElementById('saveOrderBtn').onclick;
+    document.getElementById('saveOrderBtn').onclick = async () => {
+        const editOrderId = document.getElementById('editOrderId').value;
+        const clientId = document.getElementById('orderClientSelect').value;
+        const amount = parseFloat(document.getElementById('orderAmount').value);
+        
+        if (!clientId || isNaN(amount) || amount <= 0) {
+            showFlash('Client et montant requis', 'danger');
+            return;
+        }
+        
+        const orderData = {
+            clientId: clientId,
+            orderNumber: document.getElementById('orderNumber').value.trim() || `CMD-${Date.now()}`,
+            amount: amount,
+            dueDate: document.getElementById('orderDueDate').value,
+            notes: document.getElementById('orderNotes').value,
+            date: new Date().toISOString()
+        };
+        
+        if (editOrderId) {
+            // Mode édition - mettre à jour la commande existante
+            const oldOrder = orders.find(o => o.id === editOrderId);
+            const amountDifference = amount - oldOrder.amount;
+            
+            // Vérifier si la modification est possible (ne pas réduire le montant en dessous du payé)
+            const paidAmount = payments.filter(p => p.orderId === editOrderId).reduce((sum, p) => sum + p.amount, 0);
+            if (amount < paidAmount) {
+                showFlash(`Impossible: Le nouveau montant (${formatMoney(amount)}) est inférieur au montant déjà payé (${formatMoney(paidAmount)})`, 'danger');
+                return;
+            }
+            
+            // Mettre à jour la commande
+            await db.ref(`users/${currentUser.uid}/orders/${editOrderId}`).update(orderData);
+            showFlash(`Commande ${orderData.orderNumber} modifiée avec succès`);
+            
+            // Réinitialiser le formulaire
+            cancelEditOrder();
+        } else {
+            // Mode création - ajouter une nouvelle commande
+            await db.ref(`users/${currentUser.uid}/orders/${Date.now()}`).set({
+                id: Date.now().toString(),
+                ...orderData
+            });
+            showFlash('Commande ajoutée avec succès');
+            document.getElementById('orderAmount').value = '';
+            document.getElementById('orderNumber').value = '';
+            document.getElementById('orderDueDate').value = '';
+            document.getElementById('orderNotes').value = '';
+        }
+    };
+    
+    document.getElementById('cancelEditOrderBtn').onclick = () => cancelEditOrder();
 
+    function renderOrdersList(){ const cont=document.getElementById('ordersList'); let search=document.getElementById('searchOrders')?.value.toLowerCase()||''; let filtered=search?orders.filter(o=>{ let c=clients.find(c=>c.id===o.clientId); return c?.name.toLowerCase().includes(search)||o.orderNumber.toLowerCase().includes(search); }):orders; if(!filtered.length){ cont.innerHTML='<div style="padding:30px;text-align:center;">📭 Aucune commande</div>'; return; } cont.innerHTML=filtered.map(o=>{ let c=clients.find(c=>c.id===o.clientId); let paid=payments.filter(p=>p.orderId===o.id).reduce((a,b)=>a+b.amount,0); let perc=(paid/o.amount)*100; return `<div class="list-item" onclick="showOrderDetail('${o.id}')"><div class="flex-between"><span class="client-name">${c?.name||'?'}</span><span class="badge ${paid>=o.amount?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=o.amount?'Payé':paid>0?'Partiel':'Impayé'}</span></div><div>🔢 ${o.orderNumber} · ${formatMoney(o.amount)}</div><div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div><div class="small-text">✅ Restant: ${formatMoney(o.amount-paid)}</div></div>`; }).join(''); }
+    
     function updateAllSelects(){ ['orderClientSelect','paymentClientSelect','multiClientSelect'].forEach(id=>{ let s=document.getElementById(id); if(s){ s.innerHTML='<option value="">-- Sélectionner --</option>'; clients.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }); }
     function updateReportClientSelect(){ let sel=document.getElementById('reportClientSelect'); if(sel){ sel.innerHTML='<option value="">-- Sélectionner un client --</option>'; clients.forEach(c=>sel.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }
     function updateMovementClientSelect(){ let sel=document.getElementById('movementClientSelect'); if(sel){ sel.innerHTML='<option value="">-- Sélectionner un client --</option>'; clients.forEach(c=>sel.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }
@@ -290,7 +384,6 @@
     function applyPresetFilter(){ let p=document.getElementById('filterPeriodPreset').value; let d=new Date(); if(p==='today'){ document.getElementById('filterDateStart').value=d.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } else if(p==='week'){ let start=new Date(d); start.setDate(d.getDate()-7); document.getElementById('filterDateStart').value=start.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } else if(p==='month'){ let start=new Date(d); start.setDate(d.getDate()-30); document.getElementById('filterDateStart').value=start.toISOString().split('T')[0]; document.getElementById('filterDateEnd').value=d.toISOString().split('T')[0]; applyDateFilter(); } }
     window.applyPresetFilter=applyPresetFilter; window.applyDateFilter=applyDateFilter; window.resetPeriodFilter=resetPeriodFilter;
 
-    // Mouvements
     function getClientMouvements(clientId) {
         const clientOrders = orders.filter(o => o.clientId === clientId);
         const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
@@ -311,7 +404,6 @@
         else {
             html += `<div style="border:1px solid var(--border-light); border-radius:12px; overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:0.85rem;"><thead><tr style="background:var(--accent); color:white;"><th style="padding:10px; text-align:left;">Date</th><th style="padding:10px; text-align:left;">Type</th><th style="padding:10px; text-align:left;">Libellé</th><th style="padding:10px; text-align:right;">Montant</th><th style="padding:10px; text-align:right;">Solde</th></tr></thead><tbody>`;
             mouvements.forEach(m => {
-                let montantClass = m.estVente ? 'debit' : 'credit';
                 let montantSigne = m.estVente ? `+ ${formatMoney(m.montant)}` : `- ${formatMoney(m.montant)}`;
                 html += `<tr style="border-bottom:1px solid var(--border-light);"><td style="padding:10px;">${formatDateFr(m.date)}</td><td style="padding:10px;"><span class="badge ${m.estVente ? 'badge-unpaid' : 'badge-paid'}">${m.type}</span></td><td style="padding:10px;">${m.libelle}</td><td style="padding:10px; text-align:right; ${m.estVente ? 'color:var(--danger);' : 'color:var(--success);'}">${montantSigne}</td><td style="padding:10px; text-align:right; font-weight:700;">${formatMoney(m.solde)}</td></tr>`;
             });
@@ -369,15 +461,59 @@
         if (tabName === 'dashboard') renderDashboard();
         if (tabName === 'situation') { renderSituationClients(); updateMovementClientSelect(); }
         if (tabName === 'payments') { updateAllSelects(); loadClientOrdersForPayment(); }
+        if (tabName === 'orders') cancelEditOrder(); // Réinitialiser le formulaire d'édition quand on revient sur l'onglet
     };
     document.querySelectorAll('.nav-tab').forEach(tab => { tab.addEventListener('click', () => showTab(tab.getAttribute('data-tab'))); });
     
     window.showDeleteAllModal=(type)=>{ pendingDeleteType=type; document.getElementById('deleteConfirmMessage').innerHTML='⚠️ Supprimer toutes les données ?'; openModal('deleteConfirmModal'); };
     document.getElementById('confirmDeleteBtn').onclick=()=>{ closeModal('deleteConfirmModal'); showFlash('Action simulée'); };
     function initTheme(){ let saved=localStorage.getItem('elfath_theme'); if(saved==='dark') document.body.classList.add('dark'); document.getElementById('themeToggleBtn').onclick=()=>{ document.body.classList.toggle('dark'); localStorage.setItem('elfath_theme', document.body.classList.contains('dark')?'dark':'light'); renderDashboard(); }; }
-    window.showOrderDetail = (orderId) => { let o=orders.find(o=>o.id===orderId); if(!o) return; let c=clients.find(c=>c.id===o.clientId); let paid=payments.filter(p=>p.orderId===orderId).reduce((s,p)=>s+p.amount,0); document.getElementById('orderDetailContent').innerHTML=`<div><strong>${c?.name}</strong><br>N°: ${o.orderNumber}<br>Date: ${formatDateFr(o.date)}<br>Total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br>Reste: ${formatMoney(o.amount-paid)}</div>`; openModal('orderDetailModal'); document.getElementById('printOrderBtn').onclick=()=>{ const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFillColor(13,148,136); doc.rect(0,0,210,20,'F'); doc.setTextColor(255,255,255); doc.text('EL FATH SERVICE',105,14,{align:'center'}); doc.setTextColor(0,0,0); doc.text(`Facture N°: ${o.orderNumber}`,10,35); doc.text(`Client: ${c?.name}`,10,45); doc.text(`Date: ${formatDateFr(o.date)}`,10,55); doc.text(`Total: ${formatMoney(o.amount)}`,10,65); doc.text(`Payé: ${formatMoney(paid)}`,10,75); doc.text(`Reste: ${formatMoney(o.amount-paid)}`,10,85); doc.save(`facture_${o.orderNumber}.pdf`); showFlash('PDF facture généré'); };
-        document.getElementById('deleteOrderBtn').onclick=()=>{ closeModal('orderDetailModal'); deleteOrder(orderId); }; };
-    window.deleteOrder = async (orderId) => { if(!confirm('Supprimer cette commande ?'))return; for(let p of payments.filter(p=>p.orderId===orderId)) await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove(); await db.ref(`users/${currentUser.uid}/orders/${orderId}`).remove(); showFlash('Commande supprimée'); };
+    
+    window.showOrderDetail = (orderId) => { 
+        let o=orders.find(o=>o.id===orderId); 
+        if(!o) return; 
+        let c=clients.find(c=>c.id===o.clientId); 
+        let paid=payments.filter(p=>p.orderId===orderId).reduce((s,p)=>s+p.amount,0); 
+        document.getElementById('orderDetailContent').innerHTML=`<div><strong>${c?.name}</strong><br>N°: ${o.orderNumber}<br>Date: ${formatDateFr(o.date)}<br>Total: ${formatMoney(o.amount)}<br>Payé: ${formatMoney(paid)}<br>Reste: ${formatMoney(o.amount-paid)}</div>`; 
+        openModal('orderDetailModal'); 
+        
+        document.getElementById('printOrderBtn').onclick=()=>{ 
+            const {jsPDF}=window.jspdf; 
+            const doc=new jsPDF(); 
+            doc.setFillColor(13,148,136); 
+            doc.rect(0,0,210,20,'F'); 
+            doc.setTextColor(255,255,255); 
+            doc.text('EL FATH SERVICE',105,14,{align:'center'}); 
+            doc.setTextColor(0,0,0); 
+            doc.text(`Facture N°: ${o.orderNumber}`,10,35); 
+            doc.text(`Client: ${c?.name}`,10,45); 
+            doc.text(`Date: ${formatDateFr(o.date)}`,10,55); 
+            doc.text(`Total: ${formatMoney(o.amount)}`,10,65); 
+            doc.text(`Payé: ${formatMoney(paid)}`,10,75); 
+            doc.text(`Reste: ${formatMoney(o.amount-paid)}`,10,85); 
+            doc.save(`facture_${o.orderNumber}.pdf`); 
+            showFlash('PDF facture généré'); 
+        };
+        
+        document.getElementById('editOrderFromDetailBtn').onclick=() => { 
+            closeModal('orderDetailModal');
+            showTab('orders');
+            setTimeout(() => startEditOrder(orderId), 300);
+        };
+        
+        document.getElementById('deleteOrderBtn').onclick=()=>{ 
+            closeModal('orderDetailModal'); 
+            deleteOrder(orderId); 
+        }; 
+    };
+    
+    window.deleteOrder = async (orderId) => { 
+        if(!confirm('Supprimer cette commande ?'))return;
+        for(let p of payments.filter(p=>p.orderId===orderId)) 
+            await db.ref(`users/${currentUser.uid}/payments/${p.id}`).remove(); 
+        await db.ref(`users/${currentUser.uid}/orders/${orderId}`).remove(); 
+        showFlash('Commande supprimée'); 
+    };
 </script>
 </body>
 </html>
