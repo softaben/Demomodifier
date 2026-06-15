@@ -109,6 +109,7 @@
         .edit-btn-order { background: var(--info); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-right: 8px; }
         .edit-payment-btn { background: var(--info); color: white; border: none; padding: 4px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.75rem; margin-left: 10px; }
         .delete-payment-btn { background: var(--danger); color: white; border: none; padding: 4px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.75rem; margin-left: 5px; }
+        .edit-operation-date-btn { background: var(--warning); color: white; border: none; padding: 4px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.75rem; margin-left: 5px; }
         .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 28px; }
         .stat-card { background: var(--bg-card); border-radius: 20px; padding: 20px; border: 1px solid var(--border-light); text-align: center; transition: 0.2s; }
         .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
@@ -120,6 +121,36 @@
         .top-client-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border-light); }
         .client-rank { font-weight: 700; color: var(--accent); width: 30px; }
         @media (max-width:800px){ .two-columns{ grid-template-columns:1fr; } .dashboard-stats{ grid-template-columns:1fr 1fr; } }
+        
+        /* Nouveau style pour la modification de date */
+        .date-edit-modal .date-preview {
+            background: var(--accent-bg-light);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .date-preview .old-date {
+            color: var(--danger);
+            text-decoration: line-through;
+            font-size: 0.9rem;
+        }
+        .date-preview .new-date {
+            color: var(--success);
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .operation-type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .operation-type-payment { background: var(--success-bg); color: var(--success); }
+        .operation-type-order { background: var(--info); color: white; }
     </style>
 </head>
 <body>
@@ -188,6 +219,9 @@
 <!-- Edit Payment Modal -->
 <div id="editPaymentModal" class="modal"><div class="modal-content"><div class="modal-header">Modifier le paiement <button onclick="closeModal('editPaymentModal')" style="background:none; width:auto;">✕</button></div><input type="hidden" id="editPaymentId"><div class="form-group"><label>Montant (MAD)</label><input type="number" id="editPaymentAmount" step="0.01"></div><div class="form-group"><label>Date de paiement</label><input type="date" id="editPaymentDate"></div><div class="form-group"><label>Mode de paiement</label><select id="editPaymentMethod"><option>Espèces</option><option>Virement bancaire</option><option>Carte bancaire</option><option>Chèque</option></select></div><div class="form-group"><label>Notes</label><input type="text" id="editPaymentNotes"></div><div class="row"><button onclick="closeModal('editPaymentModal')">Annuler</button><button id="saveEditPaymentBtn" class="success">Enregistrer les modifications</button></div></div></div>
 
+<!-- NOUVEAU MODAL : Modification de date d'opération -->
+<div id="editOperationDateModal" class="modal date-edit-modal"><div class="modal-content"><div class="modal-header">Modifier la date de l'opération <button onclick="closeModal('editOperationDateModal')" style="background:none; width:auto;">✕</button></div><input type="hidden" id="editOperationId"><input type="hidden" id="editOperationType"><div id="operationDatePreview" class="date-preview"></div><div class="form-group"><label>Nouvelle date</label><input type="date" id="editOperationNewDate"></div><div class="form-group"><label>Justification (optionnel)</label><input type="text" id="editOperationJustification" placeholder="Raison de la modification de date"></div><div class="row"><button onclick="closeModal('editOperationDateModal')">Annuler</button><button id="saveOperationDateBtn" class="warning" style="background:var(--warning);">Modifier la date</button></div></div></div>
+
 <script>
     const firebaseConfig = { apiKey: "AIzaSyB-TBjgISvKwJnYc7hNRoUcNLhxRnJvVE0", authDomain: "stock-c1643.firebaseapp.com", projectId: "stock-c1643", storageBucket: "stock-c1643.firebasestorage.app", messagingSenderId: "935549361989", appId: "1:935549361989:web:5407897ba6febc50f1682c" };
     const app = firebase.initializeApp(firebaseConfig); const db = firebase.database(); const auth = firebase.auth();
@@ -196,7 +230,8 @@
     function formatNumber(amount) { if (amount === undefined || amount === null) return '0,00'; let parts = amount.toFixed(2).split('.'); let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' '); return integerPart + ',' + parts[1]; }
     function formatMoney(amount) { return formatNumber(amount) + ' MAD'; }
     function formatDateFr(d){ return d ? new Date(d).toLocaleDateString('fr-FR') : ''; }
-    function showFlash(msg,type='success'){ let d=document.createElement('div'); d.style.cssText=`position:fixed;bottom:20px;right:20px;background:${type==='success'?'#059669':'#DC2626'};color:white;padding:12px 20px;border-radius:12px;z-index:9999;font-size:14px;font-weight:500;`; d.innerText=msg; document.body.appendChild(d); setTimeout(()=>d.remove(),3000); }
+    function formatDateTimeFr(d){ return d ? new Date(d).toLocaleString('fr-FR') : ''; }
+    function showFlash(msg,type='success'){ let d=document.createElement('div'); d.style.cssText=`position:fixed;bottom:20px;right:20px;background:${type==='success'?'#059669':type==='warning'?'#D97706':'#DC2626'};color:white;padding:12px 20px;border-radius:12px;z-index:9999;font-size:14px;font-weight:500;`; d.innerText=msg; document.body.appendChild(d); setTimeout(()=>d.remove(),3000); }
 
     auth.onAuthStateChanged(user => { if(user){ currentUser=user; loadData(); initTheme(); } else showLogin(); });
     function showLogin(){ document.body.insertAdjacentHTML('beforeend',`<div id="loginModal" class="modal active"><div class="modal-content"><div class="modal-header" style="justify-content:center;">🔐 Connexion</div><input id="loginEmail" placeholder="Email" style="margin-bottom:10px;"><input id="loginPass" type="password" placeholder="Mot de passe"><button onclick="doLogin()" style="margin-top:15px;">Se connecter</button><div id="loginError" style="color:var(--danger);margin-top:10px;"></div></div></div>`); }
@@ -212,6 +247,118 @@
     function closeModal(id){ document.getElementById(id)?.classList.remove('active'); if(id==='tempModal') document.getElementById(id)?.remove(); }
     window.closeModal=closeModal;
 
+    // ========== NOUVELLE FONCTION : Modification de date d'opération ==========
+    window.editOperationDate = (operationId, operationType) => {
+        let operation = null;
+        let oldDate = '';
+        let operationLabel = '';
+        
+        if (operationType === 'payment') {
+            operation = payments.find(p => p.id === operationId);
+            if (operation) {
+                oldDate = operation.date;
+                operationLabel = `Paiement de ${formatMoney(operation.amount)} - ${operation.orderNumber}`;
+            }
+        } else if (operationType === 'order') {
+            operation = orders.find(o => o.id === operationId);
+            if (operation) {
+                oldDate = operation.date;
+                const client = clients.find(c => c.id === operation.clientId);
+                operationLabel = `Commande ${operation.orderNumber} - ${formatMoney(operation.amount)}${client ? ` (${client.name})` : ''}`;
+            }
+        }
+        
+        if (!operation) {
+            showFlash('Opération non trouvée', 'danger');
+            return;
+        }
+        
+        document.getElementById('editOperationId').value = operationId;
+        document.getElementById('editOperationType').value = operationType;
+        document.getElementById('editOperationNewDate').value = oldDate ? oldDate.split('T')[0] : new Date().toISOString().split('T')[0];
+        document.getElementById('editOperationJustification').value = '';
+        
+        const previewHtml = `
+            <div class="operation-type-badge ${operationType === 'payment' ? 'operation-type-payment' : 'operation-type-order'}">
+                ${operationType === 'payment' ? '💰 Paiement' : '📦 Commande'}
+            </div>
+            <div class="old-date">Ancienne date: ${formatDateTimeFr(oldDate)}</div>
+            <div class="new-date">🔄 Nouvelle date: à définir</div>
+            <div class="small-text" style="margin-top:10px;">${operationLabel}</div>
+        `;
+        document.getElementById('operationDatePreview').innerHTML = previewHtml;
+        
+        // Mettre à jour l'aperçu quand la date change
+        const dateInput = document.getElementById('editOperationNewDate');
+        const updatePreview = () => {
+            const newDate = dateInput.value;
+            if (newDate) {
+                document.getElementById('operationDatePreview').innerHTML = `
+                    <div class="operation-type-badge ${operationType === 'payment' ? 'operation-type-payment' : 'operation-type-order'}">
+                        ${operationType === 'payment' ? '💰 Paiement' : '📦 Commande'}
+                    </div>
+                    <div class="old-date">Ancienne date: ${formatDateTimeFr(oldDate)}</div>
+                    <div class="new-date" style="color:var(--success);">✅ Nouvelle date: ${formatDateFr(newDate)}</div>
+                    <div class="small-text" style="margin-top:10px;">${operationLabel}</div>
+                `;
+            }
+        };
+        dateInput.onchange = updatePreview;
+        dateInput.oninput = updatePreview;
+        
+        openModal('editOperationDateModal');
+    };
+    
+    // Sauvegarde de la nouvelle date
+    document.getElementById('saveOperationDateBtn').onclick = async () => {
+        const operationId = document.getElementById('editOperationId').value;
+        const operationType = document.getElementById('editOperationType').value;
+        const newDateStr = document.getElementById('editOperationNewDate').value;
+        const justification = document.getElementById('editOperationJustification').value;
+        
+        if (!newDateStr) {
+            showFlash('Veuillez sélectionner une nouvelle date', 'danger');
+            return;
+        }
+        
+        const newDateISO = new Date(newDateStr).toISOString();
+        const uid = currentUser.uid;
+        
+        try {
+            if (operationType === 'payment') {
+                const payment = payments.find(p => p.id === operationId);
+                if (payment) {
+                    const oldDate = payment.date;
+                    await db.ref(`users/${uid}/payments/${operationId}`).update({ 
+                        date: newDateISO,
+                        dateModified: true,
+                        oldDate: oldDate,
+                        justificationDateModification: justification || 'Modification manuelle',
+                        dateModifiedTimestamp: Date.now()
+                    });
+                    showFlash(`Date du paiement modifiée : ${formatDateFr(oldDate)} → ${formatDateFr(newDateStr)}`, 'warning');
+                }
+            } else if (operationType === 'order') {
+                const order = orders.find(o => o.id === operationId);
+                if (order) {
+                    const oldDate = order.date;
+                    await db.ref(`users/${uid}/orders/${operationId}`).update({ 
+                        date: newDateISO,
+                        dateModified: true,
+                        oldDate: oldDate,
+                        justificationDateModification: justification || 'Modification manuelle',
+                        dateModifiedTimestamp: Date.now()
+                    });
+                    showFlash(`Date de la commande modifiée : ${formatDateFr(oldDate)} → ${formatDateFr(newDateStr)}`, 'warning');
+                }
+            }
+            closeModal('editOperationDateModal');
+        } catch (error) {
+            showFlash('Erreur lors de la modification', 'danger');
+            console.error(error);
+        }
+    };
+    
     // ========== DASHBOARD RENDER ==========
     function renderDashboard() {
         const totalClients = clients.length;
@@ -248,10 +395,10 @@
         let lastOrders = [...orders].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
         let lastPayments = [...payments].sort((a,b)=>b.timestamp-a.timestamp).slice(0,5);
         let activities = [];
-        lastOrders.forEach(o => { let c = clients.find(c=>c.id===o.clientId); activities.push({date:o.date, text:`📦 Nouvelle commande ${o.orderNumber} de ${c?.name || '?'} - ${formatMoney(o.amount)}`, type:'order'}); });
-        lastPayments.forEach(p => { activities.push({date:p.date, text:`💰 Paiement de ${formatMoney(p.amount)} sur commande ${p.orderNumber} par ${p.clientName}`, type:'payment'}); });
+        lastOrders.forEach(o => { let c = clients.find(c=>c.id===o.clientId); activities.push({date:o.date, text:`📦 Nouvelle commande ${o.orderNumber} de ${c?.name || '?'} - ${formatMoney(o.amount)}`, type:'order', id:o.id}); });
+        lastPayments.forEach(p => { activities.push({date:p.date, text:`💰 Paiement de ${formatMoney(p.amount)} sur commande ${p.orderNumber} par ${p.clientName}`, type:'payment', id:p.id}); });
         activities.sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
-        let actHtml = activities.length ? activities.map(a=>`<div class="list-item" style="cursor:default;"><div class="small-text">📅 ${formatDateFr(a.date)}</div><div>${a.text}</div></div>`).join('') : '<div style="padding:20px;text-align:center;">Aucune activité récente</div>';
+        let actHtml = activities.length ? activities.map(a=>`<div class="list-item" style="cursor:pointer;" onclick="editOperationDate('${a.id}', '${a.type}')"><div class="flex-between"><div class="small-text">📅 ${formatDateFr(a.date)}</div><button class="edit-operation-date-btn" onclick="event.stopPropagation();editOperationDate('${a.id}', '${a.type}')"><i class="fas fa-calendar-alt"></i> Modifier date</button></div><div>${a.text}</div></div>`).join('') : '<div style="padding:20px;text-align:center;">Aucune activité récente</div>';
         document.getElementById('recentActivities').innerHTML = actHtml;
         
         let paidPercent = totalOrdersAmount > 0 ? (totalPaidAmount / totalOrdersAmount * 100) : 0;
@@ -350,7 +497,7 @@
     
     document.getElementById('cancelEditOrderBtn').onclick = () => cancelEditOrder();
 
-    function renderOrdersList(){ const cont=document.getElementById('ordersList'); let search=document.getElementById('searchOrders')?.value.toLowerCase()||''; let filtered=search?orders.filter(o=>{ let c=clients.find(c=>c.id===o.clientId); return c?.name.toLowerCase().includes(search)||o.orderNumber.toLowerCase().includes(search); }):orders; if(!filtered.length){ cont.innerHTML='<div style="padding:30px;text-align:center;">📭 Aucune commande</div>'; return; } cont.innerHTML=filtered.map(o=>{ let c=clients.find(c=>c.id===o.clientId); let paid=payments.filter(p=>p.orderId===o.id).reduce((a,b)=>a+b.amount,0); let perc=(paid/o.amount)*100; return `<div class="list-item" onclick="showOrderDetail('${o.id}')"><div class="flex-between"><span class="client-name">${c?.name||'?'}</span><span class="badge ${paid>=o.amount?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=o.amount?'Payé':paid>0?'Partiel':'Impayé'}</span></div><div>🔢 ${o.orderNumber} · ${formatMoney(o.amount)}</div><div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div><div class="small-text">✅ Restant: ${formatMoney(o.amount-paid)}</div></div>`; }).join(''); }
+    function renderOrdersList(){ const cont=document.getElementById('ordersList'); let search=document.getElementById('searchOrders')?.value.toLowerCase()||''; let filtered=search?orders.filter(o=>{ let c=clients.find(c=>c.id===o.clientId); return c?.name.toLowerCase().includes(search)||o.orderNumber.toLowerCase().includes(search); }):orders; if(!filtered.length){ cont.innerHTML='<div style="padding:30px;text-align:center;">📭 Aucune commande</div>'; return; } cont.innerHTML=filtered.map(o=>{ let c=clients.find(c=>c.id===o.clientId); let paid=payments.filter(p=>p.orderId===o.id).reduce((a,b)=>a+b.amount,0); let perc=(paid/o.amount)*100; return `<div class="list-item" onclick="showOrderDetail('${o.id}')"><div class="flex-between"><span class="client-name">${c?.name||'?'}</span><span class="badge ${paid>=o.amount?'badge-paid':paid>0?'badge-partial':'badge-unpaid'}">${paid>=o.amount?'Payé':paid>0?'Partiel':'Impayé'}</span></div><div>🔢 ${o.orderNumber} · ${formatMoney(o.amount)}</div><div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div><div class="flex-between"><div class="small-text">✅ Restant: ${formatMoney(o.amount-paid)}</div><button class="edit-operation-date-btn" onclick="event.stopPropagation();editOperationDate('${o.id}', 'order')"><i class="fas fa-calendar-alt"></i> Modifier date</button></div></div>`; }).join(''); }
     
     function updateAllSelects(){ ['orderClientSelect','paymentClientSelect','multiClientSelect'].forEach(id=>{ let s=document.getElementById(id); if(s){ s.innerHTML='<option value="">-- Sélectionner --</option>'; clients.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }); }
     function updateReportClientSelect(){ let sel=document.getElementById('reportClientSelect'); if(sel){ sel.innerHTML='<option value="">-- Sélectionner un client --</option>'; clients.forEach(c=>sel.innerHTML+=`<option value="${c.id}">${c.name}</option>`); } }
@@ -376,8 +523,8 @@
         const clientOrders = orders.filter(o => o.clientId === clientId);
         const clientPayments = payments.filter(p => clientOrders.some(o => o.id === p.orderId));
         let mouvements = [];
-        clientOrders.forEach(order => { mouvements.push({ date: order.date, type: 'VENTE', libelle: `Commande ${order.orderNumber}`, montant: order.amount, estVente: true }); });
-        clientPayments.forEach(payment => { mouvements.push({ date: payment.date, type: 'PAIEMENT', libelle: `Paiement ${payment.orderNumber} - ${payment.method || ''}`, montant: payment.amount, estVente: false }); });
+        clientOrders.forEach(order => { mouvements.push({ date: order.date, type: 'VENTE', libelle: `Commande ${order.orderNumber}`, montant: order.amount, estVente: true, id: order.id }); });
+        clientPayments.forEach(payment => { mouvements.push({ date: payment.date, type: 'PAIEMENT', libelle: `Paiement ${payment.orderNumber} - ${payment.method || ''}`, montant: payment.amount, estVente: false, id: payment.id }); });
         mouvements.sort((a, b) => new Date(a.date) - new Date(b.date));
         let solde = 0;
         mouvements.forEach(m => { solde += m.estVente ? m.montant : -m.montant; m.solde = solde; });
@@ -390,14 +537,15 @@
         let html = `<div style="margin-bottom:20px;"><strong style="font-size:1.2rem;">${client.name}</strong><br>${client.phone?`📞 ${client.phone}<br>`:''}${client.address?`📍 ${client.address}<br>`:''}📅 Édition: ${formatDateFr(new Date())}</div>`;
         if (mouvements.length === 0) html += '<div style="text-align:center; padding:30px;">📭 Aucun mouvement</div>';
         else {
-            html += `<div style="border:1px solid var(--border-light); border-radius:12px; overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:0.85rem;"><thead><tr style="background:var(--accent); color:white;"><th style="padding:10px; text-align:left;">Date</th><th style="padding:10px; text-align:left;">Type</th><th style="padding:10px; text-align:left;">Libellé</th><th style="padding:10px; text-align:right;">Montant</th><th style="padding:10px; text-align:right;">Solde</th></tr></thead><tbody>`;
+            html += `<div style="border:1px solid var(--border-light); border-radius:12px; overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:0.85rem;"><thead><tr style="background:var(--accent); color:white;"><th style="padding:10px; text-align:left;">Date</th><th style="padding:10px; text-align:left;">Type</th><th style="padding:10px; text-align:left;">Libellé</th><th style="padding:10px; text-align:right;">Montant</th><th style="padding:10px; text-align:right;">Solde</th><th style="padding:10px; text-align:center;">Action</th></tr></thead><tbody>`;
             mouvements.forEach(m => {
                 let montantSigne = m.estVente ? `+ ${formatMoney(m.montant)}` : `- ${formatMoney(m.montant)}`;
-                html += `<tr style="border-bottom:1px solid var(--border-light);"><td style="padding:10px;">${formatDateFr(m.date)}</td><td style="padding:10px;"><span class="badge ${m.estVente ? 'badge-unpaid' : 'badge-paid'}">${m.type}</span></td><td style="padding:10px;">${m.libelle}</td><td style="padding:10px; text-align:right; ${m.estVente ? 'color:var(--danger);' : 'color:var(--success);'}">${montantSigne}</td><td style="padding:10px; text-align:right; font-weight:700;">${formatMoney(m.solde)}</td></tr>`;
+                let operationType = m.estVente ? 'order' : 'payment';
+                html += `<tr style="border-bottom:1px solid var(--border-light);"><td style="padding:10px;">${formatDateFr(m.date)}</td><td style="padding:10px;"><span class="badge ${m.estVente ? 'badge-unpaid' : 'badge-paid'}">${m.type}</span></td><td style="padding:10px;">${m.libelle}</td><td style="padding:10px; text-align:right; ${m.estVente ? 'color:var(--danger);' : 'color:var(--success);'}">${montantSigne}</td><td style="padding:10px; text-align:right; font-weight:700;">${formatMoney(m.solde)}</td><td style="padding:10px; text-align:center;"><button class="edit-operation-date-btn" onclick="event.stopPropagation();editOperationDate('${m.id}', '${operationType}')"><i class="fas fa-calendar-alt"></i> Modifier date</button></td></tr>`;
             });
             let soldeFinal = mouvements.length > 0 ? mouvements[mouvements.length-1].solde : 0;
-            html += `<tr style="background:var(--accent-bg-light); font-weight:bold;"><td colspan="4" style="padding:12px; text-align:right;">SOLDE FINAL :</td><td style="padding:12px; text-align:right;">${formatMoney(soldeFinal)}</td></tr>`;
-            html += `</tbody>}</div>`;
+            html += `<tr style="background:var(--accent-bg-light); font-weight:bold;"><td colspan="5" style="padding:12px; text-align:right;">SOLDE FINAL :</td><td style="padding:12px; text-align:right;">${formatMoney(soldeFinal)}</td></tr>`;
+            html += `</tbody></table></div>`;
         }
         document.getElementById('movementContent').innerHTML = html;
         openModal('movementModal');
@@ -447,12 +595,14 @@
                 <div class="flex-between">
                     <div><strong>${p.clientName}</strong> - ${formatMoney(p.amount)}</div>
                     <div>
+                        <button class="edit-operation-date-btn" onclick="event.stopPropagation();editOperationDate('${p.id}', 'payment')"><i class="fas fa-calendar-alt"></i> Date</button>
                         <button class="edit-payment-btn" onclick="event.stopPropagation();editPayment('${p.id}')"><i class="fas fa-edit"></i> Modifier</button>
                         <button class="delete-payment-btn" onclick="event.stopPropagation();deletePayment('${p.id}')"><i class="fas fa-trash"></i> Suppr</button>
                     </div>
                 </div>
                 <div class="small-text">📄 ${p.orderNumber} | 📅 ${formatDateFr(p.date)} | 💳 ${p.method || 'N/A'}</div>
                 ${p.notes ? `<div class="small-text" style="margin-top:5px;">📝 ${p.notes}</div>` : ''}
+                ${p.dateModified ? `<div class="small-text" style="margin-top:5px; color:var(--warning);">⚠️ Date modifiée le ${formatDateTimeFr(p.dateModifiedTimestamp)}</div>` : ''}
             </div>
         `).join(''); 
     }
